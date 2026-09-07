@@ -46,7 +46,18 @@ public class InteractionInsertStackMixin {
                 BlockPos blockPos = ActiveInteractionContext.getPos();
                 BlockState state = ActiveInteractionContext.getState();
 
-                DynamicFoodBlockCache.registerFoodDrop(state, itemId);
+                // Only learn a mapping this interaction does not already have an answer for.
+                // The unguarded call below wrote beehive -> honey_bottle into the cache the
+                // first time anyone bottled honey: the beehive is not a food source, the honey
+                // inside it is, and the mapping made every beehive in the world resolve to
+                // honey_bottle afterwards. The HUD then showed a freshness countdown on
+                // beehives, looking at one lazily registered it, and once that clock ran out
+                // the next bottle of honey came out STALE or ROTTEN. learnFoodDropFromInteraction
+                // (the popResource sibling of this path) has carried exactly this guard since it
+                // was written; this path predates it and never got it.
+                if (DynamicFoodBlockCache.getFoodDropIgnoringGrowth(state, world, blockPos) == null) {
+                    DynamicFoodBlockCache.registerFoodDrop(state, itemId);
+                }
                 SpoilageEnhancedLogger.log("Intercepted insertStack for " + itemId + " from block state " + state.toString() + " at " + blockPos);
 
                 BlockSpoilageData data = BlockSpoilageData.get(world);
