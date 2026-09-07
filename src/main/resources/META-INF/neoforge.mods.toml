@@ -1,0 +1,27 @@
+modLoader="javafml"
+loaderVersion="[1,)"
+license="MIT"
+
+[[mods]]
+modId="spoilage_enhanced"
+version="${version}"
+displayName="Spoilage Enhanced"
+description='''Dynamic, realistic food and block spoilage with stages, overlays, and deep integrations.'''
+authors="DIVI4ik"
+
+[[mixins]]
+config="spoilage_enhanced.mixins.json"
+
+[[dependencies.spoilage_enhanced]]
+modId="neoforge"
+type="required"
+versionRange="[1,)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.spoilage_enhanced]]
+modId="minecraft"
+type="required"
+versionRange="[26,)"
+ordering="NONE"
+side="BOTH"

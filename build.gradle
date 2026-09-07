@@ -1,0 +1,219 @@
+plugins {
+    id 'fabric-loom' version '1.18.0-alpha.18'
+    id 'maven-publish'
+}
+
+version = project.mod_version
+group = project.maven_group
+base.archivesName = project.archives_base_name
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'Fabric'
+        url = 'https://maven.fabricmc.net/'
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    // Minecraft 26.1+ is unobfuscated — Loom 1.18.0-alpha.18 still requires a mappings
+    // configuration (bug #1585). Use local identity mappings (official -> named 1:1).
+    // Path is relative to projectDir on purpose: this repo gets accessed through different
+    // drive letters (local E:, SMB share Z:), and a hardcoded absolute path breaks the build.
+    mappings files("${projectDir}/.loom-mappings/identity-mappings-26.2.jar")
+    modImplementation "net.fabricmc:fabric-loader:${project.fabric_loader_version}"
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+processResources {
+    inputs.property "version", project.version
+
+    filesMatching(["fabric.mod.json", "META-INF/neoforge.mods.toml", "META-INF/mods.toml"]) {
+        expand "version": project.version
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 25
+    it.options.encoding = "UTF-8"
+}
+
+sourceSets {
+    stubs {
+        java.srcDirs = ['src/stubs/java']
+    }
+    main {
+        compileClasspath += sourceSets.stubs.output
+    }
+}
+
+tasks.named('compileJava') {
+    dependsOn tasks.named('compileStubsJava')
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+    // withSourcesJar() disabled: remapSourcesJar needs an "intermediary" namespace that
+    // unobfuscated Minecraft 26.2 doesn't have (identity mappings are empty). The sources jar
+    // is only for publishing, not for running the game.
+}
+
+loom {
+    runs {
+        client {
+            client()
+            name "Fabric Client"
+            runDir "run/fabric"
+            // ./gradlew runClient -Pnetprobe=true makes the HUD ask the server about the block the
+            // player stands on, so the block-spoilage packets can be verified without aiming manually.
+            vmArg "-Dspoilage_enhanced.netprobe=${project.findProperty('netprobe') ?: 'false'}"
+            // ./gradlew runClient -Pselftest=place runs the BUG-12 placement scenario end-to-end
+            // (spawn rotten pumpkin -> place -> break -> dump drop) once the world is joined.
+            vmArg "-Dspoilage_enhanced.selftest=${project.findProperty('selftest') ?: 'false'}"
+            // ./gradlew runClient -Prenderdump=true enables RENDERDUMP (VISUAL_VERIFICATION.md):
+            // each renderer logs what it drew, one line per element, only when the line changes.
+            vmArg "-Dspoilage_enhanced.renderdump=${project.findProperty('renderdump') ?: 'false'}"
+            // ./gradlew runClient -Pquickplay="New World" boots straight into that save in run/fabric/saves.
+            if (project.hasProperty('quickplay')) {
+                programArg "--quickPlaySingleplayer"
+                programArg project.property('quickplay').toString()
+            }
+            // ./gradlew runClient -Pquickplayserver=localhost joins that server straight away,
+            // which is how the multiplayer path of the block-spoilage HUD gets tested.
+            if (project.hasProperty('quickplayserver')) {
+                programArg "--quickPlayMultiplayer"
+                programArg project.property('quickplayserver').toString()
+            }
+            // ./gradlew runClient -Pplayername=testplayer fixes the dev client's username.
+            // The default is a random PlayerNNN, which cannot be pre-opped in ops.json — and
+            // the spoilage command tree needs LEVEL_ADMINS, so an un-opped player's client
+            // never receives it and every self-test command fails with "Unknown or incomplete
+            // command" before it even reaches the server.
+            if (project.hasProperty('playername')) {
+                programArg "--username"
+                programArg project.property('playername').toString()
+            }
+        }
+        server {
+            server()
+            name "Fabric Server"
+            runDir "run/fabric_server"
+        }
+    }
+}
+
+tasks.register('runFabric') {
+    group = "spoilage_enhanced"
+    description = "Launch Fabric dev client"
+    dependsOn tasks.named('runClient')
+}
+
+// ---------------------------------------------------------------------------------------------
+// Forge / NeoForge test environments (see CLAUDE.md section 6).
+// Both are real dedicated servers installed by the official installers into loader-tests/.
+// ---------------------------------------------------------------------------------------------
+ext.neoforgeVersion = "26.2.0.68"
+ext.forgeVersion = "26.2-65.1.2"
+
+// The player's MineSborka install lives on drive H: and exists only on the machine that has it.
+// This tree is also opened over SMB from a box with no H: at all, and there an unconditional copy
+// aborts deployToRuns — which cascades into runNeoForgeServer / runForgeServer, since they depend
+// on this task while not needing MineSborka themselves. So the copy is conditional, and it reports
+// which branch it took: a silent skip here would look exactly like a successful deploy.
+def mineSborkaDir = file("H:/MineSborka")
+
+tasks.register('deployToRuns', Copy) {
+    group = "spoilage_enhanced"
+    description = "Copy the universal jar into the NeoForge and Forge test servers, and into MineSborka when present"
+    dependsOn tasks.named('remapJar')
+    from tasks.named('remapJar')
+    into "loader-tests/neoforge/mods"
+    doLast {
+        copy {
+            from tasks.named('remapJar')
+            into "loader-tests/forge/mods"
+        }
+        if (mineSborkaDir.isDirectory()) {
+            copy {
+                from tasks.named('remapJar')
+                into new File(mineSborkaDir, "mods")
+            }
+            logger.lifecycle("deployToRuns: jar copied into ${mineSborkaDir}\\mods")
+        } else {
+            logger.lifecycle("deployToRuns: MineSborka copy SKIPPED, ${mineSborkaDir} not found on this machine " +
+                    "(loader-tests deploy is done; runForgeClient / runNeoForgeClient cannot run here)")
+        }
+    }
+}
+
+tasks.register('runNeoForgeServer', Exec) {
+    group = "spoilage_enhanced"
+    description = "Run the NeoForge dedicated server with the universal jar (headless)"
+    dependsOn tasks.named('deployToRuns')
+    workingDir "loader-tests/neoforge"
+    // win_args.txt, not unix_args.txt: on Windows the classpath separator has to be ';'.
+    commandLine "java", "@user_jvm_args.txt",
+            "@libraries/net/neoforged/neoforge/${project.ext.neoforgeVersion}/win_args.txt", "nogui"
+}
+
+tasks.register('runForgeServer', Exec) {
+    group = "spoilage_enhanced"
+    description = "Run the Forge dedicated server with the universal jar (headless)"
+    dependsOn tasks.named('deployToRuns')
+    workingDir "loader-tests/forge"
+    commandLine "java", "@user_jvm_args.txt",
+            "@libraries/net/minecraftforge/forge/${project.ext.forgeVersion}/win_args.txt", "nogui"
+}
+
+tasks.register('runForgeClient', Exec) {
+    group = "spoilage_enhanced"
+    description = "Run the Forge 26.2 client from MineSborka with the universal jar"
+    dependsOn tasks.named('deployToRuns')
+    workingDir "H:/MineSborka"
+    def world = project.findProperty('quickplay')
+    if (world) {
+        commandLine "C:/Windows/System32/cmd.exe", "/c", "run_client.bat", "--quickPlaySingleplayer", world.toString()
+    } else {
+        commandLine "C:/Windows/System32/cmd.exe", "/c", "run_client.bat"
+    }
+}
+
+tasks.register('runNeoForgeClient', Exec) {
+    group = "spoilage_enhanced"
+    description = "Run the NeoForge 26.2 client from MineSborka with the universal jar"
+    dependsOn tasks.named('deployToRuns')
+    workingDir "H:/MineSborka"
+    def world = project.findProperty('quickplay')
+    if (world) {
+        commandLine "C:/Windows/System32/cmd.exe", "/c", "run_neoforge_client.bat", "--quickPlaySingleplayer", world.toString()
+    } else {
+        commandLine "C:/Windows/System32/cmd.exe", "/c", "run_neoforge_client.bat"
+    }
+}
+
+jar {
+    from("LICENSE") {
+        rename { "${it}_${project.base.archivesName.get()}" }
+    }
+    manifest {
+        attributes([
+            "Specification-Title"     : "spoilage_enhanced",
+            "Specification-Vendor"    : "DIVI4ik",
+            "Specification-Version"   : "1",
+            "Implementation-Title"    : project.name,
+            "Implementation-Version"  : project.version,
+            "Implementation-Vendor"   : "DIVI4ik",
+            "FMLModType"              : "MOD",
+            "MixinConfigs"            : "spoilage_enhanced.mixins.json"
+        ])
+    }
+}

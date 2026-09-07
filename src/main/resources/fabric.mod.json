@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "spoilage_enhanced",
+  "version": "${version}",
+  "name": "Spoilage Enhanced",
+  "description": "Dynamic, realistic food and block spoilage with stages, overlays, and deep integrations.",
+  "authors": [
+    "DIVI4ik"
+  ],
+  "contact": {
+    "homepage": "https://github.com/DIVI4ik/Spoilage-Enhanced"
+  },
+  "license": "MIT",
+  "icon": "assets/spoilage_enhanced/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.spoilageenhanced.fabric.SpoilageEnhancedFabric"
+    ],
+    "client": [
+      "com.spoilageenhanced.fabric.SpoilageEnhancedClientFabric"
+    ]
+  },
+  "mixins": [
+    "spoilage_enhanced.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.19.0",
+    "minecraft": ">=26.0",
+    "java": ">=21"
+  }
+}

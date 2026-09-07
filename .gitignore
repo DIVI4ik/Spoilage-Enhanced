@@ -1,0 +1,58 @@
+# Build output and gradle state
+build/
+.gradle/
+.gradle-client/
+.gradle-build2/
+
+# Dev/test environments вЂ” recreated locally, hundreds of MB
+run/
+loader-tests/
+logs/
+spoilage_enhanced_logs/
+
+# Decompiled Minecraft sources - regenerate locally with Vineflower
+minecraft-sources-26.2/
+
+# Stray extracted classes from ad-hoc javap sessions
+net/
+
+# Logs
+*.log
+
+# Local junction point
+.agents/skills
+.gradle-fabric-client/
+.loom-mappings/
+*.tmp
+
+# ---------------------------------------------------------------------------
+# Local working files: editor and tool settings, private notes, helper scripts.
+# They stay on disk but are not part of the mod.
+# ---------------------------------------------------------------------------
+.claude/
+.agents/
+.clinerules
+
+*_ENV.md
+*_LOG.md
+*_STATE.md
+TASKS.md
+GOAL.md
+NEXT_PROMPT.md
+PLAYER_REPORTS.md
+VISUAL_VERIFICATION.md
+MOD_ARCHITECTURE.md
+CLAUDE.md
+BUGS.md
+
+_claude_ops/
+tools/
+rcon_client.py
+night_watchdog.py
+auto_continue_watcher.py
+test_client.ps1
+run_*.bat
+package.json
+
+# Written by the mod at runtime, not source
+config/
