@@ -3,6 +3,7 @@ package com.spoilageenhanced.config;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.spoilageenhanced.platform.SpoilageEnhancedPlatform;
+import com.spoilageenhanced.util.SpoilageEnhancedLogger;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
@@ -100,7 +101,8 @@ public class RotOverlayConfig {
                     return config;
                 }
             } catch (Exception e) {
-                System.err.println("[Spoilage Enhanced] Failed to load rot overlay config: " + e.getMessage());
+                SpoilageEnhancedLogger.log(SpoilageEnhancedLogger.LogCategory.GENERAL,
+                        "Failed to load rot overlay config: " + e.getMessage());
             }
         }
 
@@ -128,7 +130,8 @@ public class RotOverlayConfig {
         try (Writer writer = new FileWriter(configFile.toFile())) {
             GSON.toJson(this, writer);
         } catch (Exception e) {
-            System.err.println("[Spoilage Enhanced] Failed to save rot overlay config: " + e.getMessage());
+            SpoilageEnhancedLogger.log(SpoilageEnhancedLogger.LogCategory.GENERAL,
+                    "Failed to save rot overlay config: " + e.getMessage());
         }
     }
 }
