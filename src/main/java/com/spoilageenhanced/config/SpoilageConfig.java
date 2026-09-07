@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.spoilageenhanced.platform.SpoilageEnhancedPlatform;
 import com.spoilageenhanced.util.AutoFoodDetector;
+import com.spoilageenhanced.util.SpoilageEnhancedLogger;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
@@ -344,7 +345,8 @@ public class SpoilageConfig {
             com.spoilageenhanced.util.SpoilageEnhancedLogger.refreshConfigCache();
             return true;
         } catch (Exception e) {
-            System.err.println("[Spoilage Enhanced] Failed to reload config: " + e.getMessage());
+            SpoilageEnhancedLogger.log(SpoilageEnhancedLogger.LogCategory.GENERAL,
+                    "Failed to reload config: " + e.getMessage());
             return false;
         }
     }
