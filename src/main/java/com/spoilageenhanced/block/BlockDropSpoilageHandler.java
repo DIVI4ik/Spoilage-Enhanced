@@ -38,6 +38,14 @@ public final class BlockDropSpoilageHandler {
 
     private static final ThreadLocal<long[]> PENDING_SPOILAGE = new ThreadLocal<>();
     private static final ThreadLocal<String> PENDING_DROP_ID = new ThreadLocal<>();
+    /**
+     * The broken block's own item id, captured in {@link #before} so {@link #stampPending} can
+     * accept a drop that is the block itself (hay_block, dried_kelp_block, carved_pumpkin) in
+     * addition to the mapped food drop (wheat, dried_kelp, pumpkin). The after() fallback
+     * already accepts both; the popResource path did not, so a tracked hay_block broken on
+     * Fabric dropped a hay_block with no spoilage data — the tracked state was silently lost.
+     */
+    private static final ThreadLocal<String> PENDING_BLOCK_ID = new ThreadLocal<>();
     private static final ThreadLocal<Integer> DEPTH = new ThreadLocal<>();
     /**
      * Pass 100 (Lens 8): set when stampPending() already stamped the drop, so after() can skip
@@ -72,6 +80,7 @@ public final class BlockDropSpoilageHandler {
         // A previous call that threw before its tail would have left this behind.
         PENDING_SPOILAGE.remove();
         PENDING_DROP_ID.remove();
+        PENDING_BLOCK_ID.remove();
         STAMPED.remove();
 
         // Pass 176 (Lens 7 — boundary): updateSpoilage and randomizeSpoilage guard world == null;
@@ -114,6 +123,7 @@ public final class BlockDropSpoilageHandler {
             if (immatureDrop != null) {
                 PENDING_SPOILAGE.set(new long[] { FoodSpoilageUtil.SpoilageState.ROTTEN.ordinal(), -1 });
                 PENDING_DROP_ID.set(immatureDrop);
+                PENDING_BLOCK_ID.set(BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString());
                 SpoilageEnhancedLogger.log("BlockDrop: captured ROTTEN for " + immatureDrop
                         + " at " + pos + " (unripe crop broken, via " + via + ")");
             }
@@ -133,6 +143,9 @@ public final class BlockDropSpoilageHandler {
         long expirationTime = entry != null ? entry.expirationTime : -1;
         PENDING_SPOILAGE.set(new long[] { spoilState.ordinal(), expirationTime });
         PENDING_DROP_ID.set(dropItemId);
+        // The block's own item id, so stampPending can accept a drop that IS the block
+        // (hay_block, dried_kelp_block, carved_pumpkin) — see the field's javadoc.
+        PENDING_BLOCK_ID.set(BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString());
 
         SpoilageEnhancedLogger.log("BlockDrop: captured " + spoilState + " for " + dropItemId
                 + " at " + pos + " (via " + via + ")");
@@ -154,8 +167,14 @@ public final class BlockDropSpoilageHandler {
             return;
         }
         String expectedId = PENDING_DROP_ID.get();
+        String blockId = PENDING_BLOCK_ID.get();
         String itemId = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
-        if (expectedId != null && !expectedId.equals(itemId)) {
+        // Accept the mapped food drop OR the block's own item. hay_block is tracked as wheat
+        // (the food it represents) but breaks into a hay_block item; without the blockId
+        // branch the tracked state was silently lost on every break. The after() fallback
+        // already accepts both — this brings the popResource path in line with it.
+        if (expectedId != null && !expectedId.equals(itemId)
+                && (blockId == null || !blockId.equals(itemId))) {
             // A block can drop several different things; only the food one inherits spoilage.
             return;
         }
@@ -179,6 +198,7 @@ public final class BlockDropSpoilageHandler {
         // needed regardless of which path consumed the state.
         PENDING_SPOILAGE.remove();
         PENDING_DROP_ID.remove();
+        PENDING_BLOCK_ID.remove();
         STAMPED.set(Boolean.TRUE);
     }
 
@@ -194,6 +214,7 @@ public final class BlockDropSpoilageHandler {
 
         long[] spoilageInfo = PENDING_SPOILAGE.get();
         PENDING_DROP_ID.remove();
+        PENDING_BLOCK_ID.remove();
         boolean stamped = Boolean.TRUE.equals(STAMPED.get());
         STAMPED.remove();
         if (spoilageInfo == null && !stamped) {
