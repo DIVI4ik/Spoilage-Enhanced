@@ -143,7 +143,14 @@ public class GiveSpoiledCommand {
                 }
             }
 
-            long seconds = ticksRemaining / 20L;
+            // Pass 856 (L1 — silent failure): the message reported `ticksRemaining / 20L`,
+            // which is GAME ticks, not real seconds. At a non-default speed that division
+            // rounds away the whole point of the secondsRemaining argument: at speed 100x a
+            // request for 30s fresh produced a carrot with 6 ticks left and a message saying
+            // "0s remaining". The player asked for 30s and was told 0. Display the value the
+            // player actually asked for — the original secondsRemaining, or the derived
+            // real-second value when none was given.
+            long seconds = secondsRemaining > 0 ? secondsRemaining : ticksRemaining / 20L;
             String finalStage = stage;
             Component itemName = item.getName(new ItemStack(item));
             source.sendSuccess(() -> Component.translatable(SpoilageEnhancedTranslations.CMD_GIVESPOILED_SUCCESS,
