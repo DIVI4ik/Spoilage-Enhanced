@@ -34,6 +34,12 @@ public abstract class ItemEntityMixin {
                 // Mutating the stack in place does not mark the SynchedEntityData entry dirty,
                 // so the client would keep rendering the stale spoilage bar. setItem() marks it.
                 self.setItem(stack);
+            } else if (stack.has(DataComponents.BUNDLE_CONTENTS)) {
+                // Pass 845 (L13 — observed behaviour): a dropped bundle carries its food in
+                // BUNDLE_CONTENTS, not CONTAINER, so the branch above skipped it and the food
+                // inside never aged. Same phase-spreading cadence, same setItem() write-back.
+                FoodSpoilageUtil.updateBundleItemSpoilage(stack, self.level());
+                self.setItem(stack);
             } else if (SpoilageConfig.getInstance().isSpoilable(stack.getItem())) {
                 // A dropped item (player Q-drop) is created via ItemStack.copy() (see
                 // LivingEntity.createItemStackToDrop), NOT split(), so it carries ALL trackers of

@@ -34,6 +34,15 @@ public abstract class ItemMixin {
             FoodSpoilageUtil.updateContainerItemSpoilage(stack, world);
             return;
         }
+        // Pass 845 (L13 — observed behaviour): bundles carry their contents in
+        // BUNDLE_CONTENTS, not CONTAINER (DataComponents.java:237 / Items.java:1302 in the
+        // 26.2 sources), so the branch above never reached food inside a bundle — a carrot
+        // in a bundle never aged while the same carrot in a shulker box did. Same 20-tick
+        // cadence, same trim+update+write-back pattern as the CONTAINER branch.
+        if (stack.has(DataComponents.BUNDLE_CONTENTS)) {
+            FoodSpoilageUtil.updateBundleItemSpoilage(stack, world);
+            return;
+        }
         // Pass 89 (Lens 8): this mixin runs for EVERY item in EVERY loaded inventory EVERY tick.
         // The old order called isSpoilable() (a ConcurrentHashMap.get()) before the 20-tick
         // throttle, paying the CHM get 20x per second per stack. Reordered: tracked stacks

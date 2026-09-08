@@ -876,6 +876,77 @@ public class FoodSpoilageUtil {
     }
 
     /**
+     * Ages food inside a bundle ({@code DataComponents.BUNDLE_CONTENTS}), the same way
+     * {@link #updateContainerItemSpoilage} ages food inside a shulker box.
+     *
+     * <p>Pass 845 (L13 — observed behaviour): bundles carry their contents in
+     * BUNDLE_CONTENTS, not CONTAINER, so the container branch never reached them — a carrot
+     * in a bundle never aged while the same carrot in a shulker box did. This runs on the
+     * same 20-tick cadence (the caller throttles) and mirrors the container branch's
+     * trim-over-tracked + update + write-back pattern.</p>
+     *
+     * <p>Fast-path first, same as the container branch: a bundle of cobblestone (or an
+     * empty bundle) must not pay the Mutable allocation. {@code BundleContents.items()}
+     * returns the backing list of templates, so the spoilable probe is one pass with no
+     * ItemStack creation.</p>
+     */
+    public static void updateBundleItemSpoilage(ItemStack bundleStack, Level world) {
+        if (bundleStack.isEmpty()) return;
+        net.minecraft.world.item.component.BundleContents contents =
+                bundleStack.get(DataComponents.BUNDLE_CONTENTS);
+        if (contents == null) return;
+
+        boolean anySpoilable = false;
+        for (net.minecraft.world.item.ItemStackTemplate template : contents.items()) {
+            if (SpoilageConfig.getInstance().isSpoilable(template.item().value())) {
+                anySpoilable = true;
+                break;
+            }
+        }
+        if (!anySpoilable) return;
+
+        // BundleContents.Mutable keeps its item list private with no accessor, so build
+        // the aged list ourselves: create each template (the same thing Mutable's
+        // constructor does), age it in place, then construct the replacement contents
+        // directly. The allocation is bounded by the bundle's item count and only happens
+        // when the bundle actually holds spoilable food.
+        java.util.List<ItemStack> aged = new java.util.ArrayList<>(contents.items().size());
+        boolean changed = false;
+        for (net.minecraft.world.item.ItemStackTemplate template : contents.items()) {
+            ItemStack item = template.create();
+            if (!item.isEmpty() && SpoilageConfig.getInstance().isSpoilable(item.getItem())) {
+                int count = item.getCount();
+                if (count > 0) {
+                    SpoilageData d = item.get(ModDataComponentTypes.SPOILAGE);
+                    if (d != null && d.totalTracked() > count) {
+                        SpoilageData[] split = extractWorstItems(d, count);
+                        item.set(ModDataComponentTypes.SPOILAGE, split[1]);
+                        changed = true;
+                    }
+                }
+                SpoilageData before = item.get(ModDataComponentTypes.SPOILAGE);
+                updateSpoilage(item, world);
+                SpoilageData after = item.get(ModDataComponentTypes.SPOILAGE);
+                if (!java.util.Objects.equals(before, after)) {
+                    changed = true;
+                }
+            }
+            aged.add(item);
+        }
+        if (changed) {
+            java.util.List<net.minecraft.world.item.ItemStackTemplate> templates =
+                    new java.util.ArrayList<>(aged.size());
+            for (ItemStack item : aged) {
+                if (!item.isEmpty()) {
+                    templates.add(net.minecraft.world.item.ItemStackTemplate.fromNonEmptyStack(item));
+                }
+            }
+            bundleStack.set(DataComponents.BUNDLE_CONTENTS,
+                    new net.minecraft.world.item.component.BundleContents(templates));
+        }
+    }
+
+    /**
      * Reusable scratch list for {@link #updateContainerItemSpoilage}. Container contents are
      * bounded by {@code ItemContainerContents.MAX_SIZE} (256), so a single thread-local list
      * pre-sized to 256 (filled with ItemStack.EMPTY) is reused across calls instead of
