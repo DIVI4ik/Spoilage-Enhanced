@@ -870,7 +870,8 @@ public class SpoilageConfig {
             try (Reader reader = new FileReader(configFile.toFile(), java.nio.charset.StandardCharsets.UTF_8)) {
                 config = GSON.fromJson(reader, SpoilageConfig.class);
             } catch (Exception e) {
-                System.err.println("[Spoilage Enhanced] Failed to load spoilage config: " + e.getMessage());
+                SpoilageEnhancedLogger.log(SpoilageEnhancedLogger.LogCategory.GENERAL,
+                        "Failed to load spoilage config: " + e.getMessage());
             }
         }
 
