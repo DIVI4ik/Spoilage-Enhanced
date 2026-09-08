@@ -415,6 +415,19 @@ public class DynamicFoodBlockCache {
         if (getFoodDropIgnoringGrowth(usedState, world, usedPos) != null) {
             return false;
         }
+        // Pass 816 (L13 — beehive cache pollution, popResource sibling): the guard above is
+        // not enough. A beehive has no tracked mapping and no food drop in its loot table
+        // (honey_bottle is only obtainable via interaction, not via breaking), so
+        // getFoodDropIgnoringGrowth returns null and the guard lets the learning through.
+        // The block's own item is the cheapest signal of whether the block is a food source
+        // at all: a beehive's self-item is minecraft:beehive (not spoilable), a melon block's
+        // is minecraft:melon (spoilable). If the self-item is not spoilable, the block is a
+        // container/holder of food, not a food source itself — refuse the learning.
+        Item selfItem = usedState.getBlock().asItem();
+        if (selfItem == null || selfItem == Items.AIR
+                || !SpoilageConfig.getInstance().isSpoilable(selfItem)) {
+            return false;
+        }
 
         if (!SpoilageConfig.getInstance().registerTrackedBlock(blockId, itemId, true)) {
             return false;

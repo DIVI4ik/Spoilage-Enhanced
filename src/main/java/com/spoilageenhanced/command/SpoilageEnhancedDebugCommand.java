@@ -94,6 +94,17 @@ public class SpoilageEnhancedDebugCommand {
                             .executes(context -> useBlock(context.getSource(),
                                     net.minecraft.commands.arguments.coordinates.BlockPosArgument.getLoadedBlockPos(context, "pos"))))
                     )
+                    // Pass 816 (L13 — widen the harness): debug use calls state.useItemOn
+                    // directly, which bypasses ServerPlayerGameMode.useItemOn — and that is
+                    // where InteractionManagerMixin opens ActiveInteractionContext. Every
+                    // scenario about the interaction-context paths (the beehive Inventory.add
+                    // branch, hand-picked block learning) was BLOCKED on exactly that gap.
+                    // This variant drives the REAL game-mode path, context and all.
+                    .then(Commands.literal("usegame")
+                        .then(Commands.argument("pos", net.minecraft.commands.arguments.coordinates.BlockPosArgument.blockPos())
+                            .executes(context -> useBlockThroughGameMode(context.getSource(),
+                                    net.minecraft.commands.arguments.coordinates.BlockPosArgument.getLoadedBlockPos(context, "pos"))))
+                    )
                     .then(Commands.literal("useentity")
                         .then(Commands.argument("type", StringArgumentType.word())
                             .executes(context -> useNearestEntity(
@@ -234,6 +245,44 @@ public class SpoilageEnhancedDebugCommand {
      * real right-click does, so whatever the mod hooks into that path is exercised for real.
      * Opening a container this way is also what makes {@code menuclick} usable.</p>
      */
+    /**
+     * Pass 816 (L13 — widen the harness): the same right-click as {@link #useBlock}, but
+     * through {@link ServerPlayerGameMode.useItemOn} — the path InteractionManagerMixin
+     * hooks, which opens {@code ActiveInteractionContext}. {@code debug use} calls
+     * {@code BlockState.useItemOn} directly and skips it, so every scenario about the
+     * interaction-context paths (the beehive Inventory.add branch, hand-picked block
+     * learning) came back BLOCKED on exactly that gap.
+     */
+    private static int useBlockThroughGameMode(CommandSourceStack source, BlockPos pos) {
+        ServerPlayer player = source.getPlayer();
+        if (player == null) {
+            source.sendFailure(net.minecraft.network.chat.Component.literal(
+                    "This command acts AS a player and there is none here. Run it from a client "
+                            + "(the self-test harness does), not from the server console or RCON."));
+            return 0;
+        }
+        ServerLevel level = source.getLevel();
+        net.minecraft.world.level.block.state.BlockState state = level.getBlockState(pos);
+        net.minecraft.world.phys.BlockHitResult hit = new net.minecraft.world.phys.BlockHitResult(
+                net.minecraft.world.phys.Vec3.atCenterOf(pos), net.minecraft.core.Direction.UP, pos, false);
+
+        net.minecraft.world.InteractionResult withItem = player.gameMode.useItemOn(
+                player, level, player.getMainHandItem(), net.minecraft.world.InteractionHand.MAIN_HAND, hit);
+
+        String outcome = String.valueOf(withItem);
+        if (withItem instanceof net.minecraft.world.InteractionResult.Pass
+                || withItem instanceof net.minecraft.world.InteractionResult.TryEmptyHandInteraction) {
+            outcome = String.valueOf(state.useWithoutItem(level, player, hit));
+        }
+
+        final String result = outcome;
+        source.sendSuccess(() -> net.minecraft.network.chat.Component.literal(
+                "used " + BuiltInRegistries.BLOCK.getKey(state.getBlock()) + " at " + pos + " -> " + result), false);
+        SpoilageEnhancedLogger.log("DebugUseGame: " + pos + " " + BuiltInRegistries.BLOCK.getKey(state.getBlock())
+                + " with " + BuiltInRegistries.ITEM.getKey(player.getMainHandItem().getItem()) + " -> " + result);
+        return 1;
+    }
+
     private static int useBlock(CommandSourceStack source, BlockPos pos) {
         ServerPlayer player = source.getPlayer();
         if (player == null) {

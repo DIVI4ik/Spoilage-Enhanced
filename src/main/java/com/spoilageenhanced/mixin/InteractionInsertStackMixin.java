@@ -55,8 +55,22 @@ public class InteractionInsertStackMixin {
                 // the next bottle of honey came out STALE or ROTTEN. learnFoodDropFromInteraction
                 // (the popResource sibling of this path) has carried exactly this guard since it
                 // was written; this path predates it and never got it.
+                //
+                // Pass 816 (L13 — beehive cache pollution, both paths): the getFoodDropIgnoringGrowth
+                // guard alone is not enough. A beehive has no tracked mapping and no food drop in
+                // its loot table (honey_bottle is only obtainable via interaction), so
+                // getFoodDropIgnoringGrowth returns null and the guard lets the learning through.
+                // The block's own item is the cheapest signal of whether the block is a food
+                // source at all: a beehive's self-item is minecraft:beehive (not spoilable), a
+                // melon block's is minecraft:melon (spoilable). If the self-item is not spoilable,
+                // the block is a container/holder of food, not a food source itself — refuse the
+                // learning. Same guard as learnFoodDropFromInteraction (DynamicFoodBlockCache:418).
                 if (DynamicFoodBlockCache.getFoodDropIgnoringGrowth(state, world, blockPos) == null) {
-                    DynamicFoodBlockCache.registerFoodDrop(state, itemId);
+                    net.minecraft.world.item.Item selfItem = state.getBlock().asItem();
+                    if (selfItem != null && selfItem != net.minecraft.world.item.Items.AIR
+                            && SpoilageConfig.getInstance().isSpoilable(selfItem)) {
+                        DynamicFoodBlockCache.registerFoodDrop(state, itemId);
+                    }
                 }
                 SpoilageEnhancedLogger.log("Intercepted insertStack for " + itemId + " from block state " + state.toString() + " at " + blockPos);
 
