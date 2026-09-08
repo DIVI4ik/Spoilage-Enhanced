@@ -38,16 +38,15 @@ public abstract class HopperBlockEntityMixin {
         SpoilageEnhancedLogger.log(SpoilageEnhancedLogger.LogCategory.TRACE,
                 "HopperBlockEntityMixin: onAddItemEntity called for " + itemStack.getItem() + " count=" + itemStack.getCount());
 
-        // Pass 520 (L13 — observed behaviour): hopper was missing the rotten guard that
-        // ScreenHandlerMixin has (Pass 223). A hopper would happily suck up rotten food
-        // because it bypasses the ScreenHandler path entirely. Reject the transfer if
-        // the item entity carries a ROTTEN entry.
-        if (FoodSpoilageUtil.worstSliceContainsRotten(itemStack, 1)) {
-            SpoilageEnhancedLogger.log(SpoilageEnhancedLogger.LogCategory.TRACE,
-                    "HopperBlockEntityMixin: rejected rotten item entity " + itemStack.getItem() + " count=" + itemStack.getCount());
-            cir.setReturnValue(false);
-            return;
-        }
+        // Pass 843 (L13 — observed behaviour): the Pass 520 rotten guard here was REMOVED.
+        // It rejected a hopper sucking up ANY rotten item entity, regardless of what the
+        // hopper feeds — but a hopper feeding a chest is storage, and the player can put
+        // rotten food into that same chest by hand (ScreenHandlerMixin's guard only covers
+        // PROCESSING input slots, not ChestMenu). The over-broad guard clogged item-sorting
+        // systems: one rotten carrot entering a hopper pipe held the hopper forever, because
+        // the transfer guard below rejected every onward move into storage too. The hopper
+        // itself is storage; the processing targets are protected by the transfer guard
+        // below, which is scoped to furnace/brewing inputs exactly like the ScreenHandler.
     }
 
     @Inject(
@@ -90,14 +89,25 @@ public abstract class HopperBlockEntityMixin {
         // WORST items first (extractWorstItems), so even a mixed stack with one rotten
         // item will transfer that rotten item first. Reject the transfer if the worst-N
         // slice for the transfer count contains a ROTTEN entry.
-        int slotSpace = container.getMaxStackSize() - current.getCount();
-        int transferCount = Math.min(itemStack.getCount(), Math.max(0, slotSpace));
-        if (transferCount > 0 && FoodSpoilageUtil.worstSliceContainsRotten(itemStack, transferCount)) {
-            SpoilageEnhancedLogger.log(SpoilageEnhancedLogger.LogCategory.TRACE,
-                    "HopperBlockEntityMixin: rejected rotten transfer of " + transferCount + " items into slot " + slot);
-            cir.setReturnValue(itemStack);
-            cir.cancel();
-            return;
+        //
+        // Pass 843 (L13 — observed behaviour): the guard is now SCOPED to processing
+        // containers, matching ScreenHandlerMixin.isProcessingInputSlot — the reference
+        // guard only covers crafting grids, furnace inputs and brewing inputs, and a
+        // player can hand-place rotten food into a chest that a hopper was forbidden to
+        // fill. Storage targets (chest, barrel, shulker, another hopper, dispenser) take
+        // rotten food exactly as a player would place it; furnace and brewing inputs
+        // still refuse it.
+        if (container instanceof net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity
+                || container instanceof net.minecraft.world.level.block.entity.BrewingStandBlockEntity) {
+            int slotSpace = container.getMaxStackSize() - current.getCount();
+            int transferCount = Math.min(itemStack.getCount(), Math.max(0, slotSpace));
+            if (transferCount > 0 && FoodSpoilageUtil.worstSliceContainsRotten(itemStack, transferCount)) {
+                SpoilageEnhancedLogger.log(SpoilageEnhancedLogger.LogCategory.TRACE,
+                        "HopperBlockEntityMixin: rejected rotten transfer of " + transferCount + " items into slot " + slot);
+                cir.setReturnValue(itemStack);
+                cir.cancel();
+                return;
+            }
         }
         if (current.isEmpty()) {
             // Vanilla transfers itemStack into the empty slot intact. If itemStack is
