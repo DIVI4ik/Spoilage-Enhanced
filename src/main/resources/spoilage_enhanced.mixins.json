@@ -6,6 +6,7 @@
   "mixins": [
     "AbstractFurnaceBlockEntityMixin",
     "BrewingStandBlockEntityMixin",
+    "AllayMixin",
     "AbstractMinecartContainerMixin",
     "AnimalEntityMixin",
     "BlockDropSpoilageForgeMixin",
