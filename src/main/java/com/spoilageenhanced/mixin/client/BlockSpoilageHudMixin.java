@@ -244,9 +244,16 @@ public abstract class BlockSpoilageHudMixin {
         // makes (long)(-1 * m) round to 0, and zero renders as "<1 min". That is precisely
         // how the previous attempt at this fix still showed a countdown in game.
         boolean noTimer = answer.ticksRemaining() == BlockSpoilageResponsePayload.NO_TIMER;
+        // Pass 974 (L1 — correctness): the server's getTicksUntilNextStage already returns
+        // speed-adjusted ticks (expirationTime was computed using getFreshDurationForItem
+        // which applies the speed multiplier via applySpeedMultiplier). The old code
+        // multiplied by speedMultiplier AGAIN, double-applying it. At speed 100x a block
+        // with 120 ticks remaining (6 seconds real time) displayed 12000 ticks (10 minutes).
+        // Use the server's speed-adjusted ticks directly; formatTime expects base-speed-
+        // equivalent ticks which is exactly what the server now sends.
         long displayedTicks = noTimer
                 ? BlockSpoilageResponsePayload.NO_TIMER
-                : (long) (answer.ticksRemaining() * answer.speedMultiplier());
+                : answer.ticksRemaining();
         String timeStr = noTimer ? "" : SpoilageEnhancedTranslations.formatTime(displayedTicks);
 
         // Pass 177: cache the rendered text per (state, displayedTicks) pair to avoid

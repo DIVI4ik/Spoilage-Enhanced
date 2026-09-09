@@ -161,12 +161,16 @@ public abstract class ItemClientMixin {
 
             if (minTime != Long.MAX_VALUE) {
                 long diff = Math.max(0, minTime - currentTime);
-                // Pass 105: for virtual data the old synthesized record carried the config
-                // multiplier; read it directly instead of building the record.
-                double speedMultiplier = virtualData
-                        ? SpoilageConfig.getInstance().getSpoilageSpeedMultiplier()
-                        : data.speedMultiplier();
-                displayedDiff = (long) (diff * speedMultiplier);
+                // Pass 974 (L1 — correctness): the server's expiration times are already
+                // speed-adjusted — getFreshDurationForItem/getStaleDurationForItem apply the
+                // speed multiplier via applySpeedMultiplier before computing expirationTime.
+                // The old code multiplied by speedMultiplier AGAIN, double-applying it. At
+                // speed 100x a carrot with 6 ticks left (real) showed "Spoils in 10 minutes".
+                // Use the server's speed-adjusted ticks directly; formatTime expects base-speed-
+                // equivalent ticks which is exactly what the stored expiration times are.
+                // (Pass 105's virtual-data path is unchanged in spirit: virtualMinTime is
+                // firstSeen + freshDuration, where freshDuration is also already speed-adjusted.)
+                displayedDiff = diff;
                 hasSpoilsInLine = true;
             }
         }
