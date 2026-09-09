@@ -1,5 +1,6 @@
 package com.spoilageenhanced.mixin;
 
+import com.spoilageenhanced.config.SpoilageConfig;
 import com.spoilageenhanced.util.FoodSpoilageUtil;
 import com.spoilageenhanced.util.SpoilageEnhancedLogger;
 import net.minecraft.world.entity.vehicle.minecart.AbstractMinecart;
@@ -43,7 +44,7 @@ public abstract class AbstractMinecartContainerMixin {
         List<ItemStack> stacks = container.getItemStacks();
         boolean anySpoilable = false;
         for (ItemStack stack : stacks) {
-            if (!stack.isEmpty() && stack.hasNonDefault(com.spoilageenhanced.component.ModDataComponentTypes.SPOILAGE)) {
+            if (!stack.isEmpty() && SpoilageConfig.getInstance().isSpoilable(stack.getItem())) {
                 anySpoilable = true;
                 break;
             }
@@ -55,9 +56,15 @@ public abstract class AbstractMinecartContainerMixin {
         boolean changed = false;
         for (ItemStack stack : stacks) {
             if (stack.isEmpty()) continue;
-            if (!stack.hasNonDefault(com.spoilageenhanced.component.ModDataComponentTypes.SPOILAGE)) continue;
-            // Trim over-tracked to count, keeping the WORST trackers — same invariant as
-            // ItemEntityMixin.onTick and the bundle/container branches.
+            if (!SpoilageConfig.getInstance().isSpoilable(stack.getItem())) continue;
+            // Pass 879 (L13 — observed behaviour): the bundle and container branches call
+            // updateSpoilage on EVERY spoilable stack, which lazily stamps one via
+            // initializeItemSpoilage when the component is null/empty. This branch skipped
+            // any stack without the component, so a plain carrot summoned into a chest
+            // minecart stayed unstamped forever — verified live: after ten seconds the
+            // NBT still read {count:1,Slot:0b,id:"minecraft:carrot"} with no spoilage.
+            // Remove the skip and let updateSpoilage do the stamping, exactly as the bundle
+            // branch (FoodSpoilageUtil.updateBundleItemSpoilage) does.
             int count = stack.getCount();
             if (count > 0) {
                 com.spoilageenhanced.component.SpoilageData data =
