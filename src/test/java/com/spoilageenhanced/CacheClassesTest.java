@@ -107,18 +107,29 @@ public class CacheClassesTest {
 
     @Test
     void tooltipTextCacheSizeCapRespected() {
-        // MAX_ENTRIES = 64. The current implementation stops accepting new entries
-        // when full (no LRU eviction). Verify that entries beyond the cap are rejected.
+        // MAX_ENTRIES = 64. The cache evicts one entry when full to make room, so it
+        // never silently stops caching new stacks (the old behaviour — see pass 903).
+        // It may not hold all 70, but every entry put must be retrievable at least until
+        // something else evicts it, and the cache must never exceed the cap.
         for (int i = 0; i < 70; i++) {
             TooltipTextCache.put((long) i, new TooltipTextCache.CachedTooltipLines(
                     List.of(Component.literal("test" + i))));
         }
-        // First 64 entries should be present
-        assertNotNull(TooltipTextCache.get(0L), "First entries should be present");
-        assertNotNull(TooltipTextCache.get(63L), "Entry 63 should be present");
-        // Entries beyond cap should NOT be present (rejected when full)
-        assertNull(TooltipTextCache.get(64L), "Entry 64 should be rejected when cap is reached");
-        assertNull(TooltipTextCache.get(69L), "Entry 69 should be rejected when cap is reached");
+        // The cache never exceeds the cap.
+        assertTrue(TooltipTextCache.size() <= 64,
+                "Cache must not exceed MAX_ENTRIES");
+        // The most recently put entry is always present (it was just added).
+        assertNotNull(TooltipTextCache.get(69L),
+                "The most recently put entry must be present after a put");
+        // The first entry is present unless it was evicted to make room for later ones.
+        // Either outcome is acceptable — what must not happen is the cache silently
+        // refusing to add new entries while holding 64 old ones.
+        int present = 0;
+        for (int i = 0; i < 70; i++) {
+            if (TooltipTextCache.get((long) i) != null) present++;
+        }
+        assertTrue(present >= 64,
+                "At least 64 of 70 entries must be present; got " + present);
     }
 
     @Test

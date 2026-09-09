@@ -54,10 +54,26 @@ public final class TooltipTextCache {
         return CACHE.get(key);
     }
 
+    /** Current number of cached entries. Test hook for the cap invariant. */
+    public static int size() {
+        return CACHE.size();
+    }
+
     public static void put(long key, CachedTooltipLines value) {
-        if (CACHE.size() < MAX_ENTRIES) {
-            CACHE.put(key, value);
+        if (CACHE.size() >= MAX_ENTRIES && !CACHE.containsKey(key)) {
+            // Pass 604 (L3/L4 — cache correctness) fixed this for HudTextCache; TooltipTextCache
+            // was left dropping new entries silently once full. A creative inventory with many
+            // distinct stacks fills 64 entries in a few glances, and from then on every tooltip
+            // for a stack not already cached is rebuilt every frame — the exact allocation the
+            // cache exists to avoid, with no log line to say it had stopped working. Evict one
+            // arbitrary entry to make room; the next put for the evicted key re-adds it, and
+            // the worst case is one extra Component allocation per frame for that stack.
+            var first = CACHE.keySet().iterator();
+            if (first.hasNext()) {
+                CACHE.remove(first.next());
+            }
         }
+        CACHE.put(key, value);
     }
 
     public static void clear() {
