@@ -69,8 +69,8 @@ public class BlockSpoilageDataRescaleTest {
 
         BlockSpoilageData.BlockSpoilageEntry entry = data.getEntry(pos);
         assertNotNull(entry);
-        assertEquals(Long.MAX_VALUE, entry.legacyBirthTime,
-                "Infinity ratio must clamp legacyBirthTime to Long.MAX_VALUE sentinel");
+        assertEquals(Long.MIN_VALUE, entry.legacyBirthTime,
+                "Infinity ratio must clamp legacyBirthTime to the never-expires sentinel (Long.MIN_VALUE)");
     }
 
     @Test
@@ -83,8 +83,8 @@ public class BlockSpoilageDataRescaleTest {
 
         BlockSpoilageData.BlockSpoilageEntry entry = data.getEntry(pos);
         assertNotNull(entry);
-        assertEquals(Long.MAX_VALUE, entry.legacyBirthTime,
-                "NaN ratio must clamp legacyBirthTime to Long.MAX_VALUE sentinel");
+        assertEquals(Long.MIN_VALUE, entry.legacyBirthTime,
+                "NaN ratio must clamp legacyBirthTime to the never-expires sentinel (Long.MIN_VALUE)");
     }
 
     @Test
@@ -97,9 +97,13 @@ public class BlockSpoilageDataRescaleTest {
 
         BlockSpoilageData.BlockSpoilageEntry entry = data.getEntry(pos);
         assertNotNull(entry);
-        assertTrue(entry.legacyBirthTime <= currentTime,
-                "Negative ratio must not resurrect block to future birth time; got "
-                        + entry.legacyBirthTime + " > " + currentTime);
+        // Negative ratio is invalid: clamp to the "essentially never expires" sentinel.
+        // Long.MIN_VALUE (not Long.MAX_VALUE) — the legacy-format check tests legacyBirthTime
+        // != -1, so a Long.MAX_VALUE sentinel would still read as legacy and be re-scaled on
+        // the next call. The sentinel must be distinguishable from a real birth time.
+        assertEquals(Long.MIN_VALUE, entry.legacyBirthTime,
+                "Negative ratio must clamp legacyBirthTime to the never-expires sentinel; got "
+                        + entry.legacyBirthTime);
     }
 
     @Test

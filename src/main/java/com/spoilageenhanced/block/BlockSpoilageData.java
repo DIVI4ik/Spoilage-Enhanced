@@ -170,7 +170,14 @@ public class BlockSpoilageData extends SavedData {
         CompoundTag blocks = new CompoundTag();
         for (Map.Entry<Long, BlockSpoilageEntry> entry : entries.entrySet()) {
             CompoundTag entryNbt = new CompoundTag();
-            if (entry.getValue().legacyBirthTime >= 0) {
+            // Legacy format: legacyBirthTime explicitly set (!= -1). The old check also required
+            // expirationTime == -1, but a legacy entry can carry a stale expirationTime from an
+            // older write (BlockEntryLegacyWinsTest pins that contract: legacy wins over state
+            // when both are present). The Long.MIN_VALUE sentinel used by rescaleExpirations for
+            // "essentially never expires" legacy entries is also written back so it survives a
+            // save/load round-trip.
+            boolean isLegacy = entry.getValue().legacyBirthTime != -1;
+            if (isLegacy) {
                 entryNbt.putLong("BirthTime", entry.getValue().legacyBirthTime);
             } else {
                 entryNbt.putInt("State", entry.getValue().state.ordinal());
@@ -335,20 +342,39 @@ public class BlockSpoilageData extends SavedData {
         // resurrecting stale/rotten blocks to FRESH. Mirror the guards from
         // FoodSpoilageUtil.rescaleItemTimestamps: Long.MAX_VALUE sentinel, ratio > 1e15 clamp,
         // negative remaining check.
+        //
+        // Pass 1032 (L7 — boundary arithmetic): legacy entries store birthTime, not expirationTime.
+        // ratio = old_multiplier / new_multiplier. For expirationTime entries, remaining * ratio
+        // is correct (time until expiry scales with speed). For birthTime entries, elapsed time
+        // must be DIVIDED by ratio (same real time = more progress at higher speed), not multiplied.
+        // The old code did elapsed * ratio, which inverted the scaling: increasing the speed
+        // multiplier made blocks appear YOUNGER instead of older.
+        //
+        // Pass 1033 (L7 — boundary arithmetic): legacy format detection uses legacyBirthTime != -1
+        // (explicitly set), not >= 0. A legacy block can have a negative birth time (born before
+        // world time 0, or in tests simulating pre-existing blocks). The old >= 0 check silently
+        // skipped rescaling for negative birth times, leaving them at the wrong age.
         final long NEVER = Long.MAX_VALUE;
+        final long LEGACY_NEVER = Long.MIN_VALUE;
         for (BlockSpoilageEntry entry : entries.values()) {
-            if (entry.legacyBirthTime >= 0) {
+            // Legacy format: legacyBirthTime explicitly set (!= -1) and expirationTime == -1 (default)
+            boolean isLegacy = entry.legacyBirthTime != -1;
+            if (isLegacy) {
                 long oldBirth = entry.legacyBirthTime;
                 long elapsed = currentTime - oldBirth;
                 if (elapsed <= 0) {
                     // Already expired or invalid — keep as-is to prevent resurrection
                     continue;
                 }
-                if (Double.isInfinite(ratio) || Double.isNaN(ratio) || ratio > 1e15d) {
-                    // Ratio would overflow long arithmetic; clamp to "essentially never expires"
-                    entry.legacyBirthTime = NEVER;
+                if (Double.isInfinite(ratio) || Double.isNaN(ratio) || ratio > 1e15d || ratio <= 0.0d) {
+                    // Ratio would overflow long arithmetic; clamp to "essentially never expires".
+                    // Long.MIN_VALUE (not Long.MAX_VALUE) — the isLegacy check above tests
+                    // legacyBirthTime != -1, so a Long.MAX_VALUE sentinel would still read as
+                    // legacy and be re-scaled on the next call.
+                    entry.legacyBirthTime = LEGACY_NEVER;
                 } else {
-                    long newElapsed = Math.max(1L, (long) (elapsed * ratio));
+                    // Legacy stores birthTime: elapsed must be DIVIDED by ratio (inverse of expirationTime scaling)
+                    long newElapsed = Math.max(1L, (long) (elapsed / ratio));
                     entry.legacyBirthTime = currentTime - newElapsed;
                 }
             } else if (entry.state != FoodSpoilageUtil.SpoilageState.ROTTEN) {
@@ -357,7 +383,7 @@ public class BlockSpoilageData extends SavedData {
                     // Already expired — keep expired to prevent resurrection
                     continue;
                 }
-                if (Double.isInfinite(ratio) || Double.isNaN(ratio) || ratio > 1e15d) {
+                if (Double.isInfinite(ratio) || Double.isNaN(ratio) || ratio > 1e15d || ratio <= 0.0d) {
                     entry.expirationTime = NEVER;
                 } else {
                     long newRemaining = Math.max(1L, (long) (remaining * ratio));
@@ -518,7 +544,9 @@ public class BlockSpoilageData extends SavedData {
 
         long currentTime = world.getGameTime();
 
-        if (entry.legacyBirthTime >= 0) {
+        // Legacy format: legacyBirthTime explicitly set (!= -1) and expirationTime == -1 (default)
+        boolean isLegacy = entry.legacyBirthTime != -1;
+        if (isLegacy) {
             if (itemToUse == null) {
                 // Pass 127: use cached blockState if available, otherwise fall back to resolveItemToUse
                 if (blockState != null) {
@@ -618,7 +646,9 @@ public class BlockSpoilageData extends SavedData {
         // = -1 - currentTime, which is deeply negative, so Math.max(0, ...) returned 0: a
         // genuinely fresh block reported "0 ticks until next stage" and the HUD rendered a
         // fully-depleted countdown for it. Compute the real remaining time from legacyBirthTime.
-        if (entry.legacyBirthTime >= 0) {
+        // Legacy format: legacyBirthTime explicitly set (!= -1) and expirationTime == -1 (default)
+        boolean isLegacy = entry.legacyBirthTime != -1;
+        if (isLegacy) {
             if (itemToUse == null) {
                 if (blockState != null) {
                     Item blockItem = blockState.getBlock().asItem();
