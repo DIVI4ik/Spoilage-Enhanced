@@ -275,12 +275,27 @@ public class DynamicFoodBlockCache {
         return max;
     }
 
-    public static BlockState getMatureState(BlockState state) {
+    /**
+     * The state this block is in when it is actually carrying food, used as the subject of the
+     * loot probe.
+     *
+     * <p>Why it exists: probing a seedling returns nothing, and that nothing used to be cached
+     * as {@code NO_FOOD_DROP} for the whole block, permanently. A crop planted and inspected at
+     * stage 0 then never grew a freshness clock, however ripe it later became.</p>
+     *
+     * <p>Content-agnostic on purpose. An earlier revision picked the ripeness flag by matching
+     * the property NAME against {@code "berries"}, {@code "fruit"}, {@code "ripe"} and
+     * {@code "bearing"} — which silently fails for any mod that names the same flag anything
+     * else, and for every non-English one. The file already answers this question properly in
+     * {@link #deriveRipeness}: set each boolean and ask the loot table. That works for content
+     * nobody has seen, which is the whole point of this class.</p>
+     */
+    public static BlockState getMatureState(BlockState state, ServerLevel world, BlockPos pos) {
         if (state == null) return null;
-        Block block = state.getBlock();
-        if (block instanceof net.minecraft.world.level.block.CropBlock cropBlock) {
-            return cropBlock.getStateForAge(cropBlock.getMaxAge());
-        }
+
+        // Growth counter: the highest value the property allows. Uses the property rather than
+        // CropBlock.getStateForAge, which rebuilds from the default state and would drop any
+        // other property the block carries (waterlogged, half, facing).
         net.minecraft.world.level.block.state.properties.IntegerProperty age =
                 FoodSpoilageUtil.growthProperty(state);
         if (age != null) {
@@ -290,14 +305,26 @@ public class DynamicFoodBlockCache {
             }
             return state.setValue(age, max);
         }
-        for (net.minecraft.world.level.block.state.properties.Property<?> p : state.getProperties()) {
-            if (p instanceof net.minecraft.world.level.block.state.properties.BooleanProperty bp) {
-                String name = bp.getName().toLowerCase();
-                if (name.contains("berries") || name.contains("fruit") || name.contains("ripe") || name.contains("bearing")) {
-                    return state.setValue(bp, Boolean.TRUE);
+
+        // No counter: the block may carry its produce behind a boolean instead. Ask the loot
+        // table which boolean that is, exactly as deriveRipeness does.
+        try {
+            for (net.minecraft.world.level.block.state.properties.Property<?> p : state.getProperties()) {
+                if (!(p instanceof net.minecraft.world.level.block.state.properties.BooleanProperty bp)) {
+                    continue;
+                }
+                BlockState on = state.setValue(bp, Boolean.TRUE);
+                if (lootFoodDrop(on, world, pos) != null
+                        && lootFoodDrop(state.setValue(bp, Boolean.FALSE), world, pos) == null) {
+                    return on;
                 }
             }
+        } catch (Exception e) {
+            SpoilageEnhancedLogger.log("DynamicFoodBlockCache: mature-state probe failed for "
+                    + BuiltInRegistries.BLOCK.getKey(state.getBlock())
+                    + ": " + e.getClass().getSimpleName() + ": " + e.getMessage());
         }
+
         return state;
     }
 
@@ -332,7 +359,7 @@ public class DynamicFoodBlockCache {
         }
 
         try {
-            BlockState matureState = getMatureState(state);
+            BlockState matureState = getMatureState(state, world, pos);
             String fromLoot = lootFoodDrop(matureState != null ? matureState : state, world, pos);
             if (fromLoot != null) {
                 putWithEviction(block, fromLoot);

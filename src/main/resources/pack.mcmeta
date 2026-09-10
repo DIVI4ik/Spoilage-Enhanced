@@ -1,6 +1,7 @@
 {
   "pack": {
     "description": "Spoilage Enhanced Resources",
-    "pack_format": 64
+    "min_format": 15,
+    "max_format": 107
   }
 }
