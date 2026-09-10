@@ -52,10 +52,16 @@ public class RotOverlayConfig {
     }
 
     public static RotOverlayConfig getInstance() {
-        if (INSTANCE == null) {
-            INSTANCE = load();
+        RotOverlayConfig local = INSTANCE;
+        if (local == null) {
+            synchronized (RotOverlayConfig.class) {
+                local = INSTANCE;
+                if (local == null) {
+                    INSTANCE = local = load();
+                }
+            }
         }
-        return INSTANCE;
+        return local;
     }
 
     public boolean isOverlayEnabled() {
