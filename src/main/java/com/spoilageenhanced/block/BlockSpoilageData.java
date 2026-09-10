@@ -395,6 +395,12 @@ public class BlockSpoilageData extends SavedData {
                 }
                 if (Double.isInfinite(ratio) || Double.isNaN(ratio) || ratio > 1e15d || ratio <= 0.0d) {
                     entry.expirationTime = NEVER;
+                } else if (remaining > Long.MAX_VALUE / ratio) {
+                    // Pass 1038 (L7 boundary): the state-format branch was missing the
+                    // overflow guard that the fresh branch in FoodSpoilageUtil has.
+                    // remaining * ratio would overflow long (wrap to negative), making a
+                    // fresh/stale block appear ROTTEN instantly. Clamp to NEVER instead.
+                    entry.expirationTime = NEVER;
                 } else {
                     long newRemaining = Math.max(1L, (long) (remaining * ratio));
                     entry.expirationTime = currentTime + newRemaining;
