@@ -53,7 +53,8 @@
     "ItemClientMixin",
     "client.BlockSpoilageHudMixin",
     "client.ClientCustomPayloadMixin",
-    "client.GuiGraphicsExtractorMixin"
+    "client.GuiGraphicsExtractorMixin",
+    "client.SimpleTextureMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -162,10 +162,55 @@ public final class BlockDropSpoilageHandler {
      * other hand, passes through {@code popResource} on every loader.</p>
      */
     public static void stampPending(ItemStack stack) {
-        long[] spoilageInfo = PENDING_SPOILAGE.get();
-        if (spoilageInfo == null || stack == null || stack.isEmpty()) {
+        stampPending(null, null, stack);
+    }
+
+    public static void stampPending(Level level, BlockPos pos, ItemStack stack) {
+        if (stack == null || stack.isEmpty()) {
             return;
         }
+        long[] spoilageInfo = PENDING_SPOILAGE.get();
+        if (spoilageInfo == null) {
+            // Direct drop without Block.dropResources (e.g. RightClickHarvest, custom block interaction)
+            if (level instanceof ServerLevel serverWorld && pos != null) {
+                Item item = stack.getItem();
+                if (!SpoilageConfig.getInstance().isSpoilable(item) || stack.has(ModDataComponentTypes.SPOILAGE)) {
+                    return;
+                }
+                BlockSpoilageData data = BlockSpoilageData.get(serverWorld);
+                BlockSpoilageData.BlockSpoilageEntry entry = data.getEntry(pos);
+                if (entry == null) {
+                    entry = data.takeParked(pos, serverWorld.getGameTime());
+                }
+
+                BlockState state = serverWorld.getBlockState(pos);
+                String itemId = BuiltInRegistries.ITEM.getKey(item).toString();
+                String dropId = DynamicFoodBlockCache.getFoodDropIgnoringGrowth(state, serverWorld, pos);
+                String blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
+
+                if ((dropId != null && dropId.equals(itemId)) || (blockId != null && blockId.equals(itemId))) {
+                    FoodSpoilageUtil.SpoilageState spoilState;
+                    long expirationTime;
+                    if (entry != null) {
+                        spoilState = entry.state;
+                        expirationTime = entry.expirationTime;
+                    } else {
+                        spoilState = data.getSpoilageState(pos, serverWorld, item, state);
+                        BlockSpoilageData.BlockSpoilageEntry created = data.getEntry(pos);
+                        expirationTime = created != null ? created.expirationTime : -1;
+                    }
+                    switch (spoilState) {
+                        case FRESH -> applyFresh(stack, expirationTime);
+                        case STALE -> applyStale(stack, expirationTime);
+                        case ROTTEN -> applyRotten(stack);
+                    }
+                    SpoilageEnhancedLogger.log("Applied " + spoilState + " to direct dropped item " + itemId
+                            + " at " + pos + " (direct popResource/RightClickHarvest)");
+                }
+            }
+            return;
+        }
+
         String expectedId = PENDING_DROP_ID.get();
         String blockId = PENDING_BLOCK_ID.get();
         String itemId = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();

@@ -255,6 +255,9 @@ public class DynamicFoodBlockCache {
         for (Integer v : age.getPossibleValues()) {
             if (v != null && v > max) max = v;
         }
+        if (state.getBlock() instanceof net.minecraft.world.level.block.CropBlock cropBlock) {
+            max = cropBlock.getMaxAge();
+        }
         try {
             if (lootFoodDrop(state.setValue(age, 0), world, pos) != null) {
                 return max;
@@ -270,6 +273,32 @@ public class DynamicFoodBlockCache {
                             + BuiltInRegistries.BLOCK.getKey(state.getBlock()) + ": " + e);
         }
         return max;
+    }
+
+    public static BlockState getMatureState(BlockState state) {
+        if (state == null) return null;
+        Block block = state.getBlock();
+        if (block instanceof net.minecraft.world.level.block.CropBlock cropBlock) {
+            return cropBlock.getStateForAge(cropBlock.getMaxAge());
+        }
+        net.minecraft.world.level.block.state.properties.IntegerProperty age =
+                FoodSpoilageUtil.growthProperty(state);
+        if (age != null) {
+            int max = 0;
+            for (Integer v : age.getPossibleValues()) {
+                if (v != null && v > max) max = v;
+            }
+            return state.setValue(age, max);
+        }
+        for (net.minecraft.world.level.block.state.properties.Property<?> p : state.getProperties()) {
+            if (p instanceof net.minecraft.world.level.block.state.properties.BooleanProperty bp) {
+                String name = bp.getName().toLowerCase();
+                if (name.contains("berries") || name.contains("fruit") || name.contains("ripe") || name.contains("bearing")) {
+                    return state.setValue(bp, Boolean.TRUE);
+                }
+            }
+        }
+        return state;
     }
 
     public static String getFoodDropIgnoringGrowth(BlockState state, ServerLevel world, BlockPos pos) {
@@ -303,7 +332,8 @@ public class DynamicFoodBlockCache {
         }
 
         try {
-            String fromLoot = lootFoodDrop(state, world, pos);
+            BlockState matureState = getMatureState(state);
+            String fromLoot = lootFoodDrop(matureState != null ? matureState : state, world, pos);
             if (fromLoot != null) {
                 putWithEviction(block, fromLoot);
                 SpoilageEnhancedLogger.log("DynamicFoodBlockCache: Discovered spoilable drop " + fromLoot + " for block " + blockId);
@@ -320,7 +350,9 @@ public class DynamicFoodBlockCache {
                     "DynamicFoodBlockCache: Exception discovering drops for " + blockId + ": " + e.getClass().getSimpleName() + ": " + e.getMessage());
         }
 
-        putWithEviction(block, NO_FOOD_DROP);
+        if (FoodSpoilageUtil.growthProperty(state) == null && !(block instanceof net.minecraft.world.level.block.CropBlock)) {
+            putWithEviction(block, NO_FOOD_DROP);
+        }
         return null;
     }
 

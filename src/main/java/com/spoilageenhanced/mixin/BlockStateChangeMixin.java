@@ -77,6 +77,7 @@ public class BlockStateChangeMixin {
                     || block instanceof net.minecraft.world.level.block.CocoaBlock
                     || block instanceof net.minecraft.world.level.block.SweetBerryBushBlock
                     || block instanceof net.minecraft.world.level.block.NetherWartBlock
+                    || FoodSpoilageUtil.growthProperty(state) != null
                     || SpoilageConfig.getInstance().isBlockTracked(BuiltInRegistries.BLOCK.getKey(block).toString()))) {
                 return;
             }
@@ -115,6 +116,9 @@ public class BlockStateChangeMixin {
             // Not bearing anything: leave it alone, and make sure nothing tracked it earlier.
             if (!isBearing) {
                 if (data.isTracked(pos)) {
+                    if (wasBearing) {
+                        data.park(pos, data.getEntry(pos), serverWorld.getGameTime());
+                    }
                     data.remove(pos);
                 }
                 return;

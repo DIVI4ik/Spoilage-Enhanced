@@ -33,6 +33,6 @@ public abstract class BlockPopResourceMixin {
         if (level == null || level.isClientSide()) {
             return;
         }
-        BlockDropSpoilageHandler.stampPending(stack);
+        BlockDropSpoilageHandler.stampPending(level, pos, stack);
     }
 }
