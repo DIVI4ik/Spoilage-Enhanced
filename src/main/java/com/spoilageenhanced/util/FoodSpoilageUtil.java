@@ -516,21 +516,30 @@ public class FoodSpoilageUtil {
             } else {
                 // Stack was already degraded: missing items inherit the worst active condition
                 // to prevent laundering. Single O(n) scan for min instead of Collections.min().
+                // Pass 1042 (L1 — correctness): the old code mutated the original lists in place
+                // (staleList.add / freshList.add), violating the SpoilageData record's immutability
+                // contract. The record constructor does defensive copying, but the accessor returns
+                // the stored ArrayList reference; mutating it in place mutates the component that
+                // is still attached to the stack until stack.set() is called. Always create new
+                // ArrayLists before mutating, matching the totalTracked == 0 branch.
                 if (rottenCount > 0) {
                     rottenCount += missing;
                 } else if (!staleList.isEmpty()) {
                     long minStale = Long.MAX_VALUE;
                     for (long s : staleList) if (s < minStale) minStale = s;
+                    staleList = new ArrayList<>(staleList);
                     for (int i = 0; i < missing; i++) staleList.add(minStale);
                 } else if (!freshList.isEmpty()) {
                     long minFresh = Long.MAX_VALUE;
                     for (long f : freshList) if (f < minFresh) minFresh = f;
+                    freshList = new ArrayList<>(freshList);
                     for (int i = 0; i < missing; i++) freshList.add(minFresh);
                 } else {
                     if (!freshDurationResolved) {
                         freshDuration = freshDurationSupplier.getAsLong();
                         freshDurationResolved = true;
                     }
+                    freshList = new ArrayList<>(freshList);
                     for (int i = 0; i < missing; i++) freshList.add(currentTime + freshDuration);
                 }
             }
