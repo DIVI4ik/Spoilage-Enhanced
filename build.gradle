@@ -89,16 +89,23 @@ loom {
             }
             // ./gradlew runClient -Pquickplayserver=localhost joins that server straight away,
             // which is how the multiplayer path of the block-spoilage HUD gets tested.
+            // For offline servers, the client needs --username and --accessToken (offline token).
             if (project.hasProperty('quickplayserver')) {
                 programArg "--quickPlayMultiplayer"
                 programArg project.property('quickplayserver').toString()
+                // Provide offline credentials so the client can join an online-mode=false server.
+                // The accessToken can be any non-empty string for offline mode; "offline" works.
+                programArg "--username"
+                programArg project.hasProperty('playername') ? project.property('playername').toString() : "Player499"
+                programArg "--accessToken"
+                programArg "offline"
             }
             // ./gradlew runClient -Pplayername=testplayer fixes the dev client's username.
             // The default is a random PlayerNNN, which cannot be pre-opped in ops.json — and
             // the spoilage command tree needs LEVEL_ADMINS, so an un-opped player's client
             // never receives it and every self-test command fails with "Unknown or incomplete
             // command" before it even reaches the server.
-            if (project.hasProperty('playername')) {
+            if (project.hasProperty('playername') && !project.hasProperty('quickplayserver')) {
                 programArg "--username"
                 programArg project.property('playername').toString()
             }
