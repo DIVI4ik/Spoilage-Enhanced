@@ -8,6 +8,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Block;
 
 import java.util.ArrayList;
@@ -89,14 +90,14 @@ public class AutoFoodDetector {
     }
 
     public static boolean isAlwaysSpoilable(Item item) {
-        if (item == Items.EGG || item == Items.MILK_BUCKET || item == Items.CAKE) {
+        if (item == Items.EGG || item == Items.MILK_BUCKET || item == Items.CAKE || item == Blocks.CANDLE_CAKE.asItem()) {
             return true;
         }
         String id = BuiltInRegistries.ITEM.getKey(item).toString();
         // 26.2 split eggs into three items. Without the variants their Crate Delight crates
         // (blue_egg_crate, brown_egg_crate) never become spoilable and the recipe scanner skips them.
         return id.equals("minecraft:egg") || id.equals("minecraft:blue_egg") || id.equals("minecraft:brown_egg")
-                || id.equals("minecraft:milk_bucket") || id.equals("minecraft:cake");
+                || id.equals("minecraft:milk_bucket") || id.equals("minecraft:cake") || id.equals("minecraft:candle_cake");
     }
 
 

@@ -11,8 +11,10 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.CakeBlock;
+import net.minecraft.world.level.block.CandleCakeBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -41,7 +43,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * because vanilla answers PASS and eats nothing when the player is already full, and a refused
  * bite must not poison anybody.</p>
  */
-@Mixin(CakeBlock.class)
+@Mixin({CakeBlock.class, CandleCakeBlock.class})
 public abstract class CakeEatMixin {
 
     @Unique
@@ -69,7 +71,10 @@ public abstract class CakeEatMixin {
         if (!data.isTracked(pos)) {
             return;
         }
-        spoilage_enhanced$biteState.set(data.getSpoilageState(pos, serverLevel, Items.CAKE));
+        // CandleCakeBlock calls CakeBlock.eat with Blocks.CAKE.defaultBlockState(),
+        // so we must use the block's own item to get the right duration.
+        Item cakeItem = state.getBlock().asItem();
+        spoilage_enhanced$biteState.set(data.getSpoilageState(pos, serverLevel, cakeItem));
     }
 
     @Inject(method = "eat", at = @At("RETURN"))
