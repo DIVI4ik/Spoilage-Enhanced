@@ -96,10 +96,11 @@ public class AutoFoodDetector {
         String id = BuiltInRegistries.ITEM.getKey(item).toString();
         // 26.2 split eggs into three items. Without the variants their Crate Delight crates
         // (blue_egg_crate, brown_egg_crate) never become spoilable and the recipe scanner skips them.
-        // candle_cake has no item form (its asItem() is null) — it is reached only via the
-        // block-eating path, so it is listed by id here.
+        // candle_cake has no item form (asItem() returns Items.AIR) — it is eaten only via the
+        // block-eating path, so it is covered by CakeEatMixin (which injects CakeBlock.eat, the
+        // method CandleCakeBlock.useWithoutItem calls). It is NOT listed here.
         return id.equals("minecraft:egg") || id.equals("minecraft:blue_egg") || id.equals("minecraft:brown_egg")
-                || id.equals("minecraft:milk_bucket") || id.equals("minecraft:cake") || id.equals("minecraft:candle_cake");
+                || id.equals("minecraft:milk_bucket") || id.equals("minecraft:cake");
     }
 
 

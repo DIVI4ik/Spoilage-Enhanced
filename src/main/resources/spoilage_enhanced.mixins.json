@@ -14,6 +14,7 @@
     "BlockPopResourceMixin",
     "BlockStateChangeMixin",
     "CakeEatMixin",
+    "CandleCakeEatMixin",
     "CampfireBlockEntityMixin",
     "ClearAllStatusEffectsConsumeEffectMixin",
     "ClientboundPayloadTypesMixin",
