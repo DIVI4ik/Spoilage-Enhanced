@@ -341,7 +341,14 @@ public class FoodSpoilageUtil {
             if (remaining <= 0) {
                 // Already expired — keep expired to prevent resurrection
                 newStale.add(oldExp);
-            } else if (Double.isInfinite(ratio) || Double.isNaN(ratio) || ratio > 1e15d) {
+            } else if (Double.isInfinite(ratio) || Double.isNaN(ratio) || ratio > 1e15d || ratio <= 0.0d) {
+                // Pass 1036 (L7 boundary): the fresh branch already guarded `ratio <= 0.0d`
+                // but the stale branch did not. A negative ratio (e.g. from a corrupt save or
+                // a caller passing old/new inverted) reached the multiplication below and
+                // produced a negative remaining, which then wrapped to a huge positive via
+                // Math.max(1L, ...) — a stale item suddenly appearing fresh again. Same guard
+                // as the fresh branch, and it must sit BEFORE the overflow check so ratio=0
+                // never reaches the division (FoodSpoilageUtil.java:321,339).
                 newStale.add(NEVER);
             } else if (remaining > Long.MAX_VALUE / Math.max(ratio, 1e-9d)) {
                 newStale.add(NEVER);

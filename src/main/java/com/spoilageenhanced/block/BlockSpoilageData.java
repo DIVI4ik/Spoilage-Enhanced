@@ -174,11 +174,19 @@ public class BlockSpoilageData extends SavedData {
             // expirationTime == -1, but a legacy entry can carry a stale expirationTime from an
             // older write (BlockEntryLegacyWinsTest pins that contract: legacy wins over state
             // when both are present). The Long.MIN_VALUE sentinel used by rescaleExpirations for
-            // "essentially never expires" legacy entries is also written back so it survives a
-            // save/load round-trip.
-            boolean isLegacy = entry.getValue().legacyBirthTime != -1;
-            if (isLegacy) {
-                entryNbt.putLong("BirthTime", entry.getValue().legacyBirthTime);
+            // "essentially never expires" legacy entries is also written back as BirthTime so it
+            // survives a save/load round-trip. But it is NOT a real birth time — it must not be
+            // treated as legacy in the state-computing paths (getSpoilageState/getTicksUntilNextStage),
+            // where currentTime - Long.MIN_VALUE overflows to a huge positive and makes the block
+            // appear ROTTEN instantly.
+            long lb = entry.getValue().legacyBirthTime;
+            boolean isRealLegacy = lb != -1 && lb != Long.MIN_VALUE;
+            if (isRealLegacy) {
+                entryNbt.putLong("BirthTime", lb);
+            } else if (lb == Long.MIN_VALUE) {
+                // The never-expires sentinel: write as BirthTime so it survives save/load,
+                // but it is NOT a real birth time (state-computing paths exclude it).
+                entryNbt.putLong("BirthTime", lb);
             } else {
                 entryNbt.putInt("State", entry.getValue().state.ordinal());
                 entryNbt.putLong("Expire", entry.getValue().expirationTime);
@@ -357,8 +365,10 @@ public class BlockSpoilageData extends SavedData {
         final long NEVER = Long.MAX_VALUE;
         final long LEGACY_NEVER = Long.MIN_VALUE;
         for (BlockSpoilageEntry entry : entries.values()) {
-            // Legacy format: legacyBirthTime explicitly set (!= -1) and expirationTime == -1 (default)
-            boolean isLegacy = entry.legacyBirthTime != -1;
+            // Legacy format: legacyBirthTime explicitly set (!= -1) and NOT the never-expires sentinel.
+            // Long.MIN_VALUE is the "essentially never expires" sentinel written by rescaleExpirations
+            // for invalid ratios; it must NOT be treated as a real birth time.
+            boolean isLegacy = entry.legacyBirthTime != -1 && entry.legacyBirthTime != LEGACY_NEVER;
             if (isLegacy) {
                 long oldBirth = entry.legacyBirthTime;
                 long elapsed = currentTime - oldBirth;
@@ -544,8 +554,11 @@ public class BlockSpoilageData extends SavedData {
 
         long currentTime = world.getGameTime();
 
-        // Legacy format: legacyBirthTime explicitly set (!= -1) and expirationTime == -1 (default)
-        boolean isLegacy = entry.legacyBirthTime != -1;
+        // Legacy format: legacyBirthTime explicitly set (!= -1) and NOT the never-expires sentinel
+        // (Long.MIN_VALUE, set by rescaleExpirations for invalid ratios). The sentinel must not
+        // be treated as a real birth time: currentTime - Long.MIN_VALUE overflows to a huge
+        // positive and makes the block appear ROTTEN instantly.
+        boolean isLegacy = entry.legacyBirthTime != -1 && entry.legacyBirthTime != Long.MIN_VALUE;
         if (isLegacy) {
             if (itemToUse == null) {
                 // Pass 127: use cached blockState if available, otherwise fall back to resolveItemToUse
@@ -571,6 +584,13 @@ public class BlockSpoilageData extends SavedData {
 
         if (entry.state == FoodSpoilageUtil.SpoilageState.ROTTEN) {
             return FoodSpoilageUtil.SpoilageState.ROTTEN;
+        }
+
+        // A legacy entry that has been clamped to the never-expires sentinel (Long.MIN_VALUE)
+        // has no real expiration to age against — it is not a real birth time. Answer FRESH
+        // and let the next legitimate rescale give it a real one.
+        if (entry.legacyBirthTime == Long.MIN_VALUE) {
+            return FoodSpoilageUtil.SpoilageState.FRESH;
         }
 
         if (currentTime >= entry.expirationTime) {
@@ -646,8 +666,11 @@ public class BlockSpoilageData extends SavedData {
         // = -1 - currentTime, which is deeply negative, so Math.max(0, ...) returned 0: a
         // genuinely fresh block reported "0 ticks until next stage" and the HUD rendered a
         // fully-depleted countdown for it. Compute the real remaining time from legacyBirthTime.
-        // Legacy format: legacyBirthTime explicitly set (!= -1) and expirationTime == -1 (default)
-        boolean isLegacy = entry.legacyBirthTime != -1;
+        // Legacy format: legacyBirthTime explicitly set (!= -1) and NOT the never-expires sentinel
+        // (Long.MIN_VALUE, set by rescaleExpirations for invalid ratios). The sentinel must not
+        // be treated as a real birth time: currentTime - Long.MIN_VALUE overflows to a huge
+        // positive and makes the block appear ROTTEN instantly.
+        boolean isLegacy = entry.legacyBirthTime != -1 && entry.legacyBirthTime != Long.MIN_VALUE;
         if (isLegacy) {
             if (itemToUse == null) {
                 if (blockState != null) {
