@@ -275,6 +275,7 @@ public class BlockSpoilageData extends SavedData {
     private void evictOldestRottenOrExpired() {
         Long evictKey = null;
         boolean evictingRotten = false;
+        long bestExpiration = Long.MAX_VALUE;
         long bestKey = Long.MAX_VALUE;
 
         for (Map.Entry<Long, BlockSpoilageEntry> entry : entries.entrySet()) {
@@ -285,13 +286,17 @@ public class BlockSpoilageData extends SavedData {
                 evictingRotten = true;
                 break;
             }
-            // Prefer entries with the smallest key (posLong) when expirationTime is invalid
-            // (legacy format or rotten). This ensures a map full of legacy entries still
-            // produces a candidate so setSpoilageState can't push past the cap.
-            long key = entry.getKey();
-            if (key < bestKey) {
-                bestKey = key;
-                evictKey = key;
+            // For non-ROTTEN entries, prefer the one with the SMALLEST expirationTime
+            // (closest to expiring). Legacy entries have expirationTime == -1 and are
+            // treated as "never expires" — they are the LAST resort.
+            long expiration = e.expirationTime;
+            if (expiration == -1) {
+                expiration = Long.MAX_VALUE; // legacy entries go to the end
+            }
+            if (expiration < bestExpiration || (expiration == bestExpiration && entry.getKey() < bestKey)) {
+                bestExpiration = expiration;
+                bestKey = entry.getKey();
+                evictKey = entry.getKey();
                 evictingRotten = false;
             }
         }
