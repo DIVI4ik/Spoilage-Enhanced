@@ -1,12 +1,12 @@
 # Agent State
 
-Pass: 1049
+Pass: 1050
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L14: RightClickHarvest end-to-end · FIXED · CandleCakeEatMixin created to intercept CandleCakeBlock.useWithoutItem — candle cake eating path now applies stale/rotten effects correctly. CakeEatMixin targets CakeBlock.eat; CandleCakeEatMixin targets CandleCakeBlock.useWithoutItem. Both read the block's own item for duration lookup.
+Current task: L14: TPS pair with pack loaded · FIXED · CandleCakeEatMixin created to intercept CandleCakeBlock.useWithoutItem — candle cake eating path now applies stale/rotten effects correctly. CakeEatMixin targets CakeBlock.eat; CandleCakeEatMixin targets CandleCakeBlock.useWithoutItem. Both read the block's own item for duration lookup.
 Last lens: L14
 Recent: NO_BUG NO_BUG NO_BUG FIXED NO_BUG
-Barren streak: 3
-Refills since L13: 7
+Barren streak: 4
+Refills since L13: 8
 Commits since: release = 0
 Updated: 2026-09-11 01:05:39
 
