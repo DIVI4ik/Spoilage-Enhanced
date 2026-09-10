@@ -558,6 +558,13 @@ public class BlockSpoilageData extends SavedData {
 
         if (entry == null) return FoodSpoilageUtil.SpoilageState.FRESH;
 
+        // A legacy entry clamped to the never-expires sentinel (Long.MIN_VALUE) has no real
+        // expiration to age against — it is not a real birth time. Answer FRESH without
+        // touching the world (which may be null in tests).
+        if (entry.legacyBirthTime == Long.MIN_VALUE) {
+            return FoodSpoilageUtil.SpoilageState.FRESH;
+        }
+
         long currentTime = world.getGameTime();
 
         // Legacy format: legacyBirthTime explicitly set (!= -1) and NOT the never-expires sentinel
@@ -694,6 +701,13 @@ public class BlockSpoilageData extends SavedData {
             if (age < freshDuration) return freshDuration - age;
             if (age < freshDuration + staleDuration) return (freshDuration + staleDuration) - age;
             return 0;
+        }
+
+        // A legacy entry that has been clamped to the never-expires sentinel (Long.MIN_VALUE)
+        // has no real expiration to age against — it is not a real birth time. Answer a large
+        // positive value (effectively "never expires") instead of 0.
+        if (entry.legacyBirthTime == Long.MIN_VALUE) {
+            return Long.MAX_VALUE;
         }
 
         long remaining = entry.expirationTime - world.getGameTime();
