@@ -2,7 +2,7 @@
 
 Pass: 1051
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L14: COMPLETE - all 5 tasks done · FIXED · CandleCakeEatMixin created to intercept CandleCakeBlock.useWithoutItem — candle cake eating path now applies stale/rotten effects correctly. CakeEatMixin targets CakeBlock.eat; CandleCakeEatMixin targets CandleCakeBlock.useWithoutItem. Both read the block's own item for duration lookup.
+Current task: L14 FIX: CookingPotBlockEntityMixin — stamp FRESH on cooking pot output · FIXED · CandleCakeEatMixin created to intercept CandleCakeBlock.useWithoutItem — candle cake eating path now applies stale/rotten effects correctly. CakeEatMixin targets CakeBlock.eat; CandleCakeEatMixin targets CandleCakeBlock.useWithoutItem. Both read the block's own item for duration lookup.
 Last lens: L14
 Recent: NO_BUG NO_BUG NO_BUG FIXED NO_BUG
 Barren streak: 5
