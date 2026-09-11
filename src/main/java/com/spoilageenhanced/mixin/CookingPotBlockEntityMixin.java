@@ -69,6 +69,9 @@ public abstract class CookingPotBlockEntityMixin {
         }
 
         ItemStackHandler inventory = ((CookingPotBlockEntityMixin) (Object) blockEntity).getInventory();
+        if (inventory == null) {
+            return;
+        }
         int slots = inventory.getSlotCount();
         boolean anySpoilable = false;
         for (int i = 0; i < slots; i++) {
