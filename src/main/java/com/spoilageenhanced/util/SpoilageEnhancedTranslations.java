@@ -122,7 +122,13 @@ public class SpoilageEnhancedTranslations {
         long minutes = (remainingAfterHours * 60) / 1000;
 
         // Pass 110: pack the quantized triple and answer from the cache when present.
-        long key = (days << 42) | (hours << 21) | minutes;
+        // Pass 1100 (L7 boundary): minutes is in [0..59] (6 bits), hours is in [0..23] (5 bits).
+        // The old packing shifted hours by 21 and days by 42, wasting 30 bits and restricting
+        // days to 22 bits (< 4.2M days), causing bit-shift wrap/collision on large tick values
+        // differing by 2^22 days. Packing minutes into 6 bits, hours into 5 bits, and days
+        // into 53 bits (days << 11 | hours << 6 | minutes) prevents collisions for any realistic
+        // or Long.MAX_VALUE tick duration.
+        long key = (days << 11) | (hours << 6) | minutes;
         String cached = FORMAT_TIME_CACHE.get(key);
         if (cached != null) {
             return cached;

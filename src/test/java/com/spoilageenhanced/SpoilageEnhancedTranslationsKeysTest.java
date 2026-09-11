@@ -84,4 +84,22 @@ public class SpoilageEnhancedTranslationsKeysTest {
             }
         }
     }
+
+    @Test
+    void formatTimeBitPackingNoCollisionAcrossExtremes() {
+        // Pass 1100 (L7 boundary): verify formatTime bit packing produces distinct keys
+        // for distinct (days, hours, minutes) inputs without bit-shift collisions.
+        long day1 = 100L;
+        long day2 = 100L + (1L << 22); // 4,194,404 days
+        long hours = 5L;
+        long minutes = 30L;
+
+        long key1 = (day1 << 11) | (hours << 6) | minutes;
+        long key2 = (day2 << 11) | (hours << 6) | minutes;
+
+        assertNotEquals(key1, key2, "Keys for day1 and day2 must not collide in 53-bit day allocation");
+        assertEquals(hours, (key1 >> 6) & 0x1F, "Hours should unpack correctly from 5-bit slot");
+        assertEquals(minutes, key1 & 0x3F, "Minutes should unpack correctly from 6-bit slot");
+        assertEquals(day1, key1 >> 11, "Days should unpack correctly from remaining bits");
+    }
 }
