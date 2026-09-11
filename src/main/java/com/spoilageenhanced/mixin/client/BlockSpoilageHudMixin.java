@@ -110,6 +110,23 @@ public abstract class BlockSpoilageHudMixin {
     private static final boolean spoilage_enhanced$SELF_TEST_EAT = "eat".equals(System.getProperty("spoilage_enhanced.selftest"));
 
     /**
+     * Pass 1106 (L13 behaviour): drive the REAL item-eating path for a STALE item.
+     * The {@code eat} scenario (Pass 670) used {@code spoilage debug eat}, which is
+     * {@code simulateEat} — a server-side COPY of the mixin's effect logic. This scenario
+     * uses {@code spoilage debug finisheat <item> <state>}, which calls the real
+     * {@code ItemStack.finishUsingItem(level, player)} — the exact method
+     * {@code ItemStackMixin.onFinishUsingItem} intercepts — so the stale hunger penalty
+     * and nausea are applied by the SHIPPED code, not a copy.
+     *
+     * <p>Steps: creative mode (a full stomach never refuses a bite), read foodLevel,
+     * finisheat a stale apple, read foodLevel + active_effects again. The apple's
+     * nutrition is 4, so a 50% penalty must drop foodLevel by 2 from the post-eat level;
+     * nausea is a 50% chance, so the run reports whichever outcome occurred.</p>
+     */
+    @org.spongepowered.asm.mixin.Unique
+    private static final boolean spoilage_enhanced$SELF_TEST_STALE_EAT = "staleeat".equals(System.getProperty("spoilage_enhanced.selftest"));
+
+    /**
      * Pass 672 (L13 behaviour): drive AbstractFurnaceBlockEntityMixin.canBurn rotten-refusal
      * guard. The furnace must not accept rotten food as fuel/input. No existing selftest
      * covers this path.
@@ -184,6 +201,10 @@ public abstract class BlockSpoilageHudMixin {
 
         if (spoilage_enhanced$SELF_TEST_EAT) {
             spoilage_enhanced$runEatSelfTest(client);
+        }
+
+        if (spoilage_enhanced$SELF_TEST_STALE_EAT) {
+            spoilage_enhanced$runStaleEatSelfTest(client);
         }
 
         if (spoilage_enhanced$SELF_TEST_FURNACE) {
@@ -987,6 +1008,67 @@ public abstract class BlockSpoilageHudMixin {
                 spoilage_enhanced$sendRawCommand(rawConn, "execute at @p run spoilage debug eat minecraft:milk_bucket rotten 1");
             }
             case 2 -> {
+                spoilage_enhanced$sendRawCommand(rawConn, "execute at @p run data get entity @s active_effects");
+            }
+            default -> {
+            }
+        }
+        spoilage_enhanced$selfTestStep++;
+    }
+
+    /**
+     * Pass 1106 (L13 behaviour): drive the REAL item-eating path for a STALE item.
+     * Uses {@code spoilage debug finisheat minecraft:apple stale} which calls the real
+     * {@code ItemStack.finishUsingItem} — the method {@code ItemStackMixin.onFinishUsingItem}
+     * intercepts. This exercises the SHIPPED stale branch (hunger penalty + nausea chance),
+     * not the {@code simulateEat} copy.
+     *
+     * <p>Steps (creative mode so a full stomach never refuses a bite):
+     * <ol>
+     *   <li>Creative mode + read foodLevel baseline.</li>
+     *   <li>finisheat a stale apple (nutrition 4, 50% penalty = 2 hunger drop from post-eat).</li>
+     *   <li>Read foodLevel + active_effects (nausea 50% chance).</li>
+     * </ol>
+     * The run reports whichever nausea outcome occurred — both are valid.</p>
+     */
+    @org.spongepowered.asm.mixin.Unique
+    private static void spoilage_enhanced$runStaleEatSelfTest(Minecraft client) {
+        if (spoilage_enhanced$selfTestStarted && spoilage_enhanced$selfTestStep >= 4) {
+            return;
+        }
+        long now = client.level.getGameTime();
+        if (!spoilage_enhanced$selfTestStarted && spoilage_enhanced$selfTestNextStepTime == 0L) {
+            spoilage_enhanced$selfTestNextStepTime = now + 300L;
+            return;
+        }
+        if (now < spoilage_enhanced$selfTestNextStepTime) {
+            return;
+        }
+        spoilage_enhanced$selfTestNextStepTime = now + 40L;
+
+        net.minecraft.client.multiplayer.ClientPacketListener conn = client.getConnection();
+        if (conn == null) {
+            return;
+        }
+        net.minecraft.network.Connection rawConn =
+                ((com.spoilageenhanced.mixin.ClientCommonPacketListenerImplAccessor) conn).spoilage_enhanced$getConnection();
+        if (rawConn == null) {
+            return;
+        }
+
+        switch (spoilage_enhanced$selfTestStep) {
+            case 0 -> {
+                spoilage_enhanced$sendRawCommand(rawConn, "execute at @p run gamemode creative @s");
+                spoilage_enhanced$sendRawCommand(rawConn, "execute at @p run data get entity @s foodLevel");
+                spoilage_enhanced$selfTestStarted = true;
+            }
+            case 1 -> {
+                spoilage_enhanced$sendRawCommand(rawConn, "execute at @p run spoilage debug finisheat minecraft:apple stale");
+            }
+            case 2 -> {
+                spoilage_enhanced$sendRawCommand(rawConn, "execute at @p run data get entity @s foodLevel");
+            }
+            case 3 -> {
                 spoilage_enhanced$sendRawCommand(rawConn, "execute at @p run data get entity @s active_effects");
             }
             default -> {

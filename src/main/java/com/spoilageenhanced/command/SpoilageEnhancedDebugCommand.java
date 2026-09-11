@@ -110,6 +110,19 @@ public class SpoilageEnhancedDebugCommand {
                             .executes(context -> useNearestEntity(
                                     context.getSource(),
                                     StringArgumentType.getString(context, "type")))))
+                    // Pass 1106 (L13 — widen the harness): simulateEat duplicates the mixin's
+                    // effect logic, so it can drift from the real path and proves nothing about
+                    // ItemStackMixin.onFinishUsingItem. This variant calls the REAL
+                    // ItemStack.finishUsingItem(level, player) on the player's main-hand stack,
+                    // which the mixin intercepts — the same method a real 1.6s hold-right-click
+                    // ends in. Givespoiled first, then finisheat, then read foodLevel/effects.
+                    .then(Commands.literal("finisheat")
+                        .executes(context -> finishEatHeldItem(context.getSource()))
+                        .then(Commands.argument("item", IdentifierArgument.id())
+                            .then(Commands.argument("state", StringArgumentType.word())
+                                .executes(context -> finishEatBuiltItem(context.getSource(),
+                                        IdentifierArgument.getId(context, "item"),
+                                        StringArgumentType.getString(context, "state"))))))
                     .then(Commands.literal("stress")
                         .then(Commands.argument("count", IntegerArgumentType.integer(1, 10000))
                             .executes(context -> spawnStressItems(
@@ -839,6 +852,94 @@ public class SpoilageEnhancedDebugCommand {
         source.sendSuccess(() -> Component.literal(message), false);
         SpoilageEnhancedLogger.log(message);
         return result.consumesAction() ? 1 : 0;
+    }
+
+    /**
+     * Pass 1106 (L13 — widen the harness): drives the REAL eating path. Calls
+     * {@code ItemStack.finishUsingItem(level, player)} on the executing player's main-hand
+     * stack — the exact method {@code ItemStackMixin.onFinishUsingItem} intercepts at RETURN,
+     * and the one a real 1.6s hold-right-click ends in. Unlike {@code simulateEat}, which
+     * duplicates the mixin's effect logic and can drift from it, this exercises the shipped
+     * code end to end: givespoiled a stale item, finisheat, then read foodLevel/effects.
+     */
+    private static int finishEatHeldItem(CommandSourceStack source) {
+        if (!(source.getEntity() instanceof net.minecraft.server.level.ServerPlayer player)) {
+            source.sendFailure(Component.literal("players only"));
+            return 0;
+        }
+        net.minecraft.world.item.ItemStack held = player.getMainHandItem();
+        if (held.isEmpty()) {
+            source.sendFailure(Component.literal("main hand is empty — givespoiled an item first"));
+            return 0;
+        }
+        int beforeFood = player.getFoodData().getFoodLevel();
+        float beforeSat = player.getFoodData().getSaturationLevel();
+        String heldDesc = held.getItem().toString() + " x" + held.getCount();
+
+        net.minecraft.world.item.ItemStack result = held.finishUsingItem(source.getLevel(), player);
+
+        int afterFood = player.getFoodData().getFoodLevel();
+        float afterSat = player.getFoodData().getSaturationLevel();
+        String message = "finisheat " + heldDesc + " -> result=" + result.getItem()
+                + " foodLevel " + beforeFood + "->" + afterFood
+                + " saturation " + beforeSat + "->" + afterSat;
+        source.sendSuccess(() -> Component.literal(message), false);
+        SpoilageEnhancedLogger.log(message);
+        return 1;
+    }
+
+    /**
+     * Pass 1106 (L13 — widen the harness), variant with explicit item: builds the stack
+     * server-side (same construction as {@code simulateEat}) and puts it in the player's
+     * main hand, then calls the REAL {@code ItemStack.finishUsingItem} — so the mixin path
+     * runs regardless of how the item got there. Use when the main hand is empty and
+     * {@code givespoiled} (which uses {@code Inventory.add}, not the main hand) is awkward.
+     */
+    private static int finishEatBuiltItem(CommandSourceStack source, Identifier itemId, String state) {
+        if (!(source.getEntity() instanceof net.minecraft.server.level.ServerPlayer player)) {
+            source.sendFailure(Component.literal("players only"));
+            return 0;
+        }
+        Item item = BuiltInRegistries.ITEM.getValue(itemId);
+        if (item == null || item == net.minecraft.world.item.Items.AIR) {
+            source.sendFailure(Component.literal("Unknown item: " + itemId));
+            return 0;
+        }
+        long now = source.getLevel().getGameTime();
+        SpoilageConfig config = SpoilageConfig.getInstance();
+        com.spoilageenhanced.component.SpoilageData data = switch (state.toLowerCase(java.util.Locale.ROOT)) {
+            case "fresh" -> new com.spoilageenhanced.component.SpoilageData(
+                    java.util.List.of(now + config.getFreshDurationForItem(item) / 2),
+                    java.util.List.of(), 0, 1.0);
+            case "stale" -> new com.spoilageenhanced.component.SpoilageData(
+                    java.util.List.of(),
+                    java.util.List.of(now + config.getStaleDurationForItem(item) / 2), 0, 1.0);
+            case "rotten" -> new com.spoilageenhanced.component.SpoilageData(
+                    java.util.List.of(), java.util.List.of(), 1, 1.0);
+            default -> {
+                source.sendFailure(Component.literal("state must be one of: fresh, stale, rotten"));
+                yield null;
+            }
+        };
+        if (data == null) return 0;
+
+        net.minecraft.world.item.ItemStack stack = new net.minecraft.world.item.ItemStack(item, 1);
+        stack.set(com.spoilageenhanced.component.ModDataComponentTypes.SPOILAGE, data);
+        player.getInventory().setItem(player.getInventory().getSelectedSlot(), stack);
+
+        int beforeFood = player.getFoodData().getFoodLevel();
+        float beforeSat = player.getFoodData().getSaturationLevel();
+
+        net.minecraft.world.item.ItemStack result = stack.finishUsingItem(source.getLevel(), player);
+
+        int afterFood = player.getFoodData().getFoodLevel();
+        float afterSat = player.getFoodData().getSaturationLevel();
+        String message = "finisheat " + itemId + "(" + state + ") -> result=" + result.getItem()
+                + " foodLevel " + beforeFood + "->" + afterFood
+                + " saturation " + beforeSat + "->" + afterSat;
+        source.sendSuccess(() -> Component.literal(message), false);
+        SpoilageEnhancedLogger.log(message);
+        return 1;
     }
 
     /**

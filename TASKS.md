@@ -180,7 +180,7 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
 
 ## Refill 2026-09-11 (L13 observed behaviour — player-eats scenarios)
 
-- [ ] Player eats STALE food — hunger penalty + nausea applied. givespoiled stale item, spoilage debug use (eat path), read player foodLevel/saturation before vs after and active_effects. Expect: foodLevel drops by nutrition*50%, nausea 50% chance (drive until both outcomes seen or 5 attempts).
+- [x] Player eats STALE food — hunger penalty + nausea applied. givespoiled stale item, spoilage debug use (eat path), read player foodLevel/saturation before vs after and active_effects. Expect: foodLevel drops by nutrition*50%, nausea 50% chance (drive until both outcomes seen or 5 attempts). — DRIVEN via real finishUsingItem path (pass 1106, FIXED): STALE apple -> hunger penalty +2 net (16->18), nausea 50% chance (both outcomes observed). FRESH control: +4 foodLevel, no effects. ROTTEN control: -4 foodLevel, poison. All three branches of ItemStackMixin.onFinishUsingItem exercised by shipped code via new finisheat command + staleeat selftest. Committed.
 - [ ] Player eats FRESH food — no penalty, no effects. givespoiled fresh item, eat, verify foodLevel INCREASES normally (vanilla nutrition) and no spoilage effects applied. Control for the stale case.
 - [ ] Stale food eaten by ANIMAL (breeding) — stale food should still breed (only rotten cancels per config rotten_cancels_breeding). givespoiled stale wheat, debug useentity cow, verify cow InLove > 0 and no poison/weakness effects.
 - [ ] Eating stale food with FULL hunger bar — penalty applies after vanilla nutrition added; verify foodLevel math is (current + nutrition - penalty) not clamped wrong. Drive with foodLevel 20 then eat stale steak.

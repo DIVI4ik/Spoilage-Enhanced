@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1105
+Pass: 1106
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L13 refill (5 player-eats scenarios) + first task: player eats STALE food — hunger penalty + nausea.
+Current task: STALE eating verified end-to-end (pass 1106). Next: fresh control + animal breeding with stale.
 Last lens: L13
-Recent: NO_BUG NO_BUG NO_BUG NO_BUG NO_BUG
+Recent: NO_BUG NO_BUG NO_BUG NO_BUG FIXED
 Barren streak: 0
 Refills since L13: 0
-Commits since: release = 0
-Updated: 2026-09-11 17:37:14
+Commits since: release = 2
+Updated: 2026-09-11 21:30:05
 
 ## Notes
 

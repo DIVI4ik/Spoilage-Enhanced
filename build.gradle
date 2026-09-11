@@ -77,6 +77,13 @@ loom {
             client()
             name "Fabric Client"
             runDir "run/fabric"
+            // Pass 1106: this machine has 7.9GB RAM and the dev client defaulted to a heap
+            // large enough that client + server + IDE exhausted physical memory — the client
+            // JVM died with a native malloc failure (hs_err_pid16168.log) and the server
+            // thread then blocked 60s writing packets to the frozen client, tripping the
+            // watchdog four times in a row. Cap the client heap at 1GB: enough for a vanilla
+            // world with the modpack, small enough to coexist with the server.
+            vmArg "-Xmx1G"
             // ./gradlew runClient -Pnetprobe=true makes the HUD ask the server about the block the
             // player stands on, so the block-spoilage packets can be verified without aiming manually.
             vmArg "-Dspoilage_enhanced.netprobe=${project.findProperty('netprobe') ?: 'false'}"
