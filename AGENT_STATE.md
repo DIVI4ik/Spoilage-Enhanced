@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1104
+Pass: 1105
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: mergeItems multiplier pinned (pass 1104). Queue empty — next pass refills.
-Last lens: L5
-Recent: FIXED NO_BUG NO_BUG NO_BUG NO_BUG
+Current task: L13 refill (5 player-eats scenarios) + first task: player eats STALE food — hunger penalty + nausea.
+Last lens: L13
+Recent: NO_BUG NO_BUG NO_BUG NO_BUG NO_BUG
 Barren streak: 0
-Refills since L13: 2
+Refills since L13: 0
 Commits since: release = 0
-Updated: 2026-09-11 17:26:15
+Updated: 2026-09-11 17:37:14
 
 ## Notes
 
