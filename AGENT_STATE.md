@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1110
+Pass: 1111
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: item frame + armor stand display-entity aging checked (pass 1110). Next: villager trade rotten food.
+Current task: villager trade guard confirmed from code (pass 1111). Next: refill follow-up.
 Last lens: L13
-Recent: FIXED NO_BUG NO_BUG IMPROVED NO_BUG
+Recent: NO_BUG NO_BUG NO_BUG IMPROVED NO_BUG
 Barren streak: 0
 Refills since L13: 0
 Commits since: release = 0
-Updated: 2026-09-12 00:14:24
+Updated: 2026-09-12 00:23:19
 
 ## Notes
 
