@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1093
+Pass: 1095
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L13 refill (5 scenarios) all driven live with real player — campfire drop, animal feed, furnace output, cake eat, composter. All NO_BUG. Queue empty — next pass refills.
-Last lens: L13
+Current task: src/main/java/com/spoilageenhanced/mixin/client/ItemClientMixin.java:135 — tooltip shows correct spoilage state for item in hand
+Last lens: L5
 Recent: NO_BUG NO_BUG NO_BUG NO_BUG NO_BUG
 Barren streak: 12
-Refills since L13: 1
+Refills since L13: 2
 Commits since: release = 0
-Updated: 2026-09-11 14:08:16
+Updated: 2026-09-11 14:39:35
 
 ## Notes
 
