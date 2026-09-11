@@ -66,7 +66,7 @@ public abstract class FridgeBlockEntityMixin {
             SpoilageEnhancedLogger.log("FridgeBlockEntityMixin applied (Cooking for Blockheads present)");
         }
         // Phase-spread by position, same as BrewingStandBlockEntityMixin.
-        if ((pos.getX() + pos.getZ() + level.getGameTime()) % 20 != 0) {
+        if (com.spoilageenhanced.util.FoodSpoilageUtil.shouldSkipAgingTick(pos, level.getGameTime())) {
             return;
         }
 

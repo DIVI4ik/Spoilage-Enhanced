@@ -440,6 +440,15 @@ public class FoodSpoilageUtil {
      *       single forward pass for expiration transitions, with no nested re-scan.</li>
      * </ul>
      */
+    public static boolean shouldSkipAgingTick(net.minecraft.core.BlockPos pos, long gameTime) {
+        return (pos.getX() + pos.getZ() + gameTime) % 20 != 0;
+    }
+
+    /**
+     * Pure-logic tick for one (data, count) pair. Extracted so benchmarks and tests can exercise
+     * the hot path without constructing a Minecraft ServerLevel. Returns the same {@code data}
+     * instance when nothing changed (list reuse preserved), or a new instance otherwise.
+     */
     public static SpoilageData updateSpoilageData(
             SpoilageData data,
             int actualCount,

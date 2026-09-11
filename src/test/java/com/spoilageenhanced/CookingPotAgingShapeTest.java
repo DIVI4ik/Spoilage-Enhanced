@@ -112,7 +112,7 @@ class CookingPotAgingShapeTest {
     @Test
     void mixinClassExistsWithAgingHandler() throws Exception {
         // Class.forName cannot load the mixin here: its FD stub types are on the main
-        // sourceSet's classpath, not the test runtime's. Read the source instead —
+        // sourceSet's classpath, not the test runtime's. Read the source instead - same
         // the same evidence the phase-spread check uses.
         String src = new String(Files.readAllBytes(
                 Paths.get("src/main/java/com/spoilageenhanced/mixin/CookingPotBlockEntityMixin.java")),
@@ -136,14 +136,14 @@ class CookingPotAgingShapeTest {
 
     @Test
     void handlerKeepsPhaseSpreadCadence() throws Exception {
-        // The handler's source is the contract: (x + z + gameTime) % 20 == 0. Reading the
-        // source file (not the bytecode) keeps the assertion readable and still fails the
-        // build if the cadence is dropped in a refactor.
+        // The handler's source is the contract: it calls the shared phase-spread gate.
+        // Reading the source file (not the bytecode) keeps the assertion readable and
+        // still fails the build if the cadence is dropped in a refactor.
         String src = new String(Files.readAllBytes(
                 Paths.get("src/main/java/com/spoilageenhanced/mixin/CookingPotBlockEntityMixin.java")),
                 StandardCharsets.UTF_8);
-        assertTrue(src.contains("% 20 != 0"),
-                "the aging handler must keep the 20-tick phase-spread gate "
-                        + "(same as ItemEntityMixin / BrewingStandBlockEntityMixin)");
+        assertTrue(src.contains("FoodSpoilageUtil.shouldSkipAgingTick"),
+                "the aging handler must call the shared 20-tick phase-spread gate "
+                        + "(same as ItemEntityMixin / BrewingStandBlockEntityMixin / FridgeBlockEntityMixin)");
     }
 }

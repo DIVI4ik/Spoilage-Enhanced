@@ -62,9 +62,9 @@ public abstract class CookingPotBlockEntityMixin {
             spoilage_enhanced_loggedApplication = true;
             SpoilageEnhancedLogger.log("CookingPotBlockEntityMixin applied (Farmer's Delight present)");
         }
-        // Phase-spread by position, same as BrewingStandBlockEntityMixin: a row of pots does
+        // Phase-spread by position, same as ItemEntityMixin: a row of pots does
         // not all age on the same tick boundary.
-        if ((pos.getX() + pos.getZ() + level.getGameTime()) % 20 != 0) {
+        if (com.spoilageenhanced.util.FoodSpoilageUtil.shouldSkipAgingTick(pos, level.getGameTime())) {
             return;
         }
 
