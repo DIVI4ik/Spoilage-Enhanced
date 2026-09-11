@@ -1,11 +1,11 @@
 # Agent State
 
-Pass: 1060
+Pass: 1061
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L13: observed behaviour — cooking pot meal aging in real gameplay · FIXED · CandleCakeEatMixin created to intercept CandleCakeBlock.useWithoutItem — candle cake eating path now applies stale/rotten effects correctly. CakeEatMixin targets CakeBlock.eat; CandleCakeEatMixin targets CandleCakeBlock.useWithoutItem. Both read the block's own item for duration lookup.
+Current task: L13: observed behaviour — fridge cooling design question · FIXED · CandleCakeEatMixin created to intercept CandleCakeBlock.useWithoutItem — candle cake eating path now applies stale/rotten effects correctly. CakeEatMixin targets CakeBlock.eat; CandleCakeEatMixin targets CandleCakeBlock.useWithoutItem. Both read the block's own item for duration lookup.
 Last lens: L13
-Recent: NO_BUG FIXED NO_BUG FIXED NO_BUG
-Barren streak: 7
+Recent: FIXED NO_BUG FIXED NO_BUG NO_BUG
+Barren streak: 0
 Refills since L13: 0
 Commits since: release = 0
 Updated: 2026-09-11 01:05:39
