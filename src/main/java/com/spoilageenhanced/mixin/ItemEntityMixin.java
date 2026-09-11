@@ -28,6 +28,7 @@ public abstract class ItemEntityMixin {
         if ((self.getId() + self.tickCount) % 20 != 0) return;
 
         ItemStack stack = self.getItem();
+        if (self.level() == null) return;
         if (!self.level().isClientSide() && !stack.isEmpty()) {
             if (stack.has(DataComponents.CONTAINER)) {
                 FoodSpoilageUtil.updateContainerItemSpoilage(stack, self.level());
