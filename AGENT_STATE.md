@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1088
+Pass: 1093
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L13 real-player harness stood up; TPS pair + BMM sweep both driven live. Queue empty — next pass refills per 04_HUNTING.md.
+Current task: L13 refill (5 scenarios) all driven live with real player — campfire drop, animal feed, furnace output, cake eat, composter. All NO_BUG. Queue empty — next pass refills.
 Last lens: L13
 Recent: NO_BUG NO_BUG NO_BUG NO_BUG NO_BUG
 Barren streak: 12
 Refills since L13: 1
 Commits since: release = 0
-Updated: 2026-09-11 12:10:53
+Updated: 2026-09-11 14:08:16
 
 ## Notes
 
