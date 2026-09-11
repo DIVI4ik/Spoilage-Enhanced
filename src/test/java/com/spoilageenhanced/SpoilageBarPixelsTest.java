@@ -136,4 +136,46 @@ public class SpoilageBarPixelsTest {
         assertTrue(p.green() > p.yellow(), "Half fresh should dominate a quarter stale");
         assertTrue(p.yellow() >= p.red() - 1, "Stale and rotten quarters should be near-equal");
     }
+
+    @Test
+    void singlePixelFrameNeverOverflows() {
+        // Pass 1101 (L7 boundary): barHeight=1 is the smallest possible frame. Every
+        // composition must draw exactly 1 pixel — never 0, never 2.
+        SpoilageBarPixels.Result allFresh = SpoilageBarPixels.compute(3, 0, 0, 1);
+        assertEquals(1, allFresh.green() + allFresh.yellow() + allFresh.red(),
+                "1px frame with all-fresh must draw exactly 1 pixel");
+
+        SpoilageBarPixels.Result allStale = SpoilageBarPixels.compute(0, 3, 0, 1);
+        assertEquals(1, allStale.green() + allStale.yellow() + allStale.red(),
+                "1px frame with all-stale must draw exactly 1 pixel");
+
+        SpoilageBarPixels.Result allRotten = SpoilageBarPixels.compute(0, 0, 3, 1);
+        assertEquals(1, allRotten.green() + allRotten.yellow() + allRotten.red(),
+                "1px frame with all-rotten must draw exactly 1 pixel");
+
+        // Mixed in a 1px frame: rounding both segments up would give green=1, yellow=1,
+        // red=-1 — the excess-shave path must clamp the total back to 1.
+        SpoilageBarPixels.Result mixed = SpoilageBarPixels.compute(1, 1, 0, 1);
+        assertEquals(1, mixed.green() + mixed.yellow() + mixed.red(),
+                "1px frame with half fresh half stale must draw exactly 1 pixel");
+        assertTrue(mixed.green() >= 0 && mixed.yellow() >= 0 && mixed.red() >= 0,
+                "No segment may be negative in a 1px frame");
+    }
+
+    @Test
+    void singleItemStackInAnyFrameDrawsFullBar() {
+        // Pass 1101 (L7 boundary): total=1 across several frame heights — the single
+        // item's state must own the whole bar, and the sum must equal the frame.
+        for (int barHeight : new int[] {1, 2, 5, 13, 16}) {
+            SpoilageBarPixels.Result fresh = SpoilageBarPixels.compute(1, 0, 0, barHeight);
+            assertEquals(barHeight, fresh.green() + fresh.yellow() + fresh.red(),
+                    "Single fresh item must fill a " + barHeight + "px frame");
+            assertEquals(barHeight, fresh.green(), "Single fresh item should be all green");
+
+            SpoilageBarPixels.Result rotten = SpoilageBarPixels.compute(0, 0, 1, barHeight);
+            assertEquals(barHeight, rotten.green() + rotten.yellow() + rotten.red(),
+                    "Single rotten item must fill a " + barHeight + "px frame");
+            assertEquals(barHeight, rotten.red(), "Single rotten item should be all red");
+        }
+    }
 }
