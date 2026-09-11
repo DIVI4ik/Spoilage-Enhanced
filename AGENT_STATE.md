@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1103
+Pass: 1104
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: extractBestFromList threshold pinned (pass 1103). Next: mergeItems speed multiplier preservation.
+Current task: mergeItems multiplier pinned (pass 1104). Queue empty — next pass refills.
 Last lens: L5
-Recent: NO_BUG FIXED NO_BUG NO_BUG NO_BUG
+Recent: FIXED NO_BUG NO_BUG NO_BUG NO_BUG
 Barren streak: 0
 Refills since L13: 2
 Commits since: release = 0
-Updated: 2026-09-11 17:17:13
+Updated: 2026-09-11 17:26:15
 
 ## Notes
 

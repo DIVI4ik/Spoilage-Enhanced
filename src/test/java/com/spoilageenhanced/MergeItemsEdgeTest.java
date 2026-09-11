@@ -105,4 +105,58 @@ public class MergeItemsEdgeTest {
         // Rotten counts add: 1 + 2 = 3
         assertEquals(3, merged.rottenCount(), "Rotten counts must add");
     }
+
+    @Test
+    void mergePreservesTargetSpeedMultiplier() {
+        // Pass 1104 (L7 boundary): mergeItems returns targetData.speedMultiplier() — the
+        // TARGET's multiplier wins, not the addee's. In the real flow both sides always
+        // carry the same multiplier (extractWorstItems copies sourceData.speedMultiplier()
+        // into both halves), so this pins the documented contract: the merged result
+        // inherits the target's multiplier.
+        long now = 1000L;
+        SpoilageData target = new SpoilageData(
+                List.of(now + 5000L),
+                List.of(),
+                1, 2.5);
+        SpoilageData addee = new SpoilageData(
+                List.of(now + 3000L),
+                List.of(now + 1000L),
+                2, 0.5);
+
+        SpoilageData merged = FoodSpoilageUtil.mergeItems(target, addee);
+
+        assertEquals(2.5, merged.speedMultiplier(), 0.0,
+                "Merged result must inherit the TARGET's speed multiplier");
+        assertEquals(2, merged.freshExpirations().size(), "Both fresh lists must merge");
+        assertEquals(1, merged.staleExpirations().size(), "Addee stale must merge");
+        assertEquals(3, merged.rottenCount(), "Rotten counts must add (1 + 2)");
+    }
+
+    @Test
+    void mergeMixedMultiplierKeepsTargetAndAllTrackers() {
+        // Pass 1104 (L7 boundary): even when the two sides carry different multipliers
+        // (only possible from cross-stack merges of items aged under different config
+        // speeds), the merge must not lose any tracker and must keep the target's
+        // multiplier — the timestamps are absolute ticks, so the multiplier only matters
+        // for a future uniform rescale.
+        long now = 2000L;
+        SpoilageData target = new SpoilageData(
+                List.of(now + 9000L, now + 7000L),
+                List.of(now + 3000L),
+                1, 3.0);
+        SpoilageData addee = new SpoilageData(
+                List.of(now + 8000L),
+                List.of(now + 2000L, now + 1000L),
+                4, 0.25);
+
+        SpoilageData merged = FoodSpoilageUtil.mergeItems(target, addee);
+
+        assertEquals(3.0, merged.speedMultiplier(), 0.0,
+                "Target multiplier (3.0) must win over addee (0.25)");
+        int total = merged.freshExpirations().size()
+                + merged.staleExpirations().size()
+                + merged.rottenCount();
+        assertEquals(3 + 1 + 1 + 2 + 4, total,
+                "Every tracker from both sides must survive the merge");
+    }
 }
