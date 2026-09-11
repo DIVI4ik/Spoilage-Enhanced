@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1116
+Pass: 1117
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: rottenTake guard comments verified accurate (pass 1116). Next: item-frame design follow-up (blocked on decision).
-Last lens: L7 boundary
-Recent: NO_BUG FIXED REFUTED NO_BUG NO_BUG
-Barren streak: 3
+Current task: Forge FMLPaths silent catch fixed + Forge runtime verified (pass 1117). Next: save() IOException logging.
+Last lens: L1 silent failure
+Recent: FIXED REFUTED NO_BUG NO_BUG FIXED
+Barren streak: 0
 Refills since L13: 0
 Commits since: release = 1
-Updated: 2026-09-12 01:14:26
+Updated: 2026-09-12 02:16:00
 
 ## Notes
 
