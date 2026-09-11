@@ -26,6 +26,7 @@
     "DispenserBlockMixin",
     "DropperBlockMixin",
     "EggEntityMixin",
+    "FridgeBlockEntityMixin",
     "GourdBlockMixin",
     "HarvestFarmlandMixin",
     "HopperBlockEntityMixin",
