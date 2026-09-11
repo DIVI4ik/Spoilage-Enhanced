@@ -249,3 +249,31 @@ IDs). An explicit config is the only universal answer.
 20 ticks, read the stack. Before the fix: freshness timestamp unchanged (frozen).
 After the fix: freshness timestamp advanced (ages at normal speed). Runtime proof:
 'FridgeBlockEntityMixin applied (Cooking for Blockheads present)' in general.log.
+
+## 9. Item frames freeze food while armor stands age it (inconsistency between display entities)
+
+**Observed (driven live, pass 1110, 2026-09-12):** an item frame holding a stale
+apple keeps the exact same spoilage component after 300+ game ticks — the food never
+advances. An armor stand holding the same stale apple in its main hand has the
+component advance to `rotten_count: 1` within 15 seconds. Both are vanilla display
+entities a player uses to show off items.
+
+**Why the difference:** armor stands are `LivingEntity`s, and `LivingEntity.tick()`
+calls `equipment.tick()` (LivingEntity.java:3049), which calls `inventoryTick` on
+every equipment stack — the exact method `ItemMixin` hooks. Item frames are plain
+`Entity`s that never tick their held stack, and no mixin covers them.
+
+**Is it a bug?** No data is lost — the component survives the frame round trip
+intact (verified: `stale_expirations:[100L]` read back unchanged after summon).
+So a player taking food out of a frame gets exactly what they put in. The gap is
+that a frame is a perfect freezer: 64 apples in frames never rot.
+
+**Recommendation:** treat the frame like the armor stand — age it. The mod's
+premise is that food ages everywhere it exists, and the armor stand already ages
+held food, so the frame is the outlier, not the rule. A small `ItemFrameMixin`
+ticking the held stack at the same 20-tick cadence would make the two display
+entities consistent and close the freezer exploit. Leaning toward implementing it,
+but it changes what a decorative display case does, so it is recorded here rather
+than shipped as a "bug fix". If the answer is "frames are display, not storage",
+then the armor stand should arguably freeze too — the current split has no
+principle behind it.

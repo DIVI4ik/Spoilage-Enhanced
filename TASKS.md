@@ -45,6 +45,12 @@ counts as answered — do not re-queue it.
   this is where it shows. A regression here is this mod's cost even though the content is
   not this mod's.
 
+- [x] Item frame holding spoiled food — does the component survive the round trip? Summon item_frame with a stale apple (summon with Item NBT), read back the component. If stripped, food comes out FRESH = real data-loss bug. If preserved, food freezes while displayed = design question for PLAYER_REPORTS.md (frames as freezers). — DRIVEN live (pass 1110, NO_BUG): component survives round trip intact (no data loss); food FROZEN while displayed (no tick). Facing:0b is DOWN not SOUTH — frame needs Facing:3b + support block or it breaks instantly.
+- [x] Armor stand holding spoiled food — same round-trip check as the item frame. Summon armor_stand with stale apple in HandItems, read back. Same verdict logic: stripped = bug, preserved = design question. — DRIVEN live (pass 1110, NO_BUG): equipment codec NBT (not HandItems); food in mainhand AGED to rotten_count:1 in 15s via LivingEntity.tick:3049 -> equipment.tick -> inventoryTick. Inconsistent with item frame; design question in PLAYER_REPORTS.md §9.
+- [ ] Villager trade accepting rotten food — sell rotten bread to a farmer villager via trade. Does the trade UI take it? ScreenHandlerMixin guards processing slots, not trade slots. If a trade takes rotten food silently, is that a gap (merchant eats it) or fine? Drive: summon villager, open trade, check.
+- [ ] Design question write-up: item frames + armor stands as food freezers — if the round trips above preserve components, write the design question to PLAYER_REPORTS.md (display entities freeze food; storage ages it; a player can exploit frames as freezers). Say which way I lean and close NO_BUG.
+- [ ] Refill follow-up: re-run asked.py --lens after this batch; if behaviour lens keeps paying, keep it; else rotate to boundary arithmetic (100% yield, 8 passes).
+
 ## Done
 
 Moved to `.claude/archive/TASKS_ARCHIVE.md`.

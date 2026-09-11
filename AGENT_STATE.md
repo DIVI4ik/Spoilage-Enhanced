@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1109
+Pass: 1110
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: release done (pass 1109). Queue empty — next pass refills via 04_HUNTING.
+Current task: item frame + armor stand display-entity aging checked (pass 1110). Next: villager trade rotten food.
 Last lens: L13
-Recent: NO_BUG FIXED NO_BUG NO_BUG IMPROVED
+Recent: FIXED NO_BUG NO_BUG IMPROVED NO_BUG
 Barren streak: 0
 Refills since L13: 0
 Commits since: release = 0
-Updated: 2026-09-11 23:14:17
+Updated: 2026-09-12 00:14:24
 
 ## Notes
 
