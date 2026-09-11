@@ -48,6 +48,10 @@ tasks.withType(JavaCompile).configureEach {
 sourceSets {
     stubs {
         java.srcDirs = ['src/stubs/java']
+        // Stubs may reference Minecraft types (e.g. the Farmer's Delight ItemStackHandler
+        // stub returns net.minecraft.world.item.ItemStack). Without this the stub sourceSet
+        // compiles against nothing and every MC-typed stub signature fails.
+        compileClasspath += sourceSets.main.compileClasspath
     }
     main {
         compileClasspath += sourceSets.stubs.output
