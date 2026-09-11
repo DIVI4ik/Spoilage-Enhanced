@@ -153,6 +153,16 @@ public class SpoilageEnhancedDebugCommand {
                                             StringArgumentType.getString(context, "state"),
                                             IntegerArgumentType.getInteger(context, "count"))))))
                     )
+                    // Pass 1107 (L13 — widen the harness): givespoiled uses Inventory.add,
+                    // which lands in the first empty slot — never the main hand. useentity
+                    // and usegame read getMainHandItem(), so every held-item interaction
+                    // scenario needed this. Same construction as finishEatBuiltItem.
+                    .then(Commands.literal("giveheld")
+                        .then(Commands.argument("item", IdentifierArgument.id())
+                            .then(Commands.argument("state", StringArgumentType.word())
+                                .executes(context -> giveHeldItem(context.getSource(),
+                                        IdentifierArgument.getId(context, "item"),
+                                        StringArgumentType.getString(context, "state"))))))
                     .then(Commands.literal("spawn")
                         .then(Commands.argument("item", IdentifierArgument.id())
                             .then(Commands.argument("state", StringArgumentType.word())
@@ -937,6 +947,52 @@ public class SpoilageEnhancedDebugCommand {
         String message = "finisheat " + itemId + "(" + state + ") -> result=" + result.getItem()
                 + " foodLevel " + beforeFood + "->" + afterFood
                 + " saturation " + beforeSat + "->" + afterSat;
+        source.sendSuccess(() -> Component.literal(message), false);
+        SpoilageEnhancedLogger.log(message);
+        return 1;
+    }
+
+    /**
+     * Pass 1107 (L13 — widen the harness): puts a stack with the given spoilage state
+     * directly into the executing player's MAIN HAND. {@code givespoiled} uses
+     * {@code Inventory.add}, which lands in the first empty slot — never the selected
+     * slot — so {@code useentity}/{@code usegame} (which read {@code getMainHandItem()})
+     * had no way to receive a spoiled item. Same construction as {@code finishEatBuiltItem}.
+     */
+    private static int giveHeldItem(CommandSourceStack source, Identifier itemId, String state) {
+        if (!(source.getEntity() instanceof net.minecraft.server.level.ServerPlayer player)) {
+            source.sendFailure(Component.literal("players only"));
+            return 0;
+        }
+        Item item = BuiltInRegistries.ITEM.getValue(itemId);
+        if (item == null || item == net.minecraft.world.item.Items.AIR) {
+            source.sendFailure(Component.literal("Unknown item: " + itemId));
+            return 0;
+        }
+        long now = source.getLevel().getGameTime();
+        SpoilageConfig config = SpoilageConfig.getInstance();
+        com.spoilageenhanced.component.SpoilageData data = switch (state.toLowerCase(java.util.Locale.ROOT)) {
+            case "fresh" -> new com.spoilageenhanced.component.SpoilageData(
+                    java.util.List.of(now + config.getFreshDurationForItem(item) / 2),
+                    java.util.List.of(), 0, 1.0);
+            case "stale" -> new com.spoilageenhanced.component.SpoilageData(
+                    java.util.List.of(),
+                    java.util.List.of(now + config.getStaleDurationForItem(item) / 2), 0, 1.0);
+            case "rotten" -> new com.spoilageenhanced.component.SpoilageData(
+                    java.util.List.of(), java.util.List.of(), 1, 1.0);
+            default -> {
+                source.sendFailure(Component.literal("state must be one of: fresh, stale, rotten"));
+                yield null;
+            }
+        };
+        if (data == null) return 0;
+
+        net.minecraft.world.item.ItemStack stack = new net.minecraft.world.item.ItemStack(item, 1);
+        stack.set(com.spoilageenhanced.component.ModDataComponentTypes.SPOILAGE, data);
+        player.getInventory().setItem(player.getInventory().getSelectedSlot(), stack);
+        player.getInventory().setChanged();
+
+        String message = "giveheld " + itemId + "(" + state + ") -> main hand";
         source.sendSuccess(() -> Component.literal(message), false);
         SpoilageEnhancedLogger.log(message);
         return 1;

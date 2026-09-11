@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1106
+Pass: 1107
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: STALE eating verified end-to-end (pass 1106). Next: fresh control + animal breeding with stale.
+Current task: stale-breeding verified (pass 1107). Next: full-hunger math + offhand route.
 Last lens: L13
-Recent: NO_BUG NO_BUG NO_BUG NO_BUG FIXED
+Recent: NO_BUG NO_BUG NO_BUG FIXED NO_BUG
 Barren streak: 0
 Refills since L13: 0
-Commits since: release = 2
-Updated: 2026-09-11 21:30:05
+Commits since: release = 3
+Updated: 2026-09-11 22:21:48
 
 ## Notes
 
