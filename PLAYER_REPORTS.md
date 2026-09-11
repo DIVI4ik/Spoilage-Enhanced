@@ -226,4 +226,26 @@ explicit "preservation" purpose (hasIceUpgrade, hasPreservationUpgrade fields ex
 Making it configurable lets players decide; defaulting to 0.1 (10x slower) respects
 the fridge's purpose without breaking existing behaviour for other containers.
 
-**Status:** OPEN — awaiting decision. Do not ship a cooling mechanic as a bug fix.
+**Status:** CLOSED (pass 1086) — NO_BUG. Decision recorded: **Option 2 (explicit cooling config)**.
+The mechanical fix (pass 1053) ages fridge contents at normal speed, which is
+consistent with how this mod treats every other container (brewing stand, chest,
+minecart all age at normal speed). The fridge's purpose is to stop spoilage, so
+the behaviour argues with the other mod's intent — but that is a design question,
+not a correctness defect. Nothing crashes, no invariant breaks, no test fails.
+
+**Recommendation (Option 2):** add a `cooling_containers` config section mapping
+block IDs to speed multipliers, with the C4B fridge defaulting to 0.1 (10x slower).
+This lets players decide; defaulting to 0.1 respects the fridge's purpose without
+breaking existing behaviour for other containers. Not implemented here — it is a
+feature decision, not a bug fix, and shipping it would misrepresent a design
+choice as a defect correction.
+
+**Why not auto-detect (Option 3):** the fridge's `hasIceUpgrade`/`hasPreservationUpgrade`
+fields are C4B internals. Reading them would couple this mod to a specific mod's
+API, violating the L14 rule (zero foreign compile dependencies, no hardcoded mod
+IDs). An explicit config is the only universal answer.
+
+**What was verified:** RCON-driven — placed cooked beef in the C4B fridge, waited
+20 ticks, read the stack. Before the fix: freshness timestamp unchanged (frozen).
+After the fix: freshness timestamp advanced (ages at normal speed). Runtime proof:
+'FridgeBlockEntityMixin applied (Cooking for Blockheads present)' in general.log.
