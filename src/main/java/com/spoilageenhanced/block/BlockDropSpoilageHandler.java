@@ -166,7 +166,7 @@ public final class BlockDropSpoilageHandler {
     }
 
     public static void stampPending(Level level, BlockPos pos, ItemStack stack) {
-        if (stack == null || stack.isEmpty()) {
+        if (stack == null || stack.isEmpty() || level == null) {
             return;
         }
         long[] spoilageInfo = PENDING_SPOILAGE.get();
@@ -249,6 +249,9 @@ public final class BlockDropSpoilageHandler {
 
     /** Called at the tail of every {@code dropResources} overload we hook. */
     public static void after(BlockState state, Level world, BlockPos pos, String via) {
+        if (world == null) {
+            return;
+        }
         int depth = (DEPTH.get() == null ? 1 : DEPTH.get()) - 1;
         if (depth <= 0) {
             DEPTH.remove();
