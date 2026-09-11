@@ -125,4 +125,68 @@ public class RescaleItemTimestampsTest {
         SpoilageData result = FoodSpoilageUtil.rescaleItemTimestamps(data, 1000L, 1.0, 1.0);
         assertEquals(5, result.rottenCount(), "rottenCount must be preserved");
     }
+
+    @Test
+    void negativeRatioClampsToNeverBothBranches() {
+        // Pass 1102 (L7 boundary): a negative ratio (corrupt save, or a caller passing
+        // old/new inverted) must clamp to NEVER in BOTH the fresh and the stale branch —
+        // never produce a negative remaining that wraps to a huge positive via Math.max.
+        SpoilageData data = new SpoilageData(
+                List.of(2000L),   // fresh, remaining = 1000
+                List.of(3000L),  // stale, remaining = 2000
+                0, 1.0);
+        SpoilageData result = FoodSpoilageUtil.rescaleItemTimestamps(data, 1000L, -0.5, 1.0);
+        assertEquals(Long.MAX_VALUE, result.freshExpirations().get(0),
+                "Negative ratio must clamp fresh to NEVER");
+        assertEquals(Long.MAX_VALUE, result.staleExpirations().get(0),
+                "Negative ratio must clamp stale to NEVER (pass 1036 guard)");
+    }
+
+    @Test
+    void zeroRatioClampsToNeverBothBranches() {
+        // Pass 1102 (L7 boundary): ratio=0 (speed_multiplier=0 in a corrupt save) would make
+        // remaining * ratio = 0 and every item would appear to expire this tick.
+        SpoilageData data = new SpoilageData(
+                List.of(2000L),
+                List.of(3000L),
+                0, 1.0);
+        SpoilageData result = FoodSpoilageUtil.rescaleItemTimestamps(data, 1000L, 0.0, 1.0);
+        assertEquals(Long.MAX_VALUE, result.freshExpirations().get(0),
+                "Zero ratio must clamp fresh to NEVER");
+        assertEquals(Long.MAX_VALUE, result.staleExpirations().get(0),
+                "Zero ratio must clamp stale to NEVER");
+    }
+
+    @Test
+    void doubleMaxRatioClampsToNeverBothBranches() {
+        // Pass 1102 (L7 boundary): Double.MAX_VALUE exceeds the 1e15 guard, so it takes the
+        // invalid-ratio clamp — not the overflow check, which divides by it.
+        SpoilageData data = new SpoilageData(
+                List.of(2000L),
+                List.of(3000L),
+                0, 1.0);
+        SpoilageData result = FoodSpoilageUtil.rescaleItemTimestamps(data, 1000L, Double.MAX_VALUE, 1.0);
+        assertEquals(Long.MAX_VALUE, result.freshExpirations().get(0),
+                "Double.MAX_VALUE ratio must clamp fresh to NEVER");
+        assertEquals(Long.MAX_VALUE, result.staleExpirations().get(0),
+                "Double.MAX_VALUE ratio must clamp stale to NEVER");
+    }
+
+    @Test
+    void doubleMinRatioClampsToNeverBothBranches() {
+        // Pass 1102 (L7 boundary): Double.MIN_VALUE is a tiny positive ratio. remaining * ratio
+        // underflows toward 0; Math.max(1L, ...) keeps it at 1 tick — but the 1e15 guard does
+        // NOT catch it (it is a valid positive ratio), so the item expires next tick. That is
+        // the documented behaviour for a near-zero multiplier: verify it does not wrap to the
+        // past and stays >= currentTime.
+        SpoilageData data = new SpoilageData(
+                List.of(2000L),
+                List.of(3000L),
+                0, 1.0);
+        SpoilageData result = FoodSpoilageUtil.rescaleItemTimestamps(data, 1000L, Double.MIN_VALUE, 1.0);
+        assertTrue(result.freshExpirations().get(0) >= 1000L,
+                "Tiny positive ratio must not wrap a fresh timestamp into the past");
+        assertTrue(result.staleExpirations().get(0) >= 1000L,
+                "Tiny positive ratio must not wrap a stale timestamp into the past");
+    }
 }
