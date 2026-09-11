@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1114
+Pass: 1115
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: stale-twin hypothesis refuted (pass 1114). Next: LEGACY_NEVER control flow.
+Current task: LEGACY_NEVER flow verified (pass 1115). Next: rottenTake redundant guard.
 Last lens: L7 boundary
-Recent: NO_BUG NO_BUG NO_BUG FIXED REFUTED
-Barren streak: 1
+Recent: NO_BUG NO_BUG FIXED REFUTED NO_BUG
+Barren streak: 2
 Refills since L13: 0
 Commits since: release = 1
-Updated: 2026-09-12 01:09:08
+Updated: 2026-09-12 01:11:05
 
 ## Notes
 
