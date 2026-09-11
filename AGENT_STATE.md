@@ -1,11 +1,11 @@
 # Agent State
 
-Pass: 1084
+Pass: 1085
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
 Current task: L13: COMPLETE - all 5 lens tasks done · FIXED · CandleCakeEatMixin created to intercept CandleCakeBlock.useWithoutItem — candle cake eating path now applies stale/rotten effects correctly. CakeEatMixin targets CakeBlock.eat; CandleCakeEatMixin targets CandleCakeBlock.useWithoutItem. Both read the block's own item for duration lookup.
 Last lens: L13
 Recent: FIXED NO_BUG FIXED FIXED FIXED
-Barren streak: 12
+Barren streak: 13
 Refills since L13: 0
 Commits since: release = 0
 Updated: 2026-09-11 01:05:39
