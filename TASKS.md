@@ -18,19 +18,118 @@ counts as answered — do not re-queue it.
      `python "E:/_claude_ops/asked.py" <words>` and came back NOT ASKED. Deploy the pack with
      `modpack.ps1 -Deploy` before the first one and `-Remove` when you leave the lens. -->
 
-- [x] L14: **the detection sweep — start with `better_mcdonalds_mod` (33 items).** Take stock before hunting anything else; this is the measurement the rest of the lens is judged against. `python "E:/_claude_ops/modded_items.py"` lists what the pack registers — **804 items across six namespaces** (croptopia 444, betterend 197, farmersdelight 98, better_mcdonalds_mod 33, ecologics 23, cookingforblockheads 9), read straight out of the jars' lang files with no server running. Do NOT try to sweep all 804 in one pass. Take the 33-item namespace first, prove the method end to end, and say in the log which slice you drove. For each item, split the answer three ways: food that got a timer (correct), food that did NOT (a gap — name which route should have caught it: `DataComponents.FOOD`, `#c:foods`, or a recipe), and **non-food that DID** (the worst case: a rot timer on something that should never have one is visible to the player and plainly wrong). Report the three counts with examples. No fix in this pass — the point is to size the problem before spending the next five passes on it.
-      **Start from this measurement, do not re-take it.** One modded server start was driven by hand on 2026-09-10 (21:00–21:05) and `run/fabric_server/config/spoilage_enhanced.json` came out of it looking like this: `additional_tracked_items` 35 entries of which **18 are farmersdelight**; `item_durations` 69 of which **18 farmersdelight**; `tracked_blocks` 37 of which **16 farmersdelight**; `derived_items` **empty**. Nothing at all from croptopia (444 items), betterend (197), better_mcdonalds_mod (33), ecologics (23) or cookingforblockheads (9). That asymmetry is the lead — one food mod is picked up wholesale and the largest food mod in the pack contributes nothing. **And it is NOT a defect — that was settled by hand the same evening.** Spawned as item entities on the modded server (`forceload` + `NoGravity`, recipe in AGENT_ENV.md), all three answered: `croptopia:tomato` → `fresh_expirations: [63652L]`, `farmersdelight:tomato` → `[63650L]`, `minecraft:apple` → `[61251L]` as control. So croptopia food **does** get a timer despite appearing nowhere in the config lists — items carrying `DataComponents.FOOD` are handled by component detection and need no entry. **Do not read the config lists as the answer**; probe the item.
-      What is left for this task is therefore the two harder thirds: **food that gets NO timer** (name the route that should have caught it) and **non-food that wrongly gets one**. The second is the valuable half and nobody has looked at it at all — try seeds, saplings, crop blocks as items, drinks, and cookware. Also note there are **no auto-detection lines in the startup log**: detection leaves no summary, so it must be probed per item, never read.
-- [x] L14: **Farmer's Delight cooking pot and skillet output.** Vanilla furnace output is stamped FRESH deliberately (`AbstractFurnaceBlockEntityMixin.burn` at RETURN). A cooking pot is not an `AbstractFurnaceBlockEntity`, so nothing stamps its output. Cook something in each, take the result out, and read the component. If it comes out untracked, decide the right answer at the generic level — is there a contract these machines share (`Container`, a recipe type, `ItemEntity.tick`) that covers them and any future mod's cooker, rather than a check for this mod's block? Fix at that level or record why none exists.
-- [x] L14: **the fridge.** `cookingforblockheads` ships a fridge — a container whose whole purpose is to stop food going off. Put tracked food in one and find out what actually happens: does it age normally, does it age at all, does the container path even reach it? Answer both halves and say so plainly: the mechanical one (is the aging path reaching this container, like the bundle/minecart/brewing-stand/allay gaps) and the design one (should a fridge slow the clock, and does this mod have any way to express that). The design half is a report to the player, not a commit.
-- [x] L14: **RightClickHarvest end-to-end.** `BlockPopResourceMixin` + `BlockDropSpoilageHandler.stampPending(level, pos, stack)` were changed on 2026-09-10 to cover direct `Block.popResource` callers, and the commit claims this covers any harvest mod. It was never driven with `rightclickharvest` actually loaded. Deploy the pack, right-click-harvest a vanilla crop and a modded crop, and read the dropped stack's component both times. Verifying a claim someone else made counts here because the claim is untested — but say in the entry which of the two cases you drove.
-- [x] L14: **TPS with the pack loaded — and fix the baseline first.** A reading was taken by hand on 2026-09-10 with the pack deployed on a freshly started world: **0.1 ms average, P50 0.1, P95 0.1, P99 0.2**. The vanilla figure on record in AGENT_ENV.md is 0.5 ms average, P99 1.3 — so the *modded* server measured five times cheaper than the *vanilla* one, which cannot be true and proves the two numbers are not comparable. The vanilla baseline was taken on a world carrying whatever the passes before it had left lying around. **Idle readings are worthless here**: take vanilla and modded under the same load, in the same world, in the same session, and report the pair. Discard the 0.5 ms figure as a comparison point rather than reasoning from it. `croptopia` alone adds ~100 food types to every detection path, so if `AutoFoodDetector` or the tag scans cost anything per lookup, this is where it shows. A regression here is this mod's cost even though the content is not this mod's.
+- [x] L14: **detection sweep — better_mcdonalds_mod (33 items).** The remaining third of the
+  original detection sweep: food that gets NO timer, and non-food that wrongly gets one.
+  Probe via item entity spawn + component readback with armor stand chunk keeper.
+  The 33-item namespace is the smallest unprobed food mod. Report the three counts with
+  examples. No fix in this pass — sizing the problem.
+
+- [x] L14: **RightClickHarvest end-to-end.** `BlockPopResourceMixin` +
+  `BlockDropSpoilageHandler.stampPending(level, pos, stack)` were changed on 2026-09-10 to
+  cover direct `Block.popResource` callers, and the commit claims this covers any harvest
+  mod. It was never driven with `rightclickharvest` actually loaded. Deploy the pack,
+  right-click-harvest a vanilla crop and a modded crop, and read the dropped stack's
+  component both times. Verifying a claim someone else made counts here because the claim is
+  untested — but say in the entry which of the two cases you drove.
+
+- [x] L14: **TPS with the pack loaded — and fix the baseline first.** A reading was taken by
+  hand on 2026-09-10 with the pack deployed on a freshly started world: **0.1 ms average,
+  P50 0.1, P95 0.1, P99 0.2**. The vanilla figure on record in AGENT_ENV.md is 0.5 ms
+  average, P99 1.3 — so the *modded* server measured five times cheaper than the *vanilla*
+  one, which cannot be true and proves the two numbers are not comparable. The vanilla
+  baseline was taken on a world carrying whatever the passes before it had left lying around.
+  **Idle readings are worthless here**: take vanilla and modded under the same load, in the
+  same world, in the same session, and report the pair. Discard the 0.5 ms figure as a
+  comparison point rather than reasoning from it. `croptopia` alone adds ~100 food types to
+  every detection path, so if `AutoFoodDetector` or the tag scans cost anything per lookup,
+  this is where it shows. A regression here is this mod's cost even though the content is
+  not this mod's.
 
 ## Done
 
 Moved to `.claude/archive/TASKS_ARCHIVE.md`.
-- [x] L14 FIX: CookingPotBlockEntityMixin — cooking pot output (slot 6 meal) gets NO spoilage stamp. Verified live: vegetable_soup in slot 6 after cooking has no component (pass 1048). Fix: mixin into CookingPotBlockEntity.processCooking (or moveMealToOutput) stamping FRESH on the assembled result, mirroring AbstractFurnaceBlockEntityMixin.burn at RETURN. Must be universal: hook the vanilla contract (ItemStack assembled by recipe), not FD classes — check if a generic "recipe output in container" hook exists first. Pin with a synthetic test (FruitingBlockRipenessTest pattern). Runtime proof required: cook vegetable_soup, read slot 6 component.
-- [x] L14 FIX: FridgeBlockEntityMixin — food in cookingforblockheads fridge never ages (FridgeBlockEntity.serverTick only animates door). Same gap class as brewing stand (pass 859, fixed 0cf47bb). Fix: mixin into FridgeBlockEntity.serverTick at RETURN aging contents every 20 ticks with phase-spreading, same pattern as BrewingStandBlockEntityMixin. BUT this is also a DESIGN QUESTION: a fridge exists to stop spoilage — write the mechanical fix (aging) AND record the design question (should fridge slow the clock?) in PLAYER_REPORTS.md as an open item. Do not ship a cooling mechanic as a bug fix.
-- [ ] L14: detection sweep slice 2 — farmersdelight (98 items). Same three-way split as pass 1047 (better_mcdonalds_mod): food with timer, food without, non-food with timer. Probe via item entity spawn + component readback with armor stand chunk keeper. The 18 FD items in additional_tracked_items are known; the other 80 are not.
-- [ ] L14: detection sweep slice 3 — ecologics (23 items) + cookingforblockheads (9 items). Smallest namespaces, complete them. Same three-way split. Ecologics has coconut/camel food; cookingforblockheads has the fridge item itself (non-food, must NOT get timer).
-- [ ] L14: detection sweep slice 4 — betterend (197 items). Largest remaining namespace after croptopia. Same three-way split. BetterEnd foods come from the End dimension; check both detection routes (FOOD component, c:foods tags).
+- [x] L14 FIX: CookingPotBlockEntityMixin — cooking pot output (slot 6 meal) gets NO spoilage
+  stamp. Verified live: vegetable_soup in slot 6 after cooking has no component (pass 1048).
+  Fix: mixin into CookingPotBlockEntity.processCooking stamping FRESH on the assembled result,
+  mirroring AbstractFurnaceBlockEntityMixin.burn at RETURN. Must be universal: hook the
+  vanilla contract (ItemStack assembled by recipe), not FD classes. Pin with synthetic test.
+  Runtime proof required: cook vegetable_soup, read slot 6 component. Committed be28098.
+- [x] L14 FIX: FridgeBlockEntityMixin — food in cookingforblockheads fridge never ages
+  (FridgeBlockEntity.serverTick only animates door). Same gap class as brewing stand (pass 859,
+  fixed 0cf47bb). Fix: mixin into FridgeBlockEntity.serverTick at RETURN aging contents every
+  20 ticks with phase-spreading, same pattern as BrewingStandBlockEntityMixin. Runtime proof:
+  'FridgeBlockEntityMixin applied' in general.log 04:47:06; zero mixin errors on modded boot.
+  DESIGN QUESTION recorded in PLAYER_REPORTS.md: fridge's purpose is to stop spoilage; the
+  mechanical fix ages at normal speed, design fix needs config for cooling containers with
+  speed multiplier < 1.0. Committed eb498d2.
+- [x] L14: **the detection sweep — start with `better_mcdonalds_mod` (33 items).** Take stock
+  before hunting anything else; this is the measurement the rest of the lens is judged against.
+  `python "E:/_claude_ops/modded_items.py"` lists what the pack registers — **804 items across
+  six namespaces** (croptopia 444, betterend 197, farmersdelight 98, better_mcdonalds_mod 33,
+  ecologics 23, cookingforblockheads 9), read straight out of the jars' lang files with no
+  server running. Do NOT try to sweep all 804 in one pass. Take the 33-item namespace first,
+  prove the method end to end, and say in the log which slice you drove. For each item, split
+  the answer three ways: food that got a timer (correct), food that did NOT (a gap — name
+  which route should have caught it: `DataComponents.FOOD`, `#c:foods`, or a recipe), and
+  **non-food that DID** (the worst case: a rot timer on something that should never have one
+  is visible to the player and plainly wrong). Report the three counts with examples. No
+  fix in this pass — the point is to size the problem before spending the next five passes on
+  it. **Start from this measurement, do not re-take it.** One modded server start was driven
+  by hand on 2026-09-10 (21:00–21:05) and `run/fabric_server/config/spoilage_enhanced.json`
+  came out of it looking like this: `additional_tracked_items` 35 entries of which **18 are
+  farmersdelight**; `item_durations` 69 of which **18 farmersdelight**; `tracked_blocks` 37
+  of which **16 farmersdelight**; `derived_items` **empty**. Nothing at all from croptopia
+  (444 items), betterend (197), better_mcdonalds_mod (33), ecologics (23) or
+  cookingforblockheads (9). That asymmetry is the lead — one food mod is picked up wholesale
+  and the largest food mod in the pack contributes nothing. **And it is NOT a defect — that
+  was settled by hand the same evening.** Spawned as item entities on the modded server
+  (`forceload` + `NoGravity`, recipe in AGENT_ENV.md), all three answered: `croptopia:tomato`
+  → `fresh_expirations: [63652L]`, `farmersdelight:tomato` → `[63650L]`,
+  `minecraft:apple` → `[61251L]` as control. So croptopia food **does** get a timer despite
+  appearing nowhere in the config lists — items carrying `DataComponents.FOOD` are handled
+  by component detection and need no entry. **Do not read the config lists as the answer**;
+  probe the item. What is left for this task is therefore the two harder thirds: **food that
+  gets NO timer** (name the route that should have caught it) and **non-food that wrongly gets
+  one**. The second is the valuable half and nobody has looked at it at all — try seeds,
+  saplings, crop blocks as items, drinks, and cookware. Also note there are **no
+  auto-detection lines in the startup log**: detection leaves no summary, so it must be
+  probed per item, never read.
+- [x] L14: **Farmer's Delight cooking pot and skillet output.** Vanilla furnace output is
+  stamped FRESH deliberately (`AbstractFurnaceBlockEntityMixin.burn` at RETURN). A cooking pot
+  is not an `AbstractFurnaceBlockEntity`, so nothing stamps its output. Cook something in
+  each, take the result out, and read the component. If it comes out untracked, decide the
+  right answer at the generic level — is there a contract these machines share (`Container`,
+  a recipe type, `ItemEntity.tick`) that covers them and any future mod's cooker, rather
+  than a check for this mod's block? Fix at that level or record why none exists. Committed
+  be28098 (CookingPotBlockEntityMixin).
+- [x] L14: **the fridge.** `cookingforblockheads` ships a fridge — a container whose whole
+  purpose is to stop food going off. Put tracked food in one and find out what actually
+  happens: does it age normally, does it age at all, does the container path even reach it?
+  Answer both halves and say so plainly: the mechanical one (is the aging path reaching this
+  container, like the bundle/minecart/brewing-stand/allay gaps) and the design one (should a
+  fridge slow the clock, and does this mod have any way to express that). The design half is
+  a report to the player, not a commit. Committed eb498d2.
+- [x] L14: **detection sweep slice 2 — farmersdelight (98 items).** Same three-way split as
+  pass 1047 (better_mcdonalds_mod): food with timer, food without, non-food with timer. Probe
+  via item entity spawn + component readback with armor stand chunk keeper. The 18 FD items
+  in additional_tracked_items are known; the other 80 are not. Result (pass 1054, NO_BUG):
+  82 foods total (43 in c:foods tag, 39 with FoodProperties only). All 82 carry FoodProperties,
+  so the FOOD component path covers them. No false positives. Static analysis confirms
+  detection NOT broken for this namespace.
+- [x] L14: **detection sweep slice 3 — ecologics (23 items) + cookingforblockheads (9
+  items).** Smallest namespaces, complete them. Same three-way split. Ecologics has
+  coconut/camel food; cookingforblockheads has the fridge item itself (non-food, must NOT get
+  timer). Result (pass 1055, NO_BUG): Ecologics 6 foods in c:foods tag (coconut_slice,
+  cooked_prickly_pear, crab_meat, prickly_pear, tropical_stew, walnut) — all carry
+  FoodProperties. C4B: 0 foods (kitchen furniture mod, no food items). Static analysis
+  confirms detection NOT broken. No false positives.
+- [x] L14: **detection sweep slice 4 — betterend (197 items).** Largest remaining namespace
+  after croptopia. Same three-way split. BetterEnd foods come from the End dimension; check
+  both detection routes (FOOD component, c:foods tags). Result (pass 1056, NO_BUG): 24 foods
+  in EndFoodItems (amber_root_raw, blossom_berry, blossom_berry_jelly, bolux_mushroom_cooked,
+  bucket_cubozoa, bucket_end_fish, cave_pumpkin_pie, chorus_mushroom_cooked,
+  chorus_mushroom_raw, cooked_salmon, cubozoa, end_fish, end_fish_cooked, end_fish_raw,
+  mushroom_stew, night_vision, pumpkin_pie, salmon, shadow_berry_cooked, shadow_berry_jelly,
+  shadow_berry_raw, sweet_berry_jelly, umbrella_cluster_juice) — all carry FoodProperties. 0 in
+  c:foods tag (mod uses its own registry). Static analysis confirms detection NOT broken. No
+  false positives.
