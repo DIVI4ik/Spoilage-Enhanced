@@ -882,14 +882,7 @@ public class SpoilageConfig {
             if (config.animal_feeding == null) config.animal_feeding = new AnimalFeedingConfig();
             if (config.composter == null) config.composter = new ComposterConfig();
             if (config.loot_randomization == null) config.loot_randomization = new LootRandomizationConfig();
-            // A hand-edited config can carry a broken speed multiplier (0, negative, NaN).
-            // Runtime guards keep it from crashing, but every duration would silently fall
-            // back to the un-scaled base — clamp it here so the value behaves as documented.
-            if (Double.isNaN(config.spoilage_speed_multiplier) || config.spoilage_speed_multiplier <= 0.0) {
-                config.spoilage_speed_multiplier = 1.0;
-            } else if (config.spoilage_speed_multiplier > 100.0) {
-                config.spoilage_speed_multiplier = 100.0;
-            }
+            config.clampHandEditedValues();
             if (config.config_version < CURRENT_CONFIG_VERSION) {
                 config.migrateAutoDiscovered();
             }
@@ -902,6 +895,37 @@ public class SpoilageConfig {
         }
 
         return config;
+    }
+
+    /**
+     * Pass 1113 (L7 boundary): a hand-edited config can carry values that break the
+     * documented behaviour. Runtime guards keep them from crashing, but the result is
+     * silent nonsense — clamp them here so the value behaves as documented. Extracted
+     * from {@code load()} so a test can drive it without a config file on disk.
+     *
+     * <ul>
+     * <li>Speed multiplier 0/negative/NaN made every duration silently fall back to the
+     *     un-scaled base; &gt;100 is far past anything a player can perceive.</li>
+     * <li>Default durations 0/negative made every fallback path
+     *     ({@code getFreshDurationForItem}, {@code getStaleDurationForItem}) return the
+     *     raw value, so {@code makeFresh} computed {@code expire = now + 0} and ALL food
+     *     turned instantly stale. Per-item overrides were already guarded
+     *     ({@code computeBaseDurations} requires {@code fresh > 0}); the defaults were
+     *     not. Clamped to the same 24000 the fields initialise with.</li>
+     * </ul>
+     */
+    void clampHandEditedValues() {
+        if (Double.isNaN(spoilage_speed_multiplier) || spoilage_speed_multiplier <= 0.0) {
+            spoilage_speed_multiplier = 1.0;
+        } else if (spoilage_speed_multiplier > 100.0) {
+            spoilage_speed_multiplier = 100.0;
+        }
+        if (default_fresh_duration_ticks <= 0) {
+            default_fresh_duration_ticks = 24000L;
+        }
+        if (default_stale_duration_ticks <= 0) {
+            default_stale_duration_ticks = 24000L;
+        }
     }
 
     /**
