@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1102
+Pass: 1103
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: rescaleItemTimestamps ratio extremes pinned (pass 1102). Next: extractBestFromList fast-path threshold.
+Current task: extractBestFromList threshold pinned (pass 1103). Next: mergeItems speed multiplier preservation.
 Last lens: L5
-Recent: NO_BUG NO_BUG FIXED NO_BUG NO_BUG
+Recent: NO_BUG FIXED NO_BUG NO_BUG NO_BUG
 Barren streak: 0
 Refills since L13: 2
 Commits since: release = 0
-Updated: 2026-09-11 16:37:29
+Updated: 2026-09-11 17:17:13
 
 ## Notes
 
