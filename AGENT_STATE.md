@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1108
+Pass: 1109
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: full-hunger math + offhand route closed (pass 1108). Queue empty — next pass refills.
+Current task: release done (pass 1109). Queue empty — next pass refills via 04_HUNTING.
 Last lens: L13
-Recent: NO_BUG NO_BUG FIXED NO_BUG NO_BUG
+Recent: NO_BUG FIXED NO_BUG NO_BUG IMPROVED
 Barren streak: 0
 Refills since L13: 0
-Commits since: release = 4
-Updated: 2026-09-11 22:34:25
+Commits since: release = 0
+Updated: 2026-09-11 23:14:17
 
 ## Notes
 
