@@ -211,7 +211,9 @@ public class AutoFoodDetector {
      */
     private static Double foodTagFactor(Item item) {
         try {
-            List<TagKey<Item>> tags = item.builtInRegistryHolder().tags().toList();
+            var holder = item.builtInRegistryHolder();
+            if (holder == null) return null;
+            List<TagKey<Item>> tags = holder.tags().toList();
             Double best = null;
             for (TagKey<Item> tag : tags) {
                 Identifier id = tag.location();

@@ -166,7 +166,7 @@ public final class BlockDropSpoilageHandler {
     }
 
     public static void stampPending(Level level, BlockPos pos, ItemStack stack) {
-        if (stack == null || stack.isEmpty() || level == null) {
+        if (stack == null || stack.isEmpty()) {
             return;
         }
         long[] spoilageInfo = PENDING_SPOILAGE.get();
