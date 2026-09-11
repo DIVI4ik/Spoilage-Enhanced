@@ -1,11 +1,11 @@
 # Agent State
 
-Pass: 1076
+Pass: 1077
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L6 concurrency: BlockSpoilageData ThreadLocal race · FIXED · CandleCakeEatMixin created to intercept CandleCakeBlock.useWithoutItem — candle cake eating path now applies stale/rotten effects correctly. CakeEatMixin targets CakeBlock.eat; CandleCakeEatMixin targets CandleCakeBlock.useWithoutItem. Both read the block's own item for duration lookup.
+Current task: L7 boundary: updateSpoilageDataLazy duration overflow · FIXED · CandleCakeEatMixin created to intercept CandleCakeBlock.useWithoutItem — candle cake eating path now applies stale/rotten effects correctly. CakeEatMixin targets CakeBlock.eat; CandleCakeEatMixin targets CandleCakeBlock.useWithoutItem. Both read the block's own item for duration lookup.
 Last lens: L3
 Recent: FIXED NO_BUG FIXED FIXED FIXED
-Barren streak: 4
+Barren streak: 5
 Refills since L13: 2
 Commits since: release = 0
 Updated: 2026-09-11 01:05:39
