@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1113
+Pass: 1114
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: default-duration clamp fixed (pass 1113). Next: stale-twin division guard.
+Current task: stale-twin hypothesis refuted (pass 1114). Next: LEGACY_NEVER control flow.
 Last lens: L7 boundary
-Recent: NO_BUG NO_BUG NO_BUG FIXED FIXED
-Barren streak: 0
+Recent: NO_BUG NO_BUG NO_BUG FIXED REFUTED
+Barren streak: 1
 Refills since L13: 0
-Commits since: release = 0
-Updated: 2026-09-12 01:04:30
+Commits since: release = 1
+Updated: 2026-09-12 01:09:08
 
 ## Notes
 
