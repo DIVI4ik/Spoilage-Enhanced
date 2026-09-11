@@ -1,8 +1,8 @@
 # Agent State
 
-Pass: 1071
+Pass: 1072
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L1 silent failure: COMPLETE - all 5 L1/L2 tasks done · FIXED · CandleCakeEatMixin created to intercept CandleCakeBlock.useWithoutItem — candle cake eating path now applies stale/rotten effects correctly. CakeEatMixin targets CakeBlock.eat; CandleCakeEatMixin targets CandleCakeBlock.useWithoutItem. Both read the block's own item for duration lookup.
+Current task: Release v1.1.7 published · FIXED · CandleCakeEatMixin created to intercept CandleCakeBlock.useWithoutItem — candle cake eating path now applies stale/rotten effects correctly. CakeEatMixin targets CakeBlock.eat; CandleCakeEatMixin targets CandleCakeBlock.useWithoutItem. Both read the block's own item for duration lookup.
 Last lens: L1
 Recent: FIXED NO_BUG FIXED FIXED FIXED
 Barren streak: 0
