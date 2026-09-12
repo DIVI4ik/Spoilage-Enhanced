@@ -77,7 +77,7 @@ counts as answered — do not re-queue it.
 
 - [x] ItemStackMixin.java:180 — check if eating rotten food modifies hunger/saturation or applies nausea when effects are disabled in config. — FIXED (pass 1135): added `fx.rotten_poison_duration_ticks > 0` and `fx.stale_nausea_duration_ticks > 0` guards in ItemStackMixin.onFinishUsingItem before applying MobEffectInstance, matching the pattern in AnimalEntityMixin. Setting duration to 0 in config now cleanly disables effect application without creating 0-tick effect instances.
 - [x] VillagerEntityMixin.java:30 — check if villagers can accept or consume rotten food to breed, or if rotten food bypasses the breed check. — REFUTED (pass 1137): No VillagerEntityMixin.java exists in the codebase. Villager breeding is handled by vanilla; animal breeding (cows, sheep, etc.) is guarded by AnimalEntityMixin.java:44 which checks rotten_cancels_breeding config and resets love mode. The task premise names a non-existent file.
-- [ ] ItemFrameEntityMixin.java:45 — check if food inside an item frame ages or drops with its spoilage component preserved when broken.
+- [x] ItemFrameEntityMixin.java:45 — check if food inside an item frame ages or drops with its spoilage component preserved when broken. — REFUTED (pass 1138): No ItemFrameEntityMixin.java exists in the codebase. Item frames are vanilla entities; this mod does not intercept item frame interactions or drops. Food placed in item frames ages via vanilla mechanics only.
 - [ ] BundleItemMixin.java:60 — check if bundles preserve spoilage component when nested or selected in inventory menus.
 - [ ] DispenserBlockMixin.java:40 — check if dispensing food items (e.g. into water or on ground) retains or initializes spoilage components.
 

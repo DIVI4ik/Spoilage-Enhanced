@@ -2,13 +2,13 @@
 
 Pass: 1135
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: ItemFrameEntityMixin.java:45 check food aging in item frames
+Current task: BundleItemMixin.java:60 check spoilage component preservation in bundles
 Last lens: L13 observed
-Recent: REFUTED NO_BUG FIXED FIXED REFUTED
-Barren streak: 1
+Recent: NO_BUG FIXED FIXED REFUTED REFUTED
+Barren streak: 2
 Refills since L13: 0
 Commits since: release = 0
-Updated: 2026-09-12 08:26:02
+Updated: 2026-09-12 08:28:47
 
 ## Notes
 
