@@ -1136,7 +1136,14 @@ public class SpoilageConfig {
                         break;
                     }
                 }
-            } catch (IOException ignored) {
+            } catch (IOException e) {
+                // Pass 1118 (L1 — silent failure): if the saves directory cannot be
+                // listed (permissions, IO error), isRealGame stays false and save()
+                // silently returns without writing the config. Log at WARNING so the
+                // player can find out why their config edits do not stick.
+                SpoilageEnhancedLogger.log(SpoilageEnhancedLogger.LogCategory.GENERAL,
+                        "SpoilageConfig.save: failed to list saves directory " + savesDir
+                        + ": " + e.getClass().getSimpleName() + ": " + e.getMessage());
             }
         }
         if (!isRealGame) {
@@ -1156,7 +1163,13 @@ public class SpoilageConfig {
         try (FileWriter writer = new FileWriter(file, java.nio.charset.StandardCharsets.UTF_8)) {
             GSON.toJson(this, writer);
         } catch (IOException e) {
-            e.printStackTrace();
+            // Pass 1118 (L1 — silent failure): printStackTrace goes to stderr, not the
+            // mod's logger — invisible in latest.log where a player would look. A failed
+            // config write means every setting change is silently lost. Log at ERROR.
+            SpoilageEnhancedLogger.log(SpoilageEnhancedLogger.LogCategory.GENERAL,
+                    "SpoilageConfig.save: FAILED to write config file " + file
+                    + " — all unsaved config changes are lost: "
+                    + e.getClass().getSimpleName() + ": " + e.getMessage());
         }
     }
 }

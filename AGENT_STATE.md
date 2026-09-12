@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1117
+Pass: 1118
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: Forge FMLPaths silent catch fixed + Forge runtime verified (pass 1117). Next: save() IOException logging.
+Current task: save() IOException logging fixed (pass 1118). Next: Common.java:24 + SimpleTextureMixin:45.
 Last lens: L1 silent failure
-Recent: FIXED REFUTED NO_BUG NO_BUG FIXED
+Recent: REFUTED NO_BUG NO_BUG FIXED FIXED
 Barren streak: 0
 Refills since L13: 0
 Commits since: release = 2
-Updated: 2026-09-12 02:16:00
+Updated: 2026-09-12 03:06:35
 
 ## Notes
 
