@@ -2,13 +2,13 @@
 
 Pass: 1135
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: VillagerEntityMixin.java:30 check rotten food acceptance
+Current task: VillagerEntityMixin.java:30 check rotten food acceptance for breeding
 Last lens: L1 silent failure
-Recent: NO_BUG NO_BUG REFUTED NO_BUG FIXED
+Recent: NO_BUG REFUTED NO_BUG FIXED FIXED
 Barren streak: 0
 Refills since L13: 0
-Commits since: release = 5
-Updated: 2026-09-12 07:50:51
+Commits since: release = 0
+Updated: 2026-09-12 08:24:00
 
 ## Notes
 
