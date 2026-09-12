@@ -779,7 +779,8 @@ public abstract class BlockSpoilageHudMixin {
      *   <li>Setup: clear, kill mobs, teleport a cow 2 blocks from the player, spawn a
      *       rotten wheat at the player's feet (pickup puts it in hotbar slot 0).</li>
      *   <li>debug useentity cow — the guard must fire: animal.cfg applies poison
-     *       (default 100 ticks) and resets love mode. The wheat stays in hand.</li>
+     *       (default 200 ticks, weakness 300 ticks — SpoilageConfig.java:249, verified
+     *       live pass 1123) and resets love mode. The wheat stays in hand.</li>
      *   <li>Read the cow's active_effects — must include poison. Also read the cow's
      *       InLove (must be 0 since the guard called resetLove).</li>
      *   <li>Control: clear, teleport a fresh cow, spawn fresh wheat, pickup, debug

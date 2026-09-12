@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1127
+Pass: 1128
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: composter rotten_chance claim drift corrected (pass 1127). Queue empty — next pass refills.
+Current task: animal poison duration claim drift fixed (pass 1128). Queue empty — next pass refills.
 Last lens: L12 claim drift
-Recent: NO_BUG NO_BUG NO_BUG NO_BUG FIXED
+Recent: NO_BUG NO_BUG NO_BUG FIXED FIXED
 Barren streak: 0
 Refills since L13: 0
 Commits since: release = 2
-Updated: 2026-09-12 06:21:18
+Updated: 2026-09-12 06:25:52
 
 ## Notes
 
