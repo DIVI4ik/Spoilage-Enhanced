@@ -279,7 +279,15 @@ public class FoodSpoilageUtil {
         // already returned for the null-world no-op cases, so this only runs when a
         // real initialization is needed. Guard defensively for the test path.
         long currentTime = world != null ? world.getGameTime() : 0L;
-        long expirationTime = currentTime + freshDuration;
+        // Pass 1164 (L7 — boundary): same guard as the padding branch in
+        // updateSpoilageDataImpl (line ~521, pass 233). item_durations entries are
+        // unclamped by the config loader (clampHandEditedValues touches only the
+        // defaults and the speed multiplier), so a hand-edited huge fresh value
+        // reaches this addition; overflowing it to negative would make the stack
+        // read as already expired on its first tick.
+        long expirationTime = (freshDuration > Long.MAX_VALUE - currentTime)
+                ? Long.MAX_VALUE
+                : currentTime + freshDuration;
 
         List<Long> freshList = new ArrayList<>();
         for (int i = 0; i < stack.getCount(); i++) {
