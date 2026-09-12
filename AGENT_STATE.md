@@ -2,13 +2,13 @@
 
 Pass: 1135
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: SpoilageConfig.java:900 migrateAutoDiscovered null check
+Current task: BlockSpoilageData.java:390 rescale ratio NaN Infinite check
 Last lens: L1 silent failure
-Recent: NO_BUG FIXED NO_BUG NO_BUG NO_BUG
-Barren streak: 3
+Recent: FIXED NO_BUG NO_BUG NO_BUG NO_BUG
+Barren streak: 4
 Refills since L13: 0
 Commits since: release = 1
-Updated: 2026-09-12 09:23:46
+Updated: 2026-09-12 09:27:21
 
 ## Notes
 
