@@ -2,13 +2,13 @@
 
 Pass: 1135
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: BrewingStandBlockEntityMixin.java:36 check brewing stand aging gap
+Current task: HopperBlockEntityMixin.java:30 check hopper transit aging
 Last lens: L1 silent failure
 Recent: NO_BUG NO_BUG NO_BUG NO_BUG NO_BUG
-Barren streak: 6
+Barren streak: 7
 Refills since L13: 0
 Commits since: release = 1
-Updated: 2026-09-12 09:31:47
+Updated: 2026-09-12 09:33:55
 
 ## Notes
 
