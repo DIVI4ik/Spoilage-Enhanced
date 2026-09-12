@@ -50,6 +50,7 @@
     "ServerboundPayloadTypesMixin",
     "SlotMixin",
     "StemBlockGrowMixin",
+    "ThrownItemAgingMixin",
     "ThrownItemEntityMixin"
   ],
   "client": [
