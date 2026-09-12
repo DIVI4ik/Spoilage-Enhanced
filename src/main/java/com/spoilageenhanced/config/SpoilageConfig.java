@@ -622,12 +622,10 @@ public class SpoilageConfig {
 
     public void setSpoilageSpeedMultiplier(double multiplier) {
         // Pass 631 (Lens 7 — boundary): the config load path clamps spoilage_speed_multiplier
-        // to [0.01, 100] at line 824, but the runtime setter only had a floor (0.01) — no upper
-        // clamp. Calling `spoilage speed 10000` at runtime left the value at 10000, which
-        // then feeds rescaleItemTimestamps as a ratio of up to 10000/100 = 100. The
-        // (long)(remaining * ratio) cast inside rescale can overflow for very large
-        // remaining values. Clamp the setter to the same range the config load uses.
-        if (Double.isNaN(multiplier) || multiplier <= 0.0) multiplier = 0.01;
+        // to [0.01, 100], but the runtime setter only had a floor check (<= 0.0) — values
+        // between 0.0 and 0.01 were left un-clamped, violating the documented 0.01 minimum.
+        // Pass 1129 (Lens 7): clamp to [0.01, 100.0] consistently.
+        if (Double.isNaN(multiplier) || multiplier < 0.01) multiplier = 0.01;
         else if (multiplier > 100.0) multiplier = 100.0;
         this.spoilage_speed_multiplier = multiplier;
         save();
@@ -915,7 +913,7 @@ public class SpoilageConfig {
      * </ul>
      */
     void clampHandEditedValues() {
-        if (Double.isNaN(spoilage_speed_multiplier) || spoilage_speed_multiplier <= 0.0) {
+        if (Double.isNaN(spoilage_speed_multiplier) || spoilage_speed_multiplier < 0.01) {
             spoilage_speed_multiplier = 1.0;
         } else if (spoilage_speed_multiplier > 100.0) {
             spoilage_speed_multiplier = 100.0;

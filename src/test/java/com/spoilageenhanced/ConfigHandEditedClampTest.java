@@ -96,4 +96,18 @@ class ConfigHandEditedClampTest {
         assertEquals(100.0, getDouble(huge, "spoilage_speed_multiplier"), 1e-9,
                 "multiplier >100 must clamp to 100.0");
     }
+
+    @Test
+    void subFloorMultiplierClampsCorrectly() throws Exception {
+        // Pass 1129 (L7 boundary): sub-0.01 multiplier (e.g. 0.005) must reset to 1.0 on load
+        // and clamp to 0.01 on runtime setter
+        SpoilageConfig subFloor = withDurations(24000L, 24000L, 0.005);
+        assertEquals(1.0, getDouble(subFloor, "spoilage_speed_multiplier"), 1e-9,
+                "sub-0.01 multiplier on load must reset to 1.0");
+
+        SpoilageConfig cfg = new SpoilageConfig();
+        cfg.setSpoilageSpeedMultiplier(0.005);
+        assertEquals(0.01, cfg.getSpoilageSpeedMultiplier(), 1e-9,
+                "sub-0.01 multiplier on setter must clamp to 0.01 minimum");
+    }
 }

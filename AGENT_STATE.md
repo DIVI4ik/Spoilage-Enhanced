@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1128
+Pass: 1129
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: animal poison duration claim drift fixed (pass 1128). Queue empty — next pass refills.
-Last lens: L12 claim drift
-Recent: NO_BUG NO_BUG NO_BUG FIXED FIXED
+Current task: speed multiplier lower clamp 0.01 fixed (pass 1129). Next: queue refill.
+Last lens: L7 boundary
+Recent: NO_BUG NO_BUG FIXED FIXED FIXED
 Barren streak: 0
 Refills since L13: 0
 Commits since: release = 3
-Updated: 2026-09-12 06:25:52
+Updated: 2026-09-12 07:31:52
 
 ## Notes
 
