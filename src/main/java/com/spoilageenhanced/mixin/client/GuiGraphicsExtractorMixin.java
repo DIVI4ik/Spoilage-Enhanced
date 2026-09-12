@@ -79,8 +79,17 @@ public abstract class GuiGraphicsExtractorMixin {
             staleCount = 0;
 
             for (long exp : freshList) {
+                // Pass 1165 (L7 — boundary): same overflow guard as ItemClientMixin /
+                // FoodSpoilageUtil.classifyFreshExpiration. exp + staleDuration can wrap
+                // negative when staleDuration is huge (unclamped by the config loader,
+                // same finding as pass 1164), which would make currentTime < (negative)
+                // false and count the item as ROTTEN in the inventory bar though its
+                // stale window never ended. When the addition would overflow the item
+                // stays STALE forever.
                 if (currentTime < exp) {
                     freshCount++;
+                } else if (staleDuration > Long.MAX_VALUE - exp) {
+                    staleCount++;
                 } else if (currentTime < exp + staleDuration) {
                     staleCount++;
                 } else {

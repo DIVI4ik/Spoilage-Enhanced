@@ -1019,6 +1019,35 @@ public class FoodSpoilageUtil {
         ROTTEN
     }
 
+    /**
+     * Pass 1165 (L7 — boundary): classifies one fresh-list expiration for display, with the
+     * overflow guard the tooltip needs. Extracted from ItemClientMixin's counting loop so the
+     * classification is testable headless (the mixin body calls Minecraft.getInstance() and
+     * cannot run in a unit test).
+     *
+     * <p>The guard: {@code exp + staleDuration} can overflow to negative when staleDuration is
+     * huge (item_durations entries are unclamped by the config loader — same finding as pass
+     * 1164), which would make {@code currentTime >= (negative)} true and count a fresh-expired
+     * item as ROTTEN though its stale window never ended. When the addition would overflow the
+     * item stays STALE forever.</p>
+     *
+     * @param exp          the fresh-list expiration (must be &lt; Long.MAX_VALUE; the NEVER
+     *                    sentinel is classified by the caller)
+     * @param currentTime  the client's game time
+     * @param staleDuration the item's stale duration (already speed-adjusted)
+     * @return FRESH while currentTime &lt; exp; ROTTEN once the stale window ended; STALE in
+     *         between — including forever when exp + staleDuration would overflow
+     */
+    public static SpoilageState classifyFreshExpiration(long exp, long currentTime, long staleDuration) {
+        if (currentTime < exp) {
+            return SpoilageState.FRESH;
+        }
+        if (staleDuration > Long.MAX_VALUE - exp) {
+            return SpoilageState.STALE;
+        }
+        return currentTime >= exp + staleDuration ? SpoilageState.ROTTEN : SpoilageState.STALE;
+    }
+
     // ======================== Crop maturity ========================
 
     /**

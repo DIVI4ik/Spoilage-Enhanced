@@ -98,15 +98,28 @@ public abstract class ItemClientMixin {
             for (long exp : data.freshExpirations()) {
                 if (exp >= Long.MAX_VALUE) {
                     f++;
-                } else if (currentTime >= exp + staleDuration) {
-                    r++;
-                } else if (currentTime >= exp) {
-                    s++;
-                    long staleExp = exp + staleDuration;
-                    if (staleExp < minStaleTime) minStaleTime = staleExp;
-                } else {
-                    f++;
-                    if (exp < minFreshTime) minFreshTime = exp;
+                    continue;
+                }
+                // Pass 1165 (L7 — boundary): classification extracted to
+                // FoodSpoilageUtil.classifyFreshExpiration so the overflow guard
+                // (exp + staleDuration can wrap negative when staleDuration is huge —
+                // unclamped by the config loader, same finding as pass 1164) is
+                // testable headless. The overflow case reads as STALE forever, never
+                // ROTTEN, and never lowers minStaleTime (the clamped entry is
+                // effectively NEVER; minStaleTime already starts at Long.MAX_VALUE).
+                switch (FoodSpoilageUtil.classifyFreshExpiration(exp, currentTime, staleDuration)) {
+                    case FRESH -> {
+                        f++;
+                        if (exp < minFreshTime) minFreshTime = exp;
+                    }
+                    case STALE -> {
+                        s++;
+                        if (staleDuration <= Long.MAX_VALUE - exp) {
+                            long staleExp = exp + staleDuration;
+                            if (staleExp < minStaleTime) minStaleTime = staleExp;
+                        }
+                    }
+                    case ROTTEN -> r++;
                 }
             }
             for (long exp : data.staleExpirations()) {
