@@ -35,6 +35,7 @@
     "InteractionManagerMixin",
     "InteractionSpawnEntityMixin",
     "ItemEntityMixin",
+    "ItemFrameMixin",
     "ItemMixin",
     "ItemStackMixin",
     "LanguageMixin",

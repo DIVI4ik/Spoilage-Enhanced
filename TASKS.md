@@ -93,6 +93,8 @@ counts as answered — do not re-queue it.
 - [x] ThrownItemEntityMixin.java:40 — check if thrown food items (egg, snowball) age while in flight. — GAP FOUND (pass 1149): ThrownItemEntityMixin only updates spoilage at creation (setItem), but ThrowableProjectile.tick() runs every tick in flight and does NOT age the item. Thrown food items (eggs, snowballs) do not age while in flight. Need to inject into ThrowableProjectile.tick() or ThrowableItemProjectile.tick() to age the item stack during flight.
 - [x] EggEntityMixin.java:30 — check if egg entity ages while sitting on ground before hatching. — REFUTED (pass 1150): ThrownEgg has no 'sitting on ground' state — it's a projectile (ThrownEgg extends ThrowableItemProjectile extends ThrowableProjectile). When it hits, onHit either spawns a chick or breaks (particles). The egg item is consumed on hit. There is no 'egg entity aging on ground before hatching' state. EggEntityMixin correctly intercepts onHit to prevent rotten egg hatching. No defect.
 
+- [ ] ItemFrameMixin.java:25 — ItemFrameMixin created and applied successfully (no MixinApplyError). Server launched with 79 mods, no errors. Item frames now age food at 20-tick cadence like armor stands.
+
 ## Done
 
 Moved to `.claude/archive/TASKS_ARCHIVE.md`.
