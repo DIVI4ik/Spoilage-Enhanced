@@ -30,6 +30,7 @@
     "FridgeBlockEntityMixin",
     "GourdBlockMixin",
     "HarvestFarmlandMixin",
+    "HopperAgingMixin",
     "HopperBlockEntityMixin",
     "InteractionInsertStackMixin",
     "InteractionManagerMixin",

@@ -2,13 +2,13 @@
 
 Pass: 1135
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: ItemFrameMixin created and verified (L13)
+Current task: ThrownItemEntityMixin.java:40 thrown food aging in flight
 Last lens: L13 observed
-Recent: NO_BUG FIXED NO_BUG REFUTED FIXED
+Recent: FIXED NO_BUG REFUTED FIXED FIXED
 Barren streak: 0
 Refills since L13: 0
 Commits since: release = 2
-Updated: 2026-09-12 11:18:54
+Updated: 2026-09-12 12:00:07
 
 ## Notes
 

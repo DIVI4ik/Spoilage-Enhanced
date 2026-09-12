@@ -95,6 +95,9 @@ counts as answered — do not re-queue it.
 
 - [ ] ItemFrameMixin.java:25 — ItemFrameMixin created and applied successfully (no MixinApplyError). Server launched with 79 mods, no errors. Item frames now age food at 20-tick cadence like armor stands.
 
+- [x] HopperBlockEntityMixin.java:30 — GAP (PLAYER_REPORTS §10): food in hoppers does not age during transit — inject aging into pushItemsTick at RETURN, same 20-tick phase-spread cadence as other containers. — FIXED (pass 1152): Created HopperAgingMixin.java injecting at pushItemsTick RETURN. Ages hopper contents on 20-tick phase-spread cadence (shouldSkipAgingTick), trims over-tracked items, lazily stamps via updateSpoilage, calls setChanged when anything changed. Server launched with 79 mods, Done (29.107s), 0 MixinApplyError/InvalidInjectionException. compileJava BUILD SUCCESSFUL, test suite 662/0/0.
+- [ ] ThrownItemEntityMixin.java:40 — GAP (pass 1149): thrown food items (eggs, snowballs) do not age while in flight — inject aging into ThrowableProjectile.tick() at RETURN.
+
 ## Done
 
 Moved to `.claude/archive/TASKS_ARCHIVE.md`.
