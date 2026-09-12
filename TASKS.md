@@ -61,7 +61,7 @@ counts as answered — do not re-queue it.
 - [x] SpoilageConfig.java:1139 — save() directory stream catches IOException and swallows it. If the saves directory cannot be read, isRealGame stays false and the config is NOT saved — silent failure. Fix: log at WARNING. — FIXED (pass 1118): empty catch now logs at WARNING naming the directory and exception. Server boot verified: Done (27.960s), no false warning on healthy path.
 - [x] SpoilageConfig.java:1158 — save() FileWriter catches IOException and only e.printStackTrace() (goes to stderr, not the mod's logger). Fix: log via SpoilageEnhancedLogger at ERROR. — FIXED (pass 1118): printStackTrace replaced with ERROR-level logger call stating config changes are lost. Same boot verified.
 - [x] SpoilageEnhancedCommon.java:24 — ClassNotFoundException caught with comment 'Should never happen - these are vanilla classes'. If it DOES happen (mod conflict, broken install), the exception is swallowed. Fix: log at ERROR. — FIXED (pass 1120): catch logs at ERROR naming the consequence (network codecs will not register). Server boot verified: Done (23.291s), init complete, zero false ERROR lines on the healthy path. Suite 661/0/0.
-- [ ] SimpleTextureMixin.java:45 — IOException on texture load swallowed. If a texture fails to load, the mixin silently continues. Fix: log at WARNING (cosmetic but diagnosable).
+- [x] SimpleTextureMixin.java:45 — IOException on texture load swallowed. If a texture fails to load, the mixin silently continues. Fix: log at WARNING (cosmetic but diagnosable). — REFUTED (pass 1121): the load failure IS logged at :45-47 ('Failed to load fallback texture'). The only silent catch is stream.close() in finally — standard Java cleanup pattern, no signal lost. No defect.
 
 ## Done
 
