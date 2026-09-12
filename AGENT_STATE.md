@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1134
+Pass: 1135
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: BlockSpoilageData legacyBirthTime verified. All 5 tasks complete — next pass refills.
-Last lens: L7 boundary
-Recent: NO_BUG NO_BUG NO_BUG REFUTED NO_BUG
-Barren streak: 5
+Current task: VillagerEntityMixin.java:30 check rotten food acceptance
+Last lens: L1 silent failure
+Recent: NO_BUG NO_BUG REFUTED NO_BUG FIXED
+Barren streak: 0
 Refills since L13: 0
 Commits since: release = 4
-Updated: 2026-09-12 07:45:01
+Updated: 2026-09-12 07:50:51
 
 ## Notes
 

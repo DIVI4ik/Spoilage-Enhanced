@@ -111,7 +111,7 @@ public abstract class ItemStackMixin {
                     player.getFoodData().setFoodLevel(Math.max(0, player.getFoodData().getFoodLevel() - penalty));
                     player.getFoodData().setSaturation(Math.max(0f, player.getFoodData().getSaturationLevel() - satPenalty));
                 }
-                if (world.getRandom().nextFloat() < (float) fx.stale_nausea_chance) {
+                if (fx.stale_nausea_duration_ticks > 0 && world.getRandom().nextFloat() < (float) fx.stale_nausea_chance) {
                     entity.addEffect(new net.minecraft.world.effect.MobEffectInstance(net.minecraft.world.effect.MobEffects.NAUSEA, fx.stale_nausea_duration_ticks, 0));
                     SpoilageEnhancedLogger.log(SpoilageEnhancedLogger.LogCategory.EVENTS, "Player consumed Stale food -> Nausea applied.");
                 }
@@ -122,8 +122,10 @@ public abstract class ItemStackMixin {
                         player.getFoodData().setSaturation(Math.max(0f, player.getFoodData().getSaturationLevel() - food.saturation()));
                     }
                 }
-                entity.addEffect(new net.minecraft.world.effect.MobEffectInstance(net.minecraft.world.effect.MobEffects.POISON, fx.rotten_poison_duration_ticks, 0));
-                SpoilageEnhancedLogger.log(SpoilageEnhancedLogger.LogCategory.EVENTS, "Player consumed Rotten food -> Poison applied.");
+                if (fx.rotten_poison_duration_ticks > 0) {
+                    entity.addEffect(new net.minecraft.world.effect.MobEffectInstance(net.minecraft.world.effect.MobEffects.POISON, fx.rotten_poison_duration_ticks, 0));
+                    SpoilageEnhancedLogger.log(SpoilageEnhancedLogger.LogCategory.EVENTS, "Player consumed Rotten food -> Poison applied.");
+                }
             }
         }
     }
