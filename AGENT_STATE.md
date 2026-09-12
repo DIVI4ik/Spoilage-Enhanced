@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1123
+Pass: 1124
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: animal feeding matrix verified live (pass 1123). Next: foreign food ground aging.
+Current task: ground aging verified for foreign food (pass 1124). Next: cooking pot live drive.
 Last lens: L13 observed behaviour
-Recent: IMPROVED FIXED REFUTED NO_BUG NO_BUG
+Recent: FIXED REFUTED NO_BUG NO_BUG NO_BUG
 Barren streak: 3
 Refills since L13: 0
 Commits since: release = 1
-Updated: 2026-09-12 05:42:13
+Updated: 2026-09-12 05:52:20
 
 ## Notes
 
