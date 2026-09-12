@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1130
+Pass: 1131
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: FoodSpoilageUtil.java:406 rescaleWithPreservation boundary behavior
+Current task: CraftingSpoilageTransfer.java:107 spread overflow check
 Last lens: L1 silent failure
-Recent: NO_BUG FIXED FIXED FIXED NO_BUG
-Barren streak: 1
+Recent: FIXED FIXED FIXED NO_BUG NO_BUG
+Barren streak: 2
 Refills since L13: 0
 Commits since: release = 4
-Updated: 2026-09-12 07:36:52
+Updated: 2026-09-12 07:38:08
 
 ## Notes
 
