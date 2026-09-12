@@ -2,13 +2,13 @@
 
 Pass: 1135
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: ThrownItemAgingMixin with pack loaded — L14
+Current task: BrewingStandBlockEntityMixin with pack loaded — L14
 Last lens: L14 foreign content
 Recent: FIXED FIXED FIXED FIXED FIXED
 Barren streak: 0
 Refills since L13: 0
 Commits since: release = 2
-Updated: 2026-09-12 15:31:43
+Updated: 2026-09-12 16:23:42
 
 ## Notes
 

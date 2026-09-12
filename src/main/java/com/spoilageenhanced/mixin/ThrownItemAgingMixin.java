@@ -1,8 +1,8 @@
 package com.spoilageenhanced.mixin;
 
-import com.spoilageenhanced.component.ModDataComponentTypes;
 import com.spoilageenhanced.config.SpoilageConfig;
 import com.spoilageenhanced.util.FoodSpoilageUtil;
+import net.minecraft.world.entity.projectile.ThrowableProjectile;
 import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrowableItemProjectile;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -14,25 +14,29 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 /**
  * Ages food inside a thrown projectile (egg, snowball, etc.) while in flight.
  *
- * <p>ThrownItemEntityMixin only updates spoilage at creation (setItem), but
- * ThrowableProjectile.tick() runs every tick in flight and does NOT age the item.
- * Thrown food items (eggs, snowballs) did not age while in flight (pass 1149).</p>
+ * <p>ThrowableItemProjectile does NOT declare {@code tick()} — it is declared in
+ * ThrowableProjectile (ThrowableProjectile.java:46), and neither Snowball nor
+ * ThrowableItemProjectile override it. A mixin on ThrowableItemProjectile with
+ * {@code method = "tick"} finds no target and (with require=0) silently skips —
+ * exactly the ItemFrameMixin failure shape. So the mixin targets
+ * ThrowableProjectile and narrows with {@code instanceof ThrowableItemProjectile}
+ * inside.</p>
  *
- * <p>This mixin injects at the RETURN of ThrowableItemProjectile.tick() (inherited
- * from ThrowableProjectile) and ages the held item stack if it is spoilable.
- * Uses the entity's position for phase-spreading so a swarm of thrown items
- * does not all age on the same tick boundary.</p>
+ * <p>ThrownItemEntityMixin only updates spoilage at creation (setItem); this
+ * mixin ages the held item every 20 ticks while in flight (pass 1149).</p>
  */
-@Mixin(ThrowableItemProjectile.class)
+@Mixin(ThrowableProjectile.class)
 public abstract class ThrownItemAgingMixin {
 
     @Inject(
         method = "tick",
         at = @At("RETURN"),
-        require = 0
+        require = 1
     )
     private void spoilage_enhanced_ageThrownItem(CallbackInfo ci) {
-        ThrowableItemProjectile projectile = (ThrowableItemProjectile) (Object) this;
+        if (!((Object) this instanceof ThrowableItemProjectile projectile)) {
+            return;
+        }
         Level level = projectile.level();
         if (level.isClientSide()) {
             return;
