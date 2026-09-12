@@ -23,6 +23,7 @@
     "CookingPotBlockEntityMixin",
     "CrafterBlockMixin",
     "CraftingResultSlotMixin",
+    "DefaultDispenseItemBehaviorMixin",
     "DispenserBlockMixin",
     "DropperBlockMixin",
     "EggEntityMixin",
