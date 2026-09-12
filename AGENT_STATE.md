@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1131
+Pass: 1132
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: CraftingSpoilageTransfer.java:107 spread overflow check
-Last lens: L1 silent failure
-Recent: FIXED FIXED FIXED NO_BUG NO_BUG
-Barren streak: 2
+Current task: SpoilageData.java:120 rescaleExpirations check
+Last lens: L7 boundary
+Recent: FIXED FIXED NO_BUG NO_BUG NO_BUG
+Barren streak: 3
 Refills since L13: 0
 Commits since: release = 4
-Updated: 2026-09-12 07:38:08
+Updated: 2026-09-12 07:40:53
 
 ## Notes
 
