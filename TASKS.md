@@ -106,6 +106,12 @@ counts as answered — do not re-queue it.
 
 - [x] BrewingStandBlockEntityMixin with pack loaded — L14: verify BrewingStandBlockEntityMixin ages food in brewing stands with modpack deployed (vanilla brewing stands, modded brewing stands). — FIXED (pass 1161): Live proof with pack loaded (79 mods): brewing stand at 0 100 0 with apple in ingredient slot (Slot 3b) stale_expirations [1432000L] read back rotten_count:1 by gametime 1434331. Suite 662/0/0.
 
+- [ ] HopperBlockEntityMixin.java:26 — L1 silent failure: require=0 on addItem injection. If HopperBlockEntity.addItem signature changes (e.g. on Forge/NeoForge), this silently skips. Verify target exists on all loaders or change to require=1 with logging.
+- [ ] CookingPotBlockEntityMixin.java:55 — L1 silent failure: require=0 on cookingTick targeting Farmer's Delight class by string. If FD not present or class renamed, silently skips. Verify it logs application when FD is loaded (pack has FD).
+- [ ] FridgeBlockEntityMixin.java:58 — L1 silent failure: require=0 on serverTick targeting Cooking for Blockheads class by string. If C4B not present or class renamed, silently skips. Verify it logs application when C4B is loaded (pack has C4B).
+- [ ] BlockDropSpoilageForgeMixin.java:39,46 — L1 silent failure: require=0 on Forge-specific Block.drop overloads. If Forge jar missing or signature changed, silently skips. Verify it logs application on Forge runs.
+- [ ] ClientboundPayloadTypesMixin.java:29 — L1 silent failure: require=0 on CustomPacketPayload.codec registration. If signature changed, silently skips. Verify it logs or change to require=1.
+
 ## Done
 
 Moved to `.claude/archive/TASKS_ARCHIVE.md`.

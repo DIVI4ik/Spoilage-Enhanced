@@ -2,13 +2,13 @@
 
 Pass: 1135
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: Queue empty — refill next pass.
-Last lens: L14 foreign content
+Current task: HopperBlockEntityMixin require=0 — L1
+Last lens: L1 silent failure
 Recent: FIXED FIXED FIXED FIXED FIXED
 Barren streak: 0
 Refills since L13: 0
 Commits since: release = 0
-Updated: 2026-09-12 17:00:43
+Updated: 2026-09-12 17:11:06
 
 ## Notes
 
