@@ -2,13 +2,13 @@
 
 Pass: 1135
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: ThrownItemEntityMixin.java:40 check thrown food aging
+Current task: EggEntityMixin.java:30 check egg entity aging
 Last lens: L13 observed
-Recent: NO_BUG NO_BUG NO_BUG NO_BUG FIXED
-Barren streak: 0
+Recent: NO_BUG NO_BUG NO_BUG FIXED NO_BUG
+Barren streak: 1
 Refills since L13: 0
 Commits since: release = 1
-Updated: 2026-09-12 09:45:40
+Updated: 2026-09-12 09:50:21
 
 ## Notes
 
