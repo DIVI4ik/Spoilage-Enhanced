@@ -81,6 +81,12 @@ counts as answered — do not re-queue it.
 - [x] BundleItemMixin.java:60 — check if bundles preserve spoilage component when nested or selected in inventory menus. — VERIFIED NO_BUG (pass 1139): No BundleItemMixin.java exists; bundle aging is handled by ItemMixin.java:43-48 (calls FoodSpoilageUtil.updateBundleItemSpoilage) which properly extracts BUNDLE_CONTENTS, ages each item via updateSpoilage, and rebuilds the bundle with aged items. Nested bundles are handled because updateSpoilage is called on each item, and if an item is itself a bundle, it will have BUNDLE_CONTENTS and be aged recursively. Menu interactions (selection) use vanilla bundle logic; spoilage component is preserved in ItemStackTemplate.fromNonEmptyStack.
 - [x] DispenserBlockMixin.java:40 — check if dispensing food items (e.g. into water or on ground) retains or initializes spoilage components. — FIXED (pass 1140): Created DefaultDispenseItemBehaviorMixin.java that injects at DefaultDispenseItemBehavior.execute RETURN and trims the dispensed stack's spoilage data to match its count (1). Previously, dispensed items got the full tracker list from the source stack (N trackers for 1 item). DispenserBlockMixin and DropperBlockMixin already reconciled the remaining slot; now the dispensed item is also fixed. compileJava BUILD SUCCESSFUL, test suite 662/0/0.
 
+- [x] ItemEntityMixin.java:55 — check if ItemEntity.merge merges spoilage trackers correctly when two item entities with different spoilage data combine (keep worst trackers). — VERIFIED NO_BUG (pass 1141): ItemEntityMixin.onMerge (line 72-97) correctly extracts worst trackers from source via extractWorstItems(sourceData, amountTaken) and merges into target via mergeItems(targetData, split[1]). mergeItems (FoodSpoilageUtil.java:208-260) handles null/empty cases, combines all trackers, sorts ascending (min=worst), and returns new SpoilageData with target's speedMultiplier. Worst trackers correctly preserved through merge chain.
+- [ ] BlockSpoilageData.java:374 — check if legacyBirthTime rescale handles elapsed <= 0 (already expired) without resurrecting items.
+- [ ] FoodSpoilageUtil.java:340 — check if extractWorstItems handles empty freshExpirations and staleExpirations lists without throwing.
+- [ ] SpoilageConfig.java:900 — check if migrateAutoDiscovered handles null auto_discovered map without NPE.
+- [ ] BlockSpoilageData.java:390 — check if rescale handles ratio NaN/Infinite without corrupting expirationTime.
+
 ## Done
 
 Moved to `.claude/archive/TASKS_ARCHIVE.md`.

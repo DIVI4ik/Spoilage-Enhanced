@@ -2,13 +2,13 @@
 
 Pass: 1135
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: All 5 tasks complete — next pass refills.
+Current task: BlockSpoilageData.java:374 legacyBirthTime elapsed <= 0 check
 Last lens: L1 silent failure
-Recent: FIXED REFUTED REFUTED NO_BUG FIXED
-Barren streak: 0
+Recent: REFUTED REFUTED NO_BUG FIXED NO_BUG
+Barren streak: 1
 Refills since L13: 0
 Commits since: release = 1
-Updated: 2026-09-12 09:14:26
+Updated: 2026-09-12 09:19:48
 
 ## Notes
 
