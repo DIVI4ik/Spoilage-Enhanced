@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1132
+Pass: 1133
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: SpoilageData.java:120 rescaleExpirations check
+Current task: BlockSpoilageData.java:388 legacyBirthTime rescale check
 Last lens: L7 boundary
-Recent: FIXED FIXED NO_BUG NO_BUG NO_BUG
-Barren streak: 3
+Recent: FIXED NO_BUG NO_BUG NO_BUG REFUTED
+Barren streak: 4
 Refills since L13: 0
 Commits since: release = 4
-Updated: 2026-09-12 07:40:53
+Updated: 2026-09-12 07:42:17
 
 ## Notes
 
