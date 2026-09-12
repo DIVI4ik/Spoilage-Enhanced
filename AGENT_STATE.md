@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1129
+Pass: 1130
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: speed multiplier lower clamp 0.01 fixed (pass 1129). Next: queue refill.
-Last lens: L7 boundary
-Recent: NO_BUG NO_BUG FIXED FIXED FIXED
-Barren streak: 0
+Current task: FoodSpoilageUtil.java:406 rescaleWithPreservation boundary behavior
+Last lens: L1 silent failure
+Recent: NO_BUG FIXED FIXED FIXED NO_BUG
+Barren streak: 1
 Refills since L13: 0
 Commits since: release = 4
-Updated: 2026-09-12 07:31:52
+Updated: 2026-09-12 07:36:52
 
 ## Notes
 
