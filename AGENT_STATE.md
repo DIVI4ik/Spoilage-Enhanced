@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1119
+Pass: 1120
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: v1.1.9 published (pass 1119). Next: Common.java:24 + SimpleTextureMixin:45 logging.
+Current task: Common.init ClassNotFoundException logging fixed (pass 1120). Next: SimpleTextureMixin:45.
 Last lens: L1 silent failure
-Recent: NO_BUG NO_BUG FIXED FIXED IMPROVED
+Recent: NO_BUG FIXED FIXED IMPROVED FIXED
 Barren streak: 0
 Refills since L13: 0
 Commits since: release = 0
-Updated: 2026-09-12 03:54:01
+Updated: 2026-09-12 04:23:00
 
 ## Notes
 

@@ -21,8 +21,17 @@ public class SpoilageEnhancedCommon {
         try {
             Class.forName(ServerboundCustomPayloadPacket.class.getName(), true, ServerboundCustomPayloadPacket.class.getClassLoader());
             Class.forName(ClientboundCustomPayloadPacket.class.getName(), true, ClientboundCustomPayloadPacket.class.getClassLoader());
-        } catch (ClassNotFoundException ignored) {
-            // Should never happen - these are vanilla classes
+        } catch (ClassNotFoundException e) {
+            // Pass 1120 (L1 — silent failure): the old catch swallowed the exception
+            // with 'Should never happen - these are vanilla classes'. If it DOES happen
+            // (mod conflict, broken install, classloader isolation), the payload codec
+            // mixins silently fail to register, and network packets break with no signal.
+            // Log at ERROR so a broken install is diagnosable.
+            com.spoilageenhanced.util.SpoilageEnhancedLogger.log(
+                    com.spoilageenhanced.util.SpoilageEnhancedLogger.LogCategory.GENERAL,
+                    "SpoilageEnhancedCommon.init: vanilla payload packet class not found — "
+                    + "network codecs will not register: " + e.getClass().getSimpleName()
+                    + ": " + e.getMessage());
         }
 
         com.spoilageenhanced.util.SpoilageEnhancedLogger.init();
