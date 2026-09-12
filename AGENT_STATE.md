@@ -2,13 +2,13 @@
 
 Pass: 1135
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: BlockSpoilageData.java:374 legacyBirthTime elapsed <= 0 check
+Current task: FoodSpoilageUtil.java:340 extractWorstItems empty list check
 Last lens: L1 silent failure
-Recent: REFUTED REFUTED NO_BUG FIXED NO_BUG
-Barren streak: 1
+Recent: REFUTED NO_BUG FIXED NO_BUG NO_BUG
+Barren streak: 2
 Refills since L13: 0
 Commits since: release = 1
-Updated: 2026-09-12 09:19:48
+Updated: 2026-09-12 09:21:50
 
 ## Notes
 
