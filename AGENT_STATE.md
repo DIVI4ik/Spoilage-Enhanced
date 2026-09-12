@@ -2,13 +2,13 @@
 
 Pass: 1135
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: TPS baseline with pack loaded — L14
+Current task: ItemFrameMixin with pack loaded — L14
 Last lens: L14 foreign content
-Recent: REFUTED FIXED FIXED FIXED FIXED
-Barren streak: 1
+Recent: FIXED FIXED FIXED FIXED FIXED
+Barren streak: 0
 Refills since L13: 0
 Commits since: release = 1
-Updated: 2026-09-12 13:34:42
+Updated: 2026-09-12 13:44:25
 
 ## Notes
 
