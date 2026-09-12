@@ -277,3 +277,24 @@ but it changes what a decorative display case does, so it is recorded here rathe
 than shipped as a "bug fix". If the answer is "frames are display, not storage",
 then the armor stand should arguably freeze too — the current split has no
 principle behind it.
+
+
+## 10. Food in hoppers does not age during transit (pass 1148)
+
+**Observed (code-driven, pass 1148, 2026-09-12):** HopperBlockEntity has no
+serverTick — vanilla ticks hoppers via the static `pushItemsTick`, which only
+moves items (eject/suck) and never calls `inventoryTick` on the hopper's own
+contents. HopperBlockEntityMixin only intercepts transfers (addItem,
+tryMoveInItem), so food sitting in a hopper does not age.
+
+**Impact:** a hopper holding food is a mini-freezer: items age while in the
+chest above and in the chest below, but not while in the hopper itself. With
+long pipelines the hopper is the only place food is preserved, which is the
+opposite of what the mod's premise says.
+
+**Recommendation:** age hopper contents on the same 20-tick phase-spread
+cadence as the other container paths, by injecting into `pushItemsTick`
+(or `tryMoveItems`) at RETURN. The hopper is a container like any other;
+there is no design argument for it being a freezer. Not implemented this
+pass — recorded here so the next pass can pick it up with the injection
+point already identified.
