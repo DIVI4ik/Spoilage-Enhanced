@@ -2,13 +2,13 @@
 
 Pass: 1135
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: HopperBlockEntityMixin.java:30 check hopper transit aging
-Last lens: L1 silent failure
-Recent: NO_BUG NO_BUG NO_BUG NO_BUG NO_BUG
-Barren streak: 7
+Current task: ThrownItemEntityMixin.java:40 check thrown food aging
+Last lens: L13 observed
+Recent: NO_BUG NO_BUG NO_BUG NO_BUG FIXED
+Barren streak: 0
 Refills since L13: 0
 Commits since: release = 1
-Updated: 2026-09-12 09:33:55
+Updated: 2026-09-12 09:45:40
 
 ## Notes
 
