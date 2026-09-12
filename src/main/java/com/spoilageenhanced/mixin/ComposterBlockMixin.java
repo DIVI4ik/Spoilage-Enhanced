@@ -70,10 +70,11 @@ public class ComposterBlockMixin {
         int level = state.getValue(ComposterBlock.LEVEL);
         // Pass 610 (L9 — interaction): only extract the tracker when the compost will actually
         // succeed. The old code extracted first and then checked the chance — a rotten item
-        // with composterCfg.rotten_chance=0.0F (the documented "rotten items produce no
-        // bone meal" config) lost a tracker on every attempt, even though the stack wasn't
-        // composted. The caller (insertItem or useItemOn) still consumes the stack, so the
-        // lost tracker meant the player was charged a fresh item for nothing.
+        // with composterCfg.rotten_chance=0.0F (a documented "rotten items produce no bone
+        // meal" setting — the DEFAULT is 1.0F, verified live pass 1122) lost a tracker on
+        // every attempt, even though the stack wasn't composted. The caller (insertItem or
+        // useItemOn) still consumes the stack, so the lost tracker meant the player was
+        // charged a fresh item for nothing.
         boolean willSucceed = (level == 0 && newChance > 0.0F) || (newChance > 0.0F && world.getRandom().nextDouble() < (double) newChance);
         if (!willSucceed) {
             SpoilageEnhancedLogger.log("Composter: Rejected " + BuiltInRegistries.ITEM.getKey(item.getItem())

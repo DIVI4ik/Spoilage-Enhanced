@@ -83,9 +83,11 @@ public abstract class BlockSpoilageHudMixin {
 
     /**
      * Pass 643 (L13 behaviour): ComposterBlockMixin.addItem rotten-refusal guard. The
-     * composter must not raise its level for a rotten item (rotten_chance=0.0F by default).
-     * Needs a player holding the item right-clicking the composter — RCON cannot. Driven
-     * through debug use.
+     * composter must not raise its level for a rotten item when the config sets
+     * rotten_chance=0.0F (the documented "rotten items produce no bone meal" setting —
+     * the DEFAULT is 1.0F, guaranteed composting, verified live pass 1122: 'Composter:
+     * Added minecraft:apple (State: ROTTEN). Chance: 1.0'). Needs a player holding the
+     * item right-clicking the composter — RCON cannot. Driven through debug use.
      */
     @org.spongepowered.asm.mixin.Unique
     private static final boolean spoilage_enhanced$SELF_TEST_COMPOSTER = "composter".equals(System.getProperty("spoilage_enhanced.selftest"));
