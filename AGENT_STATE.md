@@ -2,13 +2,13 @@
 
 Pass: 1135
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: BlockSpoilageData.java:390 rescale ratio NaN Infinite check
+Current task: BrewingStandBlockEntityMixin.java:36 check brewing stand aging gap
 Last lens: L1 silent failure
-Recent: FIXED NO_BUG NO_BUG NO_BUG NO_BUG
-Barren streak: 4
+Recent: NO_BUG NO_BUG NO_BUG NO_BUG NO_BUG
+Barren streak: 6
 Refills since L13: 0
 Commits since: release = 1
-Updated: 2026-09-12 09:27:21
+Updated: 2026-09-12 09:31:47
 
 ## Notes
 
