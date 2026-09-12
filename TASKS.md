@@ -104,7 +104,7 @@ counts as answered — do not re-queue it.
 - [x] HopperAgingMixin with pack loaded — L14: verify HopperAgingMixin ages food in hoppers with modpack deployed (Cooking for Blockheads hoppers, vanilla hoppers, modded hoppers). — FIXED (pass 1159): Live proof with pack loaded (79 mods): disabled hopper at 0 100 0 with 2 apples stale_expirations [1377600L] read back rotten_count:1 in both slots by gametime 1380968. Hopper disabled so no item movement — pure aging proof. Suite 662/0/0.
 - [x] ThrownItemAgingMixin with pack loaded — L14: verify ThrownItemAgingMixin ages thrown food in flight with modpack deployed (vanilla eggs/snowballs, modded throwables). — FIXED (pass 1160): First version targeted ThrowableItemProjectile.tick() which does not exist (declared in ThrowableProjectile.java:46, inherited) — require=0 silently skipped, live test proved snowball frozen. Retargeted @Mixin(ThrowableProjectile.class) with instanceof ThrowableItemProjectile guard, require=1. Live proof with pack (79 mods): snowball with stale_expirations [1425000L] read back rotten_count:1 by gametime 1426375. Suite 662/0/0.
 
-- [ ] BrewingStandBlockEntityMixin with pack loaded — L14: verify BrewingStandBlockEntityMixin ages food in brewing stands with modpack deployed (vanilla brewing stands, modded brewing stands).
+- [x] BrewingStandBlockEntityMixin with pack loaded — L14: verify BrewingStandBlockEntityMixin ages food in brewing stands with modpack deployed (vanilla brewing stands, modded brewing stands). — FIXED (pass 1161): Live proof with pack loaded (79 mods): brewing stand at 0 100 0 with apple in ingredient slot (Slot 3b) stale_expirations [1432000L] read back rotten_count:1 by gametime 1434331. Suite 662/0/0.
 
 ## Done
 
