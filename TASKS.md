@@ -98,6 +98,14 @@ counts as answered — do not re-queue it.
 - [x] HopperBlockEntityMixin.java:30 — GAP (PLAYER_REPORTS §10): food in hoppers does not age during transit — inject aging into pushItemsTick at RETURN, same 20-tick phase-spread cadence as other containers. — FIXED (pass 1152): Created HopperAgingMixin.java injecting at pushItemsTick RETURN. Ages hopper contents on 20-tick phase-spread cadence (shouldSkipAgingTick), trims over-tracked items, lazily stamps via updateSpoilage, calls setChanged when anything changed. Server launched with 79 mods, Done (29.107s), 0 MixinApplyError/InvalidInjectionException. compileJava BUILD SUCCESSFUL, test suite 662/0/0.
 - [x] ThrownItemEntityMixin.java:40 — GAP (pass 1149): thrown food items (eggs, snowballs) do not age while in flight — inject aging into ThrowableProjectile.tick() at RETURN. — FIXED (pass 1154): Created ThrownItemAgingMixin.java targeting ThrowableItemProjectile.tick() RETURN with require=0. Ages thrown food items (eggs, snowballs) in flight on 20-tick phase-spread cadence. Server launched with 79 mods, Done (27.238s), 0 MixinApplyError. compileJava BUILD SUCCESSFUL, test suite 662/0/0.
 
+- [x] TPS baseline with pack loaded — L14: take tick query reading with 79 mods loaded, compare to vanilla baseline. Fix baseline first if needed. — IN PROGRESS (pass 1155): Taking TPS baseline with 79 mods loaded. Need to run tick query on server with pack deployed and compare to vanilla baseline.
+- [ ] ItemFrameMixin perfect freezer — L14: verify ItemFrameMixin ages food in frames with modpack deployed (Cooking for Blockheads frames, vanilla frames).
+
+- [ ] HopperAgingMixin with pack loaded — L14: verify HopperAgingMixin ages food in hoppers with modpack deployed (Cooking for Blockheads hoppers, vanilla hoppers, modded hoppers).
+- [ ] ThrownItemAgingMixin with pack loaded — L14: verify ThrownItemAgingMixin ages thrown food in flight with modpack deployed (vanilla eggs/snowballs, modded throwables).
+
+- [ ] BrewingStandBlockEntityMixin with pack loaded — L14: verify BrewingStandBlockEntityMixin ages food in brewing stands with modpack deployed (vanilla brewing stands, modded brewing stands).
+
 ## Done
 
 Moved to `.claude/archive/TASKS_ARCHIVE.md`.
