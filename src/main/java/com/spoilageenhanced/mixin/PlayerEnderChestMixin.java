@@ -47,7 +47,11 @@ public abstract class PlayerEnderChestMixin {
         if (world.isClientSide() || !(world instanceof ServerLevel serverWorld)) {
             return;
         }
-        if (self.tickCount % 20 != 0) {
+        // Pass 1189 (L12 — claim drift): the javadoc claimed phase-spreading by entity id
+        // "same as ItemEntityMixin", but the gate was bare tickCount % 20 — every player's
+        // ender chest aged on the same boundary, and tickCount resets to 0 on entity load,
+        // so simultaneously-relogging players aligned too. Match the documented claim.
+        if ((self.getId() + self.tickCount) % 20 != 0) {
             return;
         }
 

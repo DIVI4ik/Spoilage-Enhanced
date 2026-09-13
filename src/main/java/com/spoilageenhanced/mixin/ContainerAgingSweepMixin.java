@@ -73,6 +73,17 @@ import java.util.function.BooleanSupplier;
  * containers whether or not a player has ever been there — matching the mod's premise
  * that food ages everywhere it exists, and the same clock
  * {@code BlockSpoilageData} uses for block spoilage (chunk birth time).</p>
+ *
+ * <p><b>Empty-server pause (known non-issue).</b> This inject runs at the HEAD of
+ * {@code tickServer}, before vanilla's empty-pause early-return (MinecraftServer.java:976),
+ * so on a server with {@code pause-when-empty-seconds > 0} the sweep keeps walking the
+ * chunk map while the server is paused. Nothing ages (gameTime is frozen while
+ * {@code tickChildren} is skipped, and the update is a pure function of gameTime), so
+ * the cost is one idle map walk per tick on an otherwise-idle server. The vanilla
+ * default is {@code pauseWhenEmptySeconds() == 0} (MinecraftServer.java:2227), which
+ * disables the pause entirely, so this only arises on servers that opted in — and
+ * detecting the pause from a HEAD inject would need a remembered-gameTime heuristic
+ * that costs more than the walk it saves. Left alone deliberately.</p>
  */
 @Mixin(MinecraftServer.class)
 public abstract class ContainerAgingSweepMixin {
