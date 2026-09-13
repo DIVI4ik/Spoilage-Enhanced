@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1150
+Pass: 1151
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: DynamicFoodBlockCacheSilentPoison: exception still caches NO_FOOD_DROP
+Current task: AutoFoodDetectorUnboundComponents: safeComponents null conflation
 Last lens: silent failure
 Recent: NO_BUG NO_BUG FIXED FIXED FIXED
 Barren streak: 0
 Refills since L13: 0
 Commits since: release = 0
-Updated: 2026-09-13 07:37
+Updated: 2026-09-13 08:40
 
 ## Notes
 

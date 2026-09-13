@@ -92,10 +92,17 @@ public class DynamicFoodBlockCache {
             net.minecraft.world.level.block.state.properties.BooleanProperty flag,
             boolean bearingValue,
             net.minecraft.world.level.block.state.properties.IntegerProperty age,
-            int ripeAge) {
+            int ripeAge,
+            /** Whether the loot-table probe actually ran. False means "do not cache me". */
+            boolean probed) {
 
         static Ripeness always() {
-            return new Ripeness(null, false, null, 0);
+            return new Ripeness(null, false, null, 0, true);
+        }
+
+        /** Pass 1177: the probe threw — this answer is the absence of one, not a rule. */
+        static Ripeness unprobed() {
+            return new Ripeness(null, false, null, 0, false);
         }
 
         boolean bearing(BlockState state) {
@@ -161,6 +168,12 @@ public class DynamicFoodBlockCache {
             return known;
         }
         Ripeness derived = deriveRipeness(state, world, pos);
+        // Pass 1177 (L1 — silent failure): an unprobed answer is the probe failing, not a
+        // ripeness rule. Caching it would freeze the wrong rule for this block until the
+        // cache cleared; returning it uncached lets the next call retry the probe.
+        if (!derived.probed) {
+            return derived;
+        }
         // Pass 633 (Lens 3 — cache correctness): the old guard silently dropped the new entry
         // when the cache was full, and the comment at line 33 claimed 'clears the whole map'
         // — the code did NOT clear. With 2048+ unique block types (a modded pack with many
@@ -193,13 +206,20 @@ public class DynamicFoodBlockCache {
                 boolean yieldsWhenTrue = lootFoodDrop(state.setValue(bp, Boolean.TRUE), world, pos) != null;
                 boolean yieldsWhenFalse = lootFoodDrop(state.setValue(bp, Boolean.FALSE), world, pos) != null;
                 if (yieldsWhenTrue != yieldsWhenFalse) {
-                    return new Ripeness(bp, yieldsWhenTrue, null, 0);
+                    return new Ripeness(bp, yieldsWhenTrue, null, 0, true);
                 }
             }
         } catch (Exception e) {
+            // Pass 1177 (L1 — silent failure): an exception here is not "no flag governs
+            // ripeness", it is "the probe could not run". Falling through to the age-based
+            // path below would derive a WRONG rule (Ripeness.always() for a block with no
+            // counter, or a counter rule for a flag plant), and ripenessOf caches whatever
+            // this returns — the wrong answer would then be permanent. Throw a marker the
+            // caller can distinguish: ripenessOf must not cache it.
             SpoilageEnhancedLogger.log(SpoilageEnhancedLogger.LogCategory.DATA,
                     "DynamicFoodBlockCache: could not probe fruit flags for "
                             + BuiltInRegistries.BLOCK.getKey(state.getBlock()) + ": " + e);
+            return Ripeness.unprobed();
         }
 
         net.minecraft.world.level.block.state.properties.IntegerProperty age =
@@ -207,7 +227,7 @@ public class DynamicFoodBlockCache {
         if (age == null) {
             return Ripeness.always();
         }
-        return new Ripeness(null, false, age, computeRipeAge(state, world, pos, age));
+        return new Ripeness(null, false, age, computeRipeAge(state, world, pos, age), true);
     }
 
     /**
@@ -358,6 +378,7 @@ public class DynamicFoodBlockCache {
             return itemId;
         }
 
+        boolean probeThrew = false;
         try {
             BlockState matureState = getMatureState(state, world, pos);
             String fromLoot = lootFoodDrop(matureState != null ? matureState : state, world, pos);
@@ -369,16 +390,23 @@ public class DynamicFoodBlockCache {
         } catch (Exception e) {
             // Pass 128 (Lens 1): the old empty catch silently swallowed exceptions from
             // state.getDrops() (e.g. world shutting down, block entity unloaded, malformed
-            // loot table). This caused the cache to store NO_FOOD_DROP for a block that
-            // might actually be spoilable, permanently poisoning the cache entry until
-            // the cap was exceeded and the map cleared. Log the exception so it's visible
-            // in the trace log without crashing the server.
+            // loot table). Log the exception so it's visible in the trace log without
+            // crashing the server.
+            probeThrew = true;
             SpoilageEnhancedLogger.log(SpoilageEnhancedLogger.LogCategory.DATA,
                     "DynamicFoodBlockCache: Exception discovering drops for " + blockId + ": " + e.getClass().getSimpleName() + ": " + e.getMessage());
         }
 
         if (FoodSpoilageUtil.growthProperty(state) == null && !(block instanceof net.minecraft.world.level.block.CropBlock)) {
-            putWithEviction(block, NO_FOOD_DROP);
+            // Pass 1177 (L1 — silent failure): Pass 128 logged the exception but still cached
+            // NO_FOOD_DROP below, poisoning the entry exactly as before — an exception during
+            // the probe (world shutting down, block entity unloaded) is not an answer, it is
+            // the absence of one. A block whose probe threw must stay uncached so the next
+            // call retries; caching the negative condemns the block until the cap clears the
+            // map, which for a pack with fewer than 2048 queried blocks is forever.
+            if (!probeThrew) {
+                putWithEviction(block, NO_FOOD_DROP);
+            }
         }
         return null;
     }
