@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1141
+Pass: 1142
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: HopperBlockEntityMixin require=0 — L1
-Last lens: L7 boundary
-Recent: FIXED FIXED FIXED FIXED FIXED
-Barren streak: 0
+Current task: SnifferDig: Sniffer digging up seeds/crops
+Last lens: behaviour
+Recent: FIXED FIXED FIXED FIXED NO_BUG
+Barren streak: 1
 Refills since L13: 0
 Commits since: release = 1
-Updated: 2026-09-13 04:10
+Updated: 2026-09-13 04:24
 
 ## Notes
 
