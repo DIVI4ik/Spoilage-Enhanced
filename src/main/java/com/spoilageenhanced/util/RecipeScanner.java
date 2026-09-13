@@ -87,11 +87,15 @@ public class RecipeScanner {
                     Recipe<?> recipe = recipeHolder.value();
                     RecipeOutput output = getRecipeOutput(recipe);
                     if (output == null) {
-                        if (pass == 1) {
-                            skippedUnreadableResult++;
-                            if (firstUnreadableReason == null) {
-                                firstUnreadableReason = recipeHolder.id().identifier() + " -> " + lastOutputFailure;
-                            }
+                        // Pass 1175 (L1 — silent failure): same reasoning as the thrown-recipe
+                        // counter below. An unreadable result is a property of the recipe, not
+                        // of the pass, so counting it only on pass 1 under-reported whenever
+                        // later passes ran. getRecipeOutput is deterministic, so in practice
+                        // the same recipes fail every pass — but the counters exist to report
+                        // what happened, and what happened is N failures per pass.
+                        skippedUnreadableResult++;
+                        if (firstUnreadableReason == null) {
+                            firstUnreadableReason = recipeHolder.id().identifier() + " -> " + lastOutputFailure;
                         }
                         continue;
                     }
@@ -204,12 +208,16 @@ public class RecipeScanner {
                         }
                     }
                 } catch (Exception e) {
-                    if (pass == 1) {
-                        skippedThrown++;
-                        if (firstThrownReason == null) {
-                            firstThrownReason = recipeHolder.id().identifier()
-                                    + " -> " + e.getClass().getName() + ": " + e.getMessage();
-                        }
+                    // Pass 1175 (L1 — silent failure): the old guard counted a thrown recipe
+                    // only on pass 1. A recipe that threw on passes 2-5 was skipped with no
+                    // counter and no log line — and passes 2-5 are exactly where a recipe can
+                    // newly throw, because pass 1's registrations change what isSpoilable()
+                    // answers for its ingredients. Count every pass so the summary line below
+                    // reflects the whole scan, not just its first lap.
+                    skippedThrown++;
+                    if (firstThrownReason == null) {
+                        firstThrownReason = recipeHolder.id().identifier()
+                                + " -> " + e.getClass().getName() + ": " + e.getMessage();
                     }
                 }
             }
@@ -223,11 +231,11 @@ public class RecipeScanner {
                 + " recipes, discovered " + totalStorageFound + " storage items and " + totalCompositeFoodsFound + " composite food items.");
         if (skippedUnreadableResult > 0) {
             SpoilageEnhancedLogger.log("Recipe scan: " + skippedUnreadableResult
-                    + " recipes had an unreadable result, first: " + firstUnreadableReason);
+                    + " unreadable results across " + pass + " passes, first: " + firstUnreadableReason);
         }
         if (skippedThrown > 0) {
             SpoilageEnhancedLogger.log("Recipe scan: " + skippedThrown
-                    + " recipes threw and were skipped, first: " + firstThrownReason);
+                    + " thrown recipes across " + pass + " passes, first: " + firstThrownReason);
         }
     }
 
