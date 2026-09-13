@@ -397,6 +397,18 @@ public class FoodSpoilageUtil {
             updateContainerItemSpoilage(stack, world);
         }
 
+        // Pass 1189 (L13 — observed behaviour): a bundle in a CONTAINER (chest, hopper,
+        // brewing stand, minecart, ender chest, swept container) never aged its contents.
+        // The bundle path was only called from ItemEntityMixin (dropped bundles) and
+        // ItemMixin (player inventory); every container path calls updateSpoilage, which
+        // checked CONTAINER (shulker boxes) but not BUNDLE_CONTENTS. Verified live: a
+        // bundle with a tracked apple inside a chest read fresh_expirations:[100L]
+        // unchanged after 25s. Mirror the CONTAINER branch so every updateSpoilage
+        // caller ages bundle contents too.
+        if (stack.has(DataComponents.BUNDLE_CONTENTS)) {
+            updateBundleItemSpoilage(stack, world);
+        }
+
         if (!SpoilageConfig.getInstance().isSpoilable(stack.getItem()))
             return;
 

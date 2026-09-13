@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1162
+Pass: 1163
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: enderchest scenario idempotency
+Current task: bundle contents in containers never aged
 Last lens: L14 foreign content
-Recent: RELEASED FIXED NO_BUG FIXED RELEASED
+Recent: FIXED NO_BUG FIXED RELEASED FIXED
 Barren streak: 0
 Refills since L13: 0
 Commits since: release = 0
-Updated: 2026-09-13 22:26
+Updated: 2026-09-13 23:43
 
 ## Notes
 
