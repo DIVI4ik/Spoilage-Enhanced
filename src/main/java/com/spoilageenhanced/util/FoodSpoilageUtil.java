@@ -73,7 +73,7 @@ public class FoodSpoilageUtil {
         List<Long> targetStale = new ArrayList<>();
         int targetRotten = 0;
 
-        // Pass 363 (L7 — boundary): mirror the extractBestItems guard (line 140).
+        // Pass 363 (L7 — boundary): mirror the extractBestItems guard (line 141).
         // If amount is negative (should not happen with current callers, but the method
         // is public), Math.min(sourceRotten, negative) would return negative, causing
         // sourceRotten to increase and amount to increase — a latent bug. The
@@ -160,7 +160,7 @@ public class FoodSpoilageUtil {
         amount = extractBestFromList(sourceStale, targetStale, amount);
 
         // Pass 375 (L12 — claim drift): the Math.max(amount, 0) guard is redundant — the top
-        // guard at line 140 already returns early for amount <= 0, so this code is unreachable
+        // guard at line 141 already returns early for amount <= 0, so this code is unreachable
         // for negative amounts. Kept for defensive consistency with extractWorstItems (Pass 363).
         int rottenTake = Math.min(sourceRotten, Math.max(amount, 0));
         targetRotten = rottenTake;

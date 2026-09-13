@@ -47,7 +47,7 @@ public class BlockSpoilageData extends SavedData {
 
     /**
      * Pass 148 (Lens 8 — data round-trip): chunk birth times are recorded once per chunk the
-     * player visits (getChunkBirthTime(ServerLevel, ChunkPos) writes back at line 400). Without a
+     * player visits (getChunkBirthTime(ServerLevel, ChunkPos) writes back at line 482). Without a
      * cap the map grows by one entry per explored chunk and is serialized into the world save on
      * every write — a long-running server that explores the world would bloat the save file
      * linearly with distance travelled. The cap bounds it; eviction drops the OLDEST chunk

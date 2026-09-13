@@ -40,7 +40,7 @@ public class BlockStateChangeMixin {
             CallbackInfoReturnable<Boolean> cir, @Local(ordinal = 1) BlockState oldState) {
         // Pass 477 (L1 — silent failure, ROOT CAUSE): the previous bare @Local matched the
         // FIRST BlockState local in the LVT — which is the blockState PARAMETER (slot 1), not
-        // the oldState local (Level.java:230). The hook therefore always saw old == new, the
+        // the oldState local (Level.java:235). The hook therefore always saw old == new, the
         // oldState.equals(state) guard below always returned early, and the air-removal branch
         // NEVER fired: entries for removed blocks stayed in the map forever, so a stem
         // regrowing a fruit on the same spot inherited the OLD expiration instead of starting
