@@ -262,7 +262,7 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
 ## Refill 2026-09-13 (L13 behaviour — mob interactions & container lifecycles)
 
 - [x] `PiglinBarter`: Piglin bartering with gold ingot — barter loot drop from piglin_bartering loot table containing food (porkchop) — DRIVEN live (pass 1169, NO_BUG): food dropped without components follows standard lazy-stamping on entering inventory/containers. Porkchop in brewing stand/hopper gained fresh_expirations [1543700L] (freshDuration 24000L). Suite 684/0/0.
-- [ ] `SnifferDig`: Sniffer digging up seeds/crops — sniffer finishes digging and drops torchflower_seeds or pitcher_pod. Verify seeds correctly carry NO spoilage timer (excluded planting stock).
+- [x] `SnifferDig`: Sniffer digging up seeds/crops — sniffer finishes digging and drops torchflower_seeds or pitcher_pod — DRIVEN live (pass 1170, NO_BUG): pitcher_pod item entity on ground 8+s carried NO spoilage component (excluded_items line 48); torchflower_seeds in brewing stand NO component (excluded line 47); vanilla apple control gained fresh_expirations [1565160L] in same stand. Both planting-stock items correctly untracked.
 - [ ] `VaultReward`: Trial chamber vault unlocked with trial key — ejects food reward (e.g. cooked_beef, golden_carrot). Verify whether dropped reward food receives fresh_expirations or respects excluded_items.
 - [ ] `DolphinFeed`: Player feeds raw fish to dolphin — verify dolphin feeding path accepts fresh/stale fish and handles rotten fish according to AnimalEntityMixin rotten_cancels_breeding.
 - [ ] `CatGift`: Tamed cat morning gift to player — cat brings gift item from cat_morning_gift loot table (raw_chicken, feather, string). Verify if dropped food gift gets stamped with fresh_expirations.
