@@ -136,6 +136,12 @@ public abstract class BlockSpoilageHudMixin {
     @org.spongepowered.asm.mixin.Unique
     private static final boolean spoilage_enhanced$SELF_TEST_FURNACE = "furnace".equals(System.getProperty("spoilage_enhanced.selftest"));
 
+    /** Pass 1184 (L13): drive an apple into the player's ender chest through the real
+     * right-click + menu path, so the ender-chest aging mixin can be verified live.
+     * RCON cannot do it: data modify on players is refused by vanilla, and the debug
+     * use/menuclick commands act AS a player, so they must run from a client. */
+    private static final boolean spoilage_enhanced$SELF_TEST_ENDERCHEST = "enderchest".equals(System.getProperty("spoilage_enhanced.selftest"));
+
     @org.spongepowered.asm.mixin.Unique
     private static boolean spoilage_enhanced$selfTestStarted = false;
 
@@ -211,6 +217,10 @@ public abstract class BlockSpoilageHudMixin {
 
         if (spoilage_enhanced$SELF_TEST_FURNACE) {
             spoilage_enhanced$runFurnaceSelfTest(client);
+        }
+
+        if (spoilage_enhanced$SELF_TEST_ENDERCHEST) {
+            spoilage_enhanced$runEnderChestSelfTest(client);
         }
 
         HitResult hitResult = client.hitResult;
@@ -1126,6 +1136,67 @@ public abstract class BlockSpoilageHudMixin {
             }
             case 2 -> {
                 spoilage_enhanced$sendRawCommand(rawConn, "execute at @p run data get block -48 64 0");
+            }
+            default -> {
+            }
+        }
+        spoilage_enhanced$selfTestStep++;
+    }
+
+    /**
+     * Pass 1184 (L13 — observed behaviour): the ender chest aging mixin needs a real player
+     * with a spoilable item in their ender chest. RCON cannot insert one (vanilla refuses
+     * data modify on players), so this scenario drives the real path from the client:
+     * place an ender chest, give the player an apple whose expiration is ~30s out, open
+     * the chest with {@code debug use} (real right-click), then {@code menuclick} the
+     * apple from the inventory slot into the chest menu (real QUICK_MOVE). The server-side
+     * readback is then done from RCON with {@code data get entity <player> EnderItems}.
+     */
+    private static void spoilage_enhanced$runEnderChestSelfTest(Minecraft client) {
+        if (spoilage_enhanced$selfTestStarted && spoilage_enhanced$selfTestStep >= 3) {
+            return;
+        }
+        long now = client.level.getGameTime();
+        if (!spoilage_enhanced$selfTestStarted && spoilage_enhanced$selfTestNextStepTime == 0L) {
+            spoilage_enhanced$selfTestNextStepTime = now + 300L;
+            return;
+        }
+        if (now < spoilage_enhanced$selfTestNextStepTime) {
+            return;
+        }
+        spoilage_enhanced$selfTestNextStepTime = now + 40L;
+
+        net.minecraft.client.multiplayer.ClientPacketListener conn = client.getConnection();
+        if (conn == null) {
+            return;
+        }
+        net.minecraft.network.Connection rawConn =
+                ((com.spoilageenhanced.mixin.ClientCommonPacketListenerImplAccessor) conn).spoilage_enhanced$getConnection();
+        if (rawConn == null) {
+            return;
+        }
+
+        switch (spoilage_enhanced$selfTestStep) {
+            case 0 -> {
+                // fresh_expirations is an ABSOLUTE gameTime, so build it from the live clock:
+                // now + 200 ticks = the apple is fresh for ~10s, then stale, then rotten.
+                // (The first revision hardcoded 600L — 1.8M ticks in the past on this world,
+                // so the apple entered the chest already rotten and the test proved nothing.)
+                spoilage_enhanced$sendRawCommand(rawConn, "execute at @p run setblock ~2 ~ ~ minecraft:ender_chest");
+                spoilage_enhanced$sendRawCommand(rawConn, "clear @p");
+                spoilage_enhanced$sendRawCommand(rawConn, "give @p minecraft:apple[spoilage_enhanced:spoilage={fresh_expirations:["
+                        + (now + 200L) + "L]}] 1");
+                spoilage_enhanced$selfTestStarted = true;
+            }
+            case 1 -> {
+                spoilage_enhanced$sendRawCommand(rawConn, "execute at @p run spoilage debug use ~2 ~ ~");
+            }
+            case 2 -> {
+                // The apple sits in hotbar slot 0. In a ChestMenu (ender chest = 27 container
+                // slots + 27 main-inventory slots + 9 hotbar slots) the hotbar begins at index
+                // 54, so hotbar slot 0 is menu slot 54. QUICK_MOVE shifts it into the ender
+                // chest grid. (Slot 36/37 were tried first and clicked empty slots.)
+                spoilage_enhanced$sendRawCommand(rawConn, "execute at @p run spoilage debug menuclick 54 0 QUICK_MOVE");
             }
             default -> {
             }

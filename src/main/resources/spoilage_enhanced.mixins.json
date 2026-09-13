@@ -41,6 +41,7 @@
     "ItemStackMixin",
     "LanguageMixin",
     "PlayerInventoryMixin",
+    "PlayerEnderChestMixin",
     "RandomizableContainerBlockEntityMixin",
     "RecipeManagerMixin",
     "ScreenHandlerMixin",
