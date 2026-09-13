@@ -2,6 +2,7 @@ package com.spoilageenhanced.mixin;
 
 import com.spoilageenhanced.config.SpoilageConfig;
 import com.spoilageenhanced.util.FoodSpoilageUtil;
+import com.spoilageenhanced.util.SpoilageEnhancedLogger;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ChunkHolder;
@@ -54,7 +55,12 @@ import java.util.function.BooleanSupplier;
  * ~36), and each container in them pays one pass over its slots with the cheap
  * {@code isSpoilable} probe before any component work — a chest of cobblestone costs
  * one empty-probe pass and nothing else. The chunk map iteration is the same map the
- * vanilla debug dump walks on the main thread (ChunkMap.java:353).</p>
+ * vanilla debug dump walks on the main thread (ChunkMap.java:353, inside
+ * {@code debugFuturesAndCreateReportedException}). The iteration is safe from
+ * concurrent modification because this inject runs at the HEAD of
+ * {@code tickServer}, before {@code tickChildren} -> {@code chunkSource.tick} performs
+ * any chunk load/unload mutation on the same thread — during the sweep, no vanilla
+ * code is mutating the map.</p>
  */
 @Mixin(MinecraftServer.class)
 public abstract class ContainerAgingSweepMixin {
@@ -86,7 +92,16 @@ public abstract class ContainerAgingSweepMixin {
                     if (!(entry.getValue() instanceof Container container)) {
                         continue;
                     }
-                    ageContainer(container, level);
+                    // One bad container must not kill the server tick: the sweep is the FIRST
+                    // code that ever touches many of these containers (vanilla never ticks a
+                    // chest), so a modded container whose getItem() throws would otherwise
+                    // crash through this loop every second. Log and move on.
+                    try {
+                        ageContainer(container, level);
+                    } catch (Throwable t) {
+                        SpoilageEnhancedLogger.log("ContainerAgingSweep: skipped container at "
+                                + entry.getKey() + " (" + entry.getValue().getType() + "): " + t);
+                    }
                 }
             }
         }

@@ -2,6 +2,7 @@ package com.spoilageenhanced.mixin;
 
 import com.spoilageenhanced.config.SpoilageConfig;
 import com.spoilageenhanced.util.FoodSpoilageUtil;
+import com.spoilageenhanced.util.SpoilageEnhancedLogger;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -59,11 +60,17 @@ public abstract class PlayerEnderChestMixin {
         }
 
         for (int i = 0; i < enderChest.getContainerSize(); i++) {
-            ItemStack stack = enderChest.getItem(i);
-            if (stack.isEmpty() || !SpoilageConfig.getInstance().isSpoilable(stack.getItem())) {
-                continue;
+            // One corrupted stack must not kill Player.tick: guard per slot, log, continue.
+            try {
+                ItemStack stack = enderChest.getItem(i);
+                if (stack.isEmpty() || !SpoilageConfig.getInstance().isSpoilable(stack.getItem())) {
+                    continue;
+                }
+                FoodSpoilageUtil.updateSpoilage(stack, serverWorld);
+            } catch (Throwable t) {
+                SpoilageEnhancedLogger.log("PlayerEnderChestMixin: skipped ender chest slot "
+                        + i + " for " + self.getName().getString() + ": " + t);
             }
-            FoodSpoilageUtil.updateSpoilage(stack, serverWorld);
         }
     }
 }
