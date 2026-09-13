@@ -294,12 +294,12 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
 - [x] PlayerEnderChestMixin offline parity — NO_BUG pass 1187: vanilla does not tick offline players either; parity documented in the javadoc (Player.tick); food in an offline player's ender chest is frozen. Confirm this matches how the main inventory behaves for offline players (it must — vanilla doesn't tick offline players), document the parity in the javadoc
 
 - [x] BlockSpoilageHudMixin enderchest scenario idempotency — FIXED pass 1188 (commit b8e0c7b): drain step at start, clear after drain; live-verified exactly 1 apple
-- [ ] ContainerAgingSweepMixin — the sweep iterates the chunk map during the vanilla empty-server pause (tickServer HEAD runs before the emptyTicks early-return at MinecraftServer.java:976); gameTime is frozen so nothing ages, but the map is walked for nothing every tick — add the same playerList-empty guard vanilla uses, or document why it is left alone
+- [x] ContainerAgingSweepMixin empty-pause walk — NO_BUG pass 1190: pauseWhenEmptySeconds() is 0 by default (MinecraftServer.java:2227); documented as a known non-issue in the javadoc
 - [x] L13: second enderchest run — FIXED pass 1188: the verified run started with 3 leftover apples and ended with exactly 1 aging apple
-- [ ] PlayerEnderChestMixin — the 20-tick gate uses self.tickCount % 20; tickCount resets to 0 on entity load, so a relogging player's ender chest ages on a different phase than before relog — harmless (aging is idempotent) but verify the phase comment in the javadoc matches this reality
+- [x] PlayerEnderChestMixin phase claim — FIXED pass 1190 (commit d34b507): javadoc claimed id-based spreading the code did not do; gate now (getId()+tickCount)%20, live-proven
 
 - [x] L13: bundle in chest — FIXED pass 1189 (commit 29ac449): three-layer gap (updateSpoilage missing BUNDLE_CONTENTS, probe pass, update pass filter); live-proven rotten_count:1
-- [ ] ContainerAgingSweepMixin — the sweep visits a fridge (Container BE) whose own mixin already ages it; both are idempotent so no double-aging, but the fridge design question (should a fridge slow spoilage?) is still open in PLAYER_REPORTS.md — re-read that entry and confirm the sweep does not change what it says
-- [ ] PlayerEnderChestMixin — tickCount % 20 phase: tickCount resets on entity load, so a relogging player's ender chest ages on a different phase than before relog — harmless (aging is idempotent) but verify the phase comment in the javadoc matches this reality
+- [x] Fridge design entry vs sweep — NO_BUG pass 1190: PLAYER_REPORTS.md entry is accurate (fridge ages at normal speed, Option 2 recorded), the sweep is consistent with it
+- [x] PlayerEnderChestMixin phase (duplicate) — FIXED pass 1190, same as above
 - [x] L13: shulker box in chest — FIXED pass 1189 by the same probe + updateSpoilage change; RCON strips the container component from block Items so the slice is verified-by-mechanism (identical probe branch, CONTAINER branch proven live since pass 845)
 - [x] ContainerAgingSweepMixin double getItem — NO_BUG pass 1189: the probe pass now also reads bundle/container templates, but the cost is one extra template scan per food-carrying stack per second; no pack container lazy-loads in getItem (checked farmersdelight Basket/Cabinet: plain array-backed SimpleContainer)
