@@ -1153,7 +1153,7 @@ public abstract class BlockSpoilageHudMixin {
      * readback is then done from RCON with {@code data get entity <player> EnderItems}.
      */
     private static void spoilage_enhanced$runEnderChestSelfTest(Minecraft client) {
-        if (spoilage_enhanced$selfTestStarted && spoilage_enhanced$selfTestStep >= 3) {
+        if (spoilage_enhanced$selfTestStarted && spoilage_enhanced$selfTestStep >= 5) {
             return;
         }
         long now = client.level.getGameTime();
@@ -1178,20 +1178,33 @@ public abstract class BlockSpoilageHudMixin {
 
         switch (spoilage_enhanced$selfTestStep) {
             case 0 -> {
-                // fresh_expirations is an ABSOLUTE gameTime, so build it from the live clock:
-                // now + 200 ticks = the apple is fresh for ~10s, then stale, then rotten.
-                // (The first revision hardcoded 600L — 1.8M ticks in the past on this world,
-                // so the apple entered the chest already rotten and the test proved nothing.)
                 spoilage_enhanced$sendRawCommand(rawConn, "execute at @p run setblock ~2 ~ ~ minecraft:ender_chest");
                 spoilage_enhanced$sendRawCommand(rawConn, "clear @p");
-                spoilage_enhanced$sendRawCommand(rawConn, "give @p minecraft:apple[spoilage_enhanced:spoilage={fresh_expirations:["
-                        + (now + 200L) + "L]}] 1");
                 spoilage_enhanced$selfTestStarted = true;
             }
             case 1 -> {
+                // Idempotency (pass 1188): the apple from a PREVIOUS run of this scenario is
+                // still in the ender chest — vanilla has no /clear for ender chests and data
+                // modify on players is refused — so open the chest and QUICK_MOVE slot 0 back
+                // out to the player. Without this, run N+1 reads two apples and the readback
+                // is ambiguous.
                 spoilage_enhanced$sendRawCommand(rawConn, "execute at @p run spoilage debug use ~2 ~ ~");
+                spoilage_enhanced$sendRawCommand(rawConn, "execute at @p run spoilage debug menuclick 0 0 QUICK_MOVE");
             }
             case 2 -> {
+                // Clear AFTER the drain: the drained apple lands in an unpredictable inventory
+                // slot (QUICK_MOVE fills main inventory then hotbar), and a later give MERGES
+                // into that stack — so the new apple would not be at hotbar 0 and the insert
+                // below would click an empty slot. Clearing here removes the drained apple;
+                // the give then lands alone in hotbar slot 0.
+                spoilage_enhanced$sendRawCommand(rawConn, "clear @p");
+                spoilage_enhanced$sendRawCommand(rawConn, "give @p minecraft:apple[spoilage_enhanced:spoilage={fresh_expirations:["
+                        + (now + 200L) + "L]}] 1");
+            }
+            case 3 -> {
+                spoilage_enhanced$sendRawCommand(rawConn, "execute at @p run spoilage debug use ~2 ~ ~");
+            }
+            case 4 -> {
                 // The apple sits in hotbar slot 0. In a ChestMenu (ender chest = 27 container
                 // slots + 27 main-inventory slots + 9 hotbar slots) the hotbar begins at index
                 // 54, so hotbar slot 0 is menu slot 54. QUICK_MOVE shifts it into the ender
