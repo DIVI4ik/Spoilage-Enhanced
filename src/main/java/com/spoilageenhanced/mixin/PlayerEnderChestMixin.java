@@ -59,8 +59,38 @@ public abstract class PlayerEnderChestMixin {
         boolean anySpoilable = false;
         for (int i = 0; i < enderChest.getContainerSize(); i++) {
             ItemStack stack = enderChest.getItem(i);
-            if (!stack.isEmpty() && SpoilageConfig.getInstance().isSpoilable(stack.getItem())) {
+            if (stack.isEmpty()) {
+                continue;
+            }
+            if (SpoilageConfig.getInstance().isSpoilable(stack.getItem())) {
                 anySpoilable = true;
+                break;
+            }
+            // Pass 1191 (L13): a stack that is not itself food can still CARRY it — a
+            // bundle or nested shulker box in the ender chest. Without this the whole
+            // chest was skipped as 'no food here' and the carried food never aged
+            // (verified live: a bundle with a tracked apple sat unaged in the ender
+            // chest past its expiration). Same probe shape as ContainerAgingSweepMixin.
+            if (stack.has(net.minecraft.core.component.DataComponents.BUNDLE_CONTENTS)) {
+                net.minecraft.world.item.component.BundleContents contents =
+                        stack.get(net.minecraft.core.component.DataComponents.BUNDLE_CONTENTS);
+                for (net.minecraft.world.item.ItemStackTemplate template : contents.items()) {
+                    if (SpoilageConfig.getInstance().isSpoilable(template.item().value())) {
+                        anySpoilable = true;
+                        break;
+                    }
+                }
+            } else if (stack.has(net.minecraft.core.component.DataComponents.CONTAINER)) {
+                net.minecraft.world.item.component.ItemContainerContents contents =
+                        stack.get(net.minecraft.core.component.DataComponents.CONTAINER);
+                for (net.minecraft.world.item.ItemStackTemplate template : contents.nonEmptyItems()) {
+                    if (SpoilageConfig.getInstance().isSpoilable(template.item().value())) {
+                        anySpoilable = true;
+                        break;
+                    }
+                }
+            }
+            if (anySpoilable) {
                 break;
             }
         }
@@ -72,9 +102,13 @@ public abstract class PlayerEnderChestMixin {
             // One corrupted stack must not kill Player.tick: guard per slot, log, continue.
             try {
                 ItemStack stack = enderChest.getItem(i);
-                if (stack.isEmpty() || !SpoilageConfig.getInstance().isSpoilable(stack.getItem())) {
+                if (stack.isEmpty()) {
                     continue;
                 }
+                // updateSpoilage no-ops on stacks that are neither spoilable nor
+                // food-carrying (its own guards), so calling it on every non-empty slot
+                // of a flagged chest is safe — and it is the only way a bundle or nested
+                // shulker box here gets its contents aged.
                 FoodSpoilageUtil.updateSpoilage(stack, serverWorld);
             } catch (Throwable t) {
                 SpoilageEnhancedLogger.log("PlayerEnderChestMixin: skipped ender chest slot "

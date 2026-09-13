@@ -1198,8 +1198,15 @@ public abstract class BlockSpoilageHudMixin {
                 // below would click an empty slot. Clearing here removes the drained apple;
                 // the give then lands alone in hotbar slot 0.
                 spoilage_enhanced$sendRawCommand(rawConn, "clear @p");
-                spoilage_enhanced$sendRawCommand(rawConn, "give @p minecraft:apple[spoilage_enhanced:spoilage={fresh_expirations:["
-                        + (now + 200L) + "L]}] 1");
+                // Pass 1191 (L13): a BUNDLE carrying a tracked apple, not a bare apple —
+                // proves the pass-1189 BUNDLE_CONTENTS branch works through the ender chest
+                // path too (the mixin calls updateSpoilage per slot; the bundle is not
+                // spoilable itself, so only the new branch can age the inner apple).
+                // The component KEY must be quoted too (it contains a colon): SNBT
+                // rejects an unquoted namespaced key inside an item template.
+                spoilage_enhanced$sendRawCommand(rawConn, "give @p minecraft:bundle[minecraft:bundle_contents=["
+                        + "{id:\"minecraft:apple\",count:1,components:{\"spoilage_enhanced:spoilage\":{fresh_expirations:["
+                        + (now + 200L) + "L]}}}]] 1");
             }
             case 3 -> {
                 spoilage_enhanced$sendRawCommand(rawConn, "execute at @p run spoilage debug use ~2 ~ ~");

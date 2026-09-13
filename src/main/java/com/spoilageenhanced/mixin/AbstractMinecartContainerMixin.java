@@ -44,8 +44,37 @@ public abstract class AbstractMinecartContainerMixin {
         List<ItemStack> stacks = container.getItemStacks();
         boolean anySpoilable = false;
         for (ItemStack stack : stacks) {
-            if (!stack.isEmpty() && SpoilageConfig.getInstance().isSpoilable(stack.getItem())) {
+            if (stack.isEmpty()) {
+                continue;
+            }
+            if (SpoilageConfig.getInstance().isSpoilable(stack.getItem())) {
                 anySpoilable = true;
+                break;
+            }
+            // Pass 1191 (L13): a stack that is not itself food can still CARRY it — a
+            // bundle or nested shulker box. Without this the whole container was skipped
+            // as 'no food here' and the carried food never aged. Same probe shape as
+            // ContainerAgingSweepMixin.
+            if (stack.has(net.minecraft.core.component.DataComponents.BUNDLE_CONTENTS)) {
+                net.minecraft.world.item.component.BundleContents contents =
+                        stack.get(net.minecraft.core.component.DataComponents.BUNDLE_CONTENTS);
+                for (net.minecraft.world.item.ItemStackTemplate template : contents.items()) {
+                    if (SpoilageConfig.getInstance().isSpoilable(template.item().value())) {
+                        anySpoilable = true;
+                        break;
+                    }
+                }
+            } else if (stack.has(net.minecraft.core.component.DataComponents.CONTAINER)) {
+                net.minecraft.world.item.component.ItemContainerContents contents =
+                        stack.get(net.minecraft.core.component.DataComponents.CONTAINER);
+                for (net.minecraft.world.item.ItemStackTemplate template : contents.nonEmptyItems()) {
+                    if (SpoilageConfig.getInstance().isSpoilable(template.item().value())) {
+                        anySpoilable = true;
+                        break;
+                    }
+                }
+            }
+            if (anySpoilable) {
                 break;
             }
         }
@@ -56,7 +85,10 @@ public abstract class AbstractMinecartContainerMixin {
         boolean changed = false;
         for (ItemStack stack : stacks) {
             if (stack.isEmpty()) continue;
-            if (!SpoilageConfig.getInstance().isSpoilable(stack.getItem())) continue;
+            // Pass 1191: updateSpoilage no-ops on stacks that are neither spoilable nor
+            // food-carrying (its own guards), so no isSpoilable filter here — a bundle or
+            // nested shulker box in this minecart must reach its BUNDLE_CONTENTS/CONTAINER
+            // branch. A minecart is an entity, so the container sweep cannot cover it.
             // Pass 879 (L13 — observed behaviour): the bundle and container branches call
             // updateSpoilage on EVERY spoilable stack, which lazily stamps one via
             // initializeItemSpoilage when the component is null/empty. This branch skipped
