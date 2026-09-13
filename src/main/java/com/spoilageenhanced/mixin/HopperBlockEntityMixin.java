@@ -14,63 +14,10 @@ import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(HopperBlockEntity.class)
 public abstract class HopperBlockEntityMixin {
-
-    /**
-     * Ages food sitting in a hopper (PLAYER_REPORTS.md §10, pass 1148).
-     *
-     * <p>Vanilla never calls {@code inventoryTick} on a hopper's own contents —
-     * {@code pushItemsTick} (HopperBlockEntity.java:97) only moves items in and out — so a
-     * hopper holding food is a mini-freezer: items age in the chest above and the chest below
-     * but not while in transit. The hopper is a container like any other; there is no design
-     * argument for it being a freezer. Injected at RETURN of {@code pushItemsTick}, which the
-     * block's ticker calls every server tick (HopperBlock.java:96), on the same 20-tick
-     * phase-spread cadence as {@code FridgeBlockEntityMixin} and
-     * {@code BrewingStandBlockEntityMixin}.</p>
-     */
-    @Inject(
-            method = "pushItemsTick(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/entity/HopperBlockEntity;)V",
-            at = @At("RETURN"),
-            require = 0
-    )
-    private static void spoilage_enhanced$ageHopperContents(
-            net.minecraft.world.level.Level level,
-            net.minecraft.core.BlockPos pos,
-            net.minecraft.world.level.block.state.BlockState state,
-            HopperBlockEntity entity,
-            CallbackInfo ci
-    ) {
-        if (level == null || level.isClientSide()) {
-            return;
-        }
-        // Phase-spread by position, same as FridgeBlockEntityMixin.
-        if (FoodSpoilageUtil.shouldSkipAgingTick(pos, level.getGameTime())) {
-            return;
-        }
-        Container container = entity;
-        int slots = container.getContainerSize();
-        boolean anySpoilable = false;
-        for (int i = 0; i < slots; i++) {
-            ItemStack stack = container.getItem(i);
-            if (!stack.isEmpty() && SpoilageConfig.getInstance().isSpoilable(stack.getItem())) {
-                anySpoilable = true;
-                break;
-            }
-        }
-        if (!anySpoilable) {
-            return;
-        }
-        for (int i = 0; i < slots; i++) {
-            ItemStack stack = container.getItem(i);
-            if (stack.isEmpty()) continue;
-            if (!SpoilageConfig.getInstance().isSpoilable(stack.getItem())) continue;
-            FoodSpoilageUtil.updateSpoilage(stack, level);
-        }
-    }
 
     @Inject(
             method = "addItem(Lnet/minecraft/world/Container;Lnet/minecraft/world/entity/item/ItemEntity;)Z",

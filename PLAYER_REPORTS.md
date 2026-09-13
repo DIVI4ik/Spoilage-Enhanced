@@ -292,8 +292,9 @@ chest above and in the chest below, but not while in the hopper itself. With
 long pipelines the hopper is the only place food is preserved, which is the
 opposite of what the mod's premise says.
 
-**FIXED (pass 1180, 2026-09-13):** injection added at RETURN of
-`pushItemsTick` in `HopperBlockEntityMixin`, aging every spoilable stack
-on the same 20-tick phase-spread cadence as the fridge and brewing stand.
-Verified live: apple with `fresh_expirations:[100L]` placed in a hopper
-read back `rotten_count:1` after 15 seconds. Suite 687/0/0.
+**FIXED (b233dce, 2026-09-12, shipped in v1.1.11):** `HopperAgingMixin`
+injects at RETURN of `pushItemsTick`, aging every spoilable stack on the
+same 20-tick phase-spread cadence as the fridge and brewing stand.
+Re-verified live 2026-09-13 (pass 1180): apple with
+`fresh_expirations:[100L]` placed in a hopper read back `rotten_count:1`
+after 15 seconds. Suite 687/0/0.
