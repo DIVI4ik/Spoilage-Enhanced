@@ -61,6 +61,18 @@ import java.util.function.BooleanSupplier;
  * {@code tickServer}, before {@code tickChildren} -> {@code chunkSource.tick} performs
  * any chunk load/unload mutation on the same thread — during the sweep, no vanilla
  * code is mutating the map.</p>
+ *
+ * <p><b>Double-aging cannot happen.</b> Containers that ALSO have their own aging
+ * mixin (hopper, brewing stand, fridge, cooking pot, minecart) are visited by this
+ * sweep too, but {@code FoodSpoilageUtil.updateSpoilage} is a pure function of the
+ * absolute {@code gameTime}: the expiration lists hold absolute timestamps and the
+ * update moves entries whose expiration has passed. Calling it twice with the same
+ * clock is idempotent, so the per-block mixin and this sweep agree exactly.</p>
+ *
+ * <p><b>Uninhabited chunks age too, by design.</b> The sweep ages any loaded chunk's
+ * containers whether or not a player has ever been there — matching the mod's premise
+ * that food ages everywhere it exists, and the same clock
+ * {@code BlockSpoilageData} uses for block spoilage (chunk birth time).</p>
  */
 @Mixin(MinecraftServer.class)
 public abstract class ContainerAgingSweepMixin {

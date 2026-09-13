@@ -31,6 +31,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * {@code HopperAgingMixin}: the cheap {@code isSpoilable} probe runs before any
  * component access, and {@code updateSpoilage} lazily stamps unstamped spoilable food
  * exactly as the bundle and minecart branches do.</p>
+ *
+ * <p><b>Offline parity with vanilla.</b> The ender chest ages only while the player is
+ * online, because {@code Player.tick} does not run for offline players. That is exactly
+ * how vanilla treats the main inventory too — nothing ticks an offline player — so the
+ * ender chest is no more a freezer than the player's own backpack is.</p>
  */
 @Mixin(Player.class)
 public abstract class PlayerEnderChestMixin {
