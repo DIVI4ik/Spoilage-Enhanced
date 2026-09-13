@@ -14,6 +14,14 @@ counts as answered — do not re-queue it.
 
 ## Open
 
+## Open
+
+- [x] `PlatformSilentFallback`: FIXED (pass 1174): all 8 bare catches in SpoilageEnhancedPlatform now log — supplier throws, non-CNFE reflection failures, and the final relative-path fallback each emit a line. Suite 684/0/0; fresh launch (79 mods, Done 23.233s) confirms happy path unchanged and config written to the right directory (mtime this run).
+- [ ] `RecipeScannerSilentSkip`: `RecipeScanner.scanRecipes` catches `Exception` at line 206 (pass 1) and only logs on pass 1 via `skippedThrown++`. If a recipe throws on pass 2-5, it is silently skipped with NO log. The `firstThrownReason` is only captured on pass 1. Fix: log every thrown recipe regardless of pass number, or move the log outside the `if (pass == 1)` guard.
+- [ ] `DynamicFoodBlockCacheSilentPoison`: `getFoodDropIgnoringGrowth` line 370 catches `Exception` and logs, but the cache still stores `NO_FOOD_DROP` for that block (line 377: `putWithEviction(block, NO_FOOD_DROP)`). An exception during loot probing (world shutdown, block entity unloaded) permanently poisons the cache entry until eviction. Pass 128 logged the exception but the cache poisoning remains. Fix: do NOT cache on exception — return null and let the next call retry.
+- [ ] `AutoFoodDetectorUnboundComponents`: `safeComponents` line 63 catches `Throwable` and returns null — but the caller `detectFoodFactor` treats null as "not a food candidate" and continues. If components are unbound during world load (they are), modded items with only CONSUMABLE are silently skipped. The comment says "Tags are not bound yet" but the same catch also swallows NPE from `item.builtInRegistryHolder()`. Fix: distinguish unbound-components (retry later) from genuinely-not-food.
+- [ ] `BlockSpoilageDataCorruptLoad`: `BlockSpoilageData.load` lines 126, 156 catch `Exception`/`NumberFormatException` and log, but the corrupted entry is silently dropped and the block resurrects as FRESH (state=FRESH, expiration=-1). Pass 133 added the log but the silent-resurrection behavior remains. A corrupted save entry should either fail the load (crash with context) or be quarantined — not silently become FRESH. Fix: on corruption, log ERROR and skip the WHOLE file load (return empty data) so the player knows the save is damaged, rather than silently resurrecting stale blocks.
+
 <!-- Seeded 2026-09-10 for lens L14 (foreign content). Every subject was checked with
      `python "E:/_claude_ops/asked.py" <words>` and came back NOT ASKED. Deploy the pack with
      `modpack.ps1 -Deploy` before the first one and `-Remove` when you leave the lens. -->

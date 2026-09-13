@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1146
+Pass: 1148
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: refill queue (lens rotation due — barren streak 5)
-Last lens: behaviour
-Recent: NO_BUG NO_BUG NO_BUG NO_BUG NO_BUG
-Barren streak: 5
+Current task: RecipeScannerSilentSkip: pass 2-5 throws unlogged
+Last lens: silent failure
+Recent: NO_BUG NO_BUG NO_BUG NO_BUG FIXED
+Barren streak: 0
 Refills since L13: 0
 Commits since: release = 1
-Updated: 2026-09-13 05:43
+Updated: 2026-09-13 06:26
 
 ## Notes
 
