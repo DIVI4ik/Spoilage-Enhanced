@@ -586,13 +586,12 @@ public class BlockSpoilageData extends SavedData {
             long age = currentTime - entry.legacyBirthTime;
             long freshDuration = SpoilageConfig.getInstance().getFreshDurationForItem(itemToUse);
             long staleDuration = SpoilageConfig.getInstance().getStaleDurationForItem(itemToUse);
-            if (age < freshDuration) {
-                return FoodSpoilageUtil.SpoilageState.FRESH;
-            } else if (age < freshDuration + staleDuration) {
-                return FoodSpoilageUtil.SpoilageState.STALE;
-            } else {
-                return FoodSpoilageUtil.SpoilageState.ROTTEN;
-            }
+            // Pass 1166 (L7 — boundary): classification extracted to
+            // FoodSpoilageUtil.classifyLegacyAge so the overflow guard
+            // (freshDuration + staleDuration can wrap negative when staleDuration is huge —
+            // unclamped by the config loader, same finding as pass 1164) is testable
+            // headless. The overflow case reads as STALE forever, never ROTTEN.
+            return FoodSpoilageUtil.classifyLegacyAge(age, freshDuration, staleDuration);
         }
 
         if (entry.state == FoodSpoilageUtil.SpoilageState.ROTTEN) {
@@ -699,6 +698,12 @@ public class BlockSpoilageData extends SavedData {
             long freshDuration = SpoilageConfig.getInstance().getFreshDurationForItem(itemToUse);
             long staleDuration = SpoilageConfig.getInstance().getStaleDurationForItem(itemToUse);
             if (age < freshDuration) return freshDuration - age;
+            // Pass 1166 (L7 — boundary): same overflow guard as getSpoilageState above —
+            // freshDuration + staleDuration can wrap negative when staleDuration is huge
+            // (unclamped by the config loader, same finding as pass 1164), which would
+            // make age < (negative) false and answer 0 remaining ticks for a block still
+            // inside its stale window. When the sum would overflow the window never ends.
+            if (staleDuration > Long.MAX_VALUE - freshDuration) return Long.MAX_VALUE;
             if (age < freshDuration + staleDuration) return (freshDuration + staleDuration) - age;
             return 0;
         }

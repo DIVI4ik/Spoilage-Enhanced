@@ -557,7 +557,15 @@ public class FoodSpoilageUtil {
                         freshDurationResolved = true;
                     }
                     freshList = new ArrayList<>(freshList);
-                    for (int i = 0; i < missing; i++) freshList.add(currentTime + freshDuration);
+                    // Pass 1166 (L7 — boundary): same overflow guard as the padding branch
+                    // above (pass 233) and initializeItemSpoilage (pass 1164). A huge
+                    // freshDuration (unclamped by the config loader) would wrap
+                    // currentTime + freshDuration negative and the new tracker would read
+                    // as already expired on its first tick.
+                    long paddedExp = (freshDuration > Long.MAX_VALUE - currentTime)
+                            ? Long.MAX_VALUE
+                            : currentTime + freshDuration;
+                    for (int i = 0; i < missing; i++) freshList.add(paddedExp);
                 }
             }
         } else if (actualCount < totalTracked) {
@@ -601,7 +609,14 @@ public class FoodSpoilageUtil {
                     staleDuration = staleDurationSupplier.getAsLong();
                     staleDurationResolved = true;
                 }
-                staleList.add(exp + staleDuration);
+                // Pass 1166 (L7 — boundary): exp + staleDuration can overflow to negative
+                // when staleDuration is huge (unclamped by the config loader, same finding
+                // as pass 1164). A negative stored stale expiration would move the item to
+                // ROTTEN on the very next tick. Clamp to the NEVER sentinel: the stale
+                // window never ends, so the item stays stale forever.
+                staleList.add(staleDuration > Long.MAX_VALUE - exp
+                        ? Long.MAX_VALUE
+                        : exp + staleDuration);
             } else if (freshExpired) {
                 remainingFresh.add(exp);
             }
@@ -1046,6 +1061,34 @@ public class FoodSpoilageUtil {
             return SpoilageState.STALE;
         }
         return currentTime >= exp + staleDuration ? SpoilageState.ROTTEN : SpoilageState.STALE;
+    }
+
+    /**
+     * Pass 1166 (L7 — boundary): classifies a legacy block entry by its age against the two
+     * durations, with the overflow guard both BlockSpoilageData call sites need. Extracted so
+     * the guard is testable headless (the call sites read the game time from a Level, which a
+     * unit test cannot construct).
+     *
+     * <p>The guard: {@code freshDuration + staleDuration} can overflow to negative when
+     * staleDuration is huge (item_durations entries are unclamped by the config loader — same
+     * finding as pass 1164), which would make {@code age < (negative)} false and answer ROTTEN
+     * for a block still inside its stale window. When the sum would overflow the block stays
+     * STALE forever.</p>
+     *
+     * @param age            ticks since the block's birth (currentTime - legacyBirthTime)
+     * @param freshDuration  the item's fresh duration (already speed-adjusted)
+     * @param staleDuration  the item's stale duration (already speed-adjusted)
+     * @return FRESH while age &lt; freshDuration; STALE inside the stale window — including
+     *         forever when freshDuration + staleDuration would overflow; ROTTEN after
+     */
+    public static SpoilageState classifyLegacyAge(long age, long freshDuration, long staleDuration) {
+        if (age < freshDuration) {
+            return SpoilageState.FRESH;
+        }
+        if (staleDuration > Long.MAX_VALUE - freshDuration) {
+            return SpoilageState.STALE;
+        }
+        return age < freshDuration + staleDuration ? SpoilageState.STALE : SpoilageState.ROTTEN;
     }
 
     // ======================== Crop maturity ========================
