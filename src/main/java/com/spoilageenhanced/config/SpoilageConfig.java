@@ -613,7 +613,16 @@ public class SpoilageConfig {
 
     private long applySpeedMultiplier(long baseDuration) {
         if (spoilage_speed_multiplier <= 0.0) return baseDuration;
-        return Math.max(1L, (long) (baseDuration / spoilage_speed_multiplier));
+        // Pass 1168 (L7 — boundary): at minimum multiplier 0.01, dividing a large baseDuration
+        // by 0.01 multiplies it by 100. If baseDuration is near Long.MAX_VALUE / 100 or larger,
+        // (baseDuration / multiplier) exceeds Double.MAX_VALUE / the range of 64-bit integer,
+        // and the cast (long) overflows to Long.MIN_VALUE or Long.MAX_VALUE. Guard: if
+        // baseDuration / multiplier would exceed Long.MAX_VALUE, return Long.MAX_VALUE.
+        double scaled = baseDuration / spoilage_speed_multiplier;
+        if (scaled >= (double) Long.MAX_VALUE) {
+            return Long.MAX_VALUE;
+        }
+        return Math.max(1L, (long) scaled);
     }
 
     public double getSpoilageSpeedMultiplier() {
@@ -744,6 +753,14 @@ public class SpoilageConfig {
 
     public Map<String, String> getTrackedBlocks() {
         return Collections.unmodifiableMap(tracked_blocks);
+    }
+
+    public Map<String, ItemDuration> getItemDurations() {
+        return Collections.unmodifiableMap(item_durations);
+    }
+
+    public Map<String, ItemDuration> item_durations_for_test() {
+        return item_durations;
     }
 
     /**
@@ -923,6 +940,17 @@ public class SpoilageConfig {
         }
         if (default_stale_duration_ticks <= 0) {
             default_stale_duration_ticks = 24000L;
+        }
+        // Pass 1168 (L7 — boundary): clamp per-item durations so extreme values in JSON
+        // (e.g. negative numbers from typos, or values >= Long.MAX_VALUE / 100) don't wrap
+        // when multiplied or added.
+        if (item_durations != null) {
+            for (ItemDuration dur : item_durations.values()) {
+                if (dur != null) {
+                    if (dur.fresh <= 0) dur.fresh = default_fresh_duration_ticks;
+                    if (dur.stale <= 0) dur.stale = default_stale_duration_ticks;
+                }
+            }
         }
     }
 
