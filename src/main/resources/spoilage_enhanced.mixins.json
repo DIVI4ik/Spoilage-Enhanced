@@ -47,6 +47,8 @@
     "ServerCommonPacketListenerImplAccessor",
     "ServerCustomPayloadMixin",
     "ServerTickScanMixin",
+    "ContainerAgingSweepMixin",
+    "ChunkMapAccessor",
     "ServerboundPayloadTypesMixin",
     "SlotMixin",
     "StemBlockGrowMixin",

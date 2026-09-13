@@ -14,6 +14,12 @@ counts as answered — do not re-queue it.
 
 ## Open
 
+- [ ] L13: **shulker box contents age** — RCON-driven: place a shulker box, insert an apple with fresh_expirations:[100L] via data modify, wait 15s, read back. Expected: rotten_count:1 (ages). If unchanged: the box is a freezer — same gap shape as the hopper (ShulkerBoxBlockEntity.tick is animation-only, ShulkerBoxBlockEntity.java:62-64). Control: same apple in a chest beside it.
+- [ ] L13: **decorated pot contents age** — RCON-driven: place a decorated pot, insert an apple with fresh_expirations:[100L] via data modify (pot holds one item), wait 15s, read back. Expected: rotten_count:1. If unchanged: gap — DecoratedPotBlock has no server ticker at all. Control: same apple in a chest.
+- [ ] L13: **ender chest contents age** — RCON-driven: put an apple with fresh_expirations:[100L] into a player's ender chest via data modify on the player's EnderItems, wait 15s, read back. Expected: rotten_count:1. If unchanged: gap — Player.tick calls inventory.tick() on the 36 main slots only (Player.java:448, Inventory.java:242-249); PlayerEnderChestContainer is never ticked. Control: same apple in the player's main inventory.
+- [ ] L13: **dispenser-stored food ages** — RCON-driven: place a dispenser, insert an apple with fresh_expirations:[100L], wait 15s, read back. Expected: rotten_count:1. If unchanged: gap — DispenserBlock has no server ticker (grep found none); the dispenseFrom mixins only reconcile counts on eject. Control: same apple in a chest.
+- [ ] L13: **barrel-stored food ages** — RCON-driven: place a barrel, insert an apple with fresh_expirations:[100L], wait 15s, read back. Expected: rotten_count:1. If unchanged: gap — BarrelBlockEntity has no serverTick (grep found none) and no mixin covers it. Control: same apple in a chest.
+
 ## Open
 
 - [x] `PlatformSilentFallback`: FIXED (pass 1174): all 8 bare catches in SpoilageEnhancedPlatform now log — supplier throws, non-CNFE reflection failures, and the final relative-path fallback each emit a line. Suite 684/0/0; fresh launch (79 mods, Done 23.233s) confirms happy path unchanged and config written to the right directory (mtime this run).

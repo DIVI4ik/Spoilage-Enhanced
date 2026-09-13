@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1157
+Pass: 1158
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: (take first queued task)
-Last lens: claim drift
-Recent: REFUTED NO_BUG RELEASED FIXED NO_BUG
-Barren streak: 3
+Current task: L13 shulker/chest/barrel container aging (sweep fix)
+Last lens: L13 observed
+Recent: NO_BUG RELEASED FIXED NO_BUG FIXED
+Barren streak: 0
 Refills since L13: 0
 Commits since: release = 1
-Updated: 2026-09-13 12:32
+Updated: 2026-09-13 15:33
 
 ## Notes
 
