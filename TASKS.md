@@ -382,3 +382,9 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
 - [x] L1 silent failure: SpoilageEnhancedLogger writer thread — REFUTED (pass 1214): interrupt handled correctly; joiner side in closeWriters now logs it.
 - [x] L1 silent failure: SpoilageConfig.resolveItemId — COSMETIC (pass 1214): three catches DO log a WARNING at the end; refactoring is cosmetic, not a defect.
 - [x] L1 silent failure: BlockDropSpoilageHandler — NO_BUG (pass 1230): reviewed BlockDropSpoilageHandler.java and its three mixin callers. No try-catch blocks exist in the handler or its callers. Exceptions would propagate to the mixin framework and be logged as injection errors — not silently swallowed.
+
+- [ ] L2 lifecycle: AutoFoodDetector.scanTagsAndBlocks() runs on first server tick via RecipeManagerMixin.apply RETURN — verify it runs AFTER components are bound (pass 97 established this, but verify no regression). Check if any food detection runs too early.
+- [ ] L2 lifecycle: BlockSpoilageData registration via BlockStateChangeMixin — verify it registers from Level.setBlock only (world gen bypasses this). Check if any block placement path bypasses the mixin.
+- [ ] L2 lifecycle: ItemEntityMixin lazy stamping — verify it stamps on first tick, not before. Check if any item entity path creates a tracked item without stamping.
+- [ ] L2 lifecycle: DynamicFoodBlockCache.deriveRipeness() — verify it only caches negative answers from getMatureState, never from immature states. Check the cache key includes the mature state.
+- [ ] L2 lifecycle: SpoilageConfig registration order — verify dynamic registrations (from RecipeScanner) are saved to disk and reloaded correctly on next startup. Check if any registration happens after config save.
