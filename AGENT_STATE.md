@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1166
+Pass: 1167
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: extract the shared food-carrying probe
+Current task: live-drive the pass-1191 surfaces (minecart, fridge, brewing stand)
 Last lens: L14 foreign content
-Recent: FIXED FIXED FIXED RELEASED FIXED
+Recent: FIXED FIXED RELEASED FIXED FIXED
 Barren streak: 0
 Refills since L13: 0
 Commits since: release = 1
-Updated: 2026-09-14 03:34
+Updated: 2026-09-14 03:50
 
 ## Notes
 
