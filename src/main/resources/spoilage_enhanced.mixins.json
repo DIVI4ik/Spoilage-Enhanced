@@ -55,7 +55,9 @@
     "SlotMixin",
     "StemBlockGrowMixin",
     "ThrownItemAgingMixin",
-    "ThrownItemEntityMixin"
+    "ThrownItemEntityMixin",
+    "VillagerInventoryMixin",
+    "WanderingTraderInventoryMixin"
   ],
   "client": [
     "ClientCommonPacketListenerImplAccessor",

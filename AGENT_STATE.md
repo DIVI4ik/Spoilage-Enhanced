@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1203
+Pass: 1204
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L13 mob-container sweep (llama chest fixed; villager/fox/piglin/trader-llama queued)
+Current task: L13 mob-container sweep (villager+trader fixed; fox/piglin/trader-llama queued)
 Last lens: L14 foreign content
-Recent: FIXED FIXED FIXED FIXED NO_BUG
+Recent: FIXED FIXED FIXED FIXED FIXED
 Barren streak: 0
 Refills since L13: 0
 Commits since: release = 0
-Updated: 19:15:42
+Updated: 20:54:47
 
 ## Notes
 
