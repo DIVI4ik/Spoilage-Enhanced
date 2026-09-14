@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1208
+Pass: 1209
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L3 cache — eviction policy correct (NO_BUG)
+Current task: L12 claim drift — MOD_ARCHITECTURE.md updated with 6 mixins + 2 helpers
 Last lens: L14 foreign content
-Recent: NO_BUG NO_BUG NO_BUG NO_BUG NO_BUG
-Barren streak: 4
+Recent: FIXED NO_BUG NO_BUG NO_BUG NO_BUG
+Barren streak: 5
 Refills since L13: 0
 Commits since: release = 0
-Updated: 21:51:54
+Updated: 22:01:28
 
 ## Notes
 
