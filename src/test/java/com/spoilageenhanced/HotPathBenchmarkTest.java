@@ -7,10 +7,12 @@ import com.spoilageenhanced.util.FoodSpoilageUtil;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.Bootstrap;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.Items;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -563,5 +565,51 @@ public class HotPathBenchmarkTest {
                 com.spoilageenhanced.client.SpoilageBarPixels.compute(21, 7, 4, 13));
         System.out.println("[BENCH] SpoilageBarPixels.compute(21 fresh, 7 stale, 4 rotten, 13 height) "
                 + (micros / 200000.0) + " us/call (Pass 606 Result record)");
+    }
+
+    // Pass 1210 (L5 — render path): the per-frame logic chain of BlockSpoilageHudMixin
+    // (extractCrosshair TAIL). The font/fill rendering is vanilla and cannot be measured
+    // headless; the mod's contribution is the cache chain below, which runs every frame
+    // while a block is targeted. requestIfStale is throttled by its pending/refresh logic,
+    // so the steady-state cost is the cache lookups.
+    @Test
+    void benchmarkHudLogicChain_trackedBlock() throws Exception {
+        BlockPos pos = new BlockPos(0, 100, 0);
+        injectHudAnswer(pos, FoodSpoilageUtil.SpoilageState.FRESH.ordinal(), 12000L);
+        long us = timeOp(2000, 100_000, () -> {
+            com.spoilageenhanced.client.ClientBlockSpoilageCache.requestIfStale(pos);
+            com.spoilageenhanced.client.ClientBlockSpoilageCache.getState(pos);
+            com.spoilageenhanced.client.ClientBlockSpoilageCache.getTicksRemainingAndMultiplier(pos);
+        });
+        System.out.println("[BENCH] HUD logic chain (tracked block, steady state): " + us + " us / 100k frames = " + (us * 10) + " ns/frame");
+    }
+
+    @Test
+    void benchmarkHudLogicChain_untrackedBlock() throws Exception {
+        BlockPos pos = new BlockPos(0, 101, 0);
+        injectHudAnswer(pos, com.spoilageenhanced.network.BlockSpoilageResponsePayload.STATE_NONE, 0L);
+        long us = timeOp(2000, 100_000, () -> {
+            com.spoilageenhanced.client.ClientBlockSpoilageCache.requestIfStale(pos);
+            com.spoilageenhanced.client.ClientBlockSpoilageCache.getState(pos);
+        });
+        System.out.println("[BENCH] HUD logic chain (untracked block, steady state): " + us + " us / 100k frames = " + (us * 10) + " ns/frame");
+    }
+
+    /**
+     * Same reflection injection as ClientBlockSpoilageCacheTest.injectAnswerViaReflectionStoresCachedEntry:
+     * the CACHE map and CachedAnswer ctor are private, and the production path is
+     * handleBlockSpoilageResponse, which needs a network connection.
+     */
+    private static void injectHudAnswer(BlockPos pos, int state, long ticksRemaining) throws Exception {
+        Method putMethod = com.spoilageenhanced.client.ClientBlockSpoilageCache.class.getDeclaredMethod("put",
+                BlockPos.class, Class.forName("com.spoilageenhanced.client.ClientBlockSpoilageCache$CachedAnswer"));
+        putMethod.setAccessible(true);
+        Class<?> cachedAnswerClass = Class.forName("com.spoilageenhanced.client.ClientBlockSpoilageCache$CachedAnswer");
+        var ctor = cachedAnswerClass.getDeclaredConstructors()[0];
+        ctor.setAccessible(true);
+        Object cachedAnswer = ctor.newInstance(
+                state, ticksRemaining, 1.0, 0L,
+                net.minecraft.world.level.block.Blocks.PUMPKIN, true);
+        putMethod.invoke(null, pos, cachedAnswer);
     }
 }
