@@ -377,8 +377,8 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
 - [x] L13 observed: food in shulker box ages — NO_BUG (pass 1226): placed shulker_box, put tracked apple [100L] in slot 0. After 30s: rotten_count:1. RandomizableContainerBlockEntityMixin covers shulker boxes.
 - [ ] L13 observed: food in ender chest ages — BLOCKED (pass 1227): needs online player (PlayerEnderChestMixin hooks Player.tick()). Requires client selftest (4-5 min launch). Will revisit when running a client selftest for another scenario.
 
-- [ ] L1 silent failure: RecipeScanner.extractRecipeOutput — NoSuchFieldException caught and ignored per-class; final failure reported via scan summary but individual class failures are silent. Add logging for the per-class exception or verify the summary is sufficient.
-- [ ] L1 silent failure: SimpleTextureMixin — IOException on NativeImage.read is logged; ignored catch is on stream.close() in finally. Verify this is harmless or add logging.
-- [ ] L1 silent failure: SpoilageEnhancedLogger writer thread — InterruptedException caught and ignored in writer loop; joiner side in closeWriters now logs it (pass 1213). Verify the writer loop itself logs the interrupt.
-- [ ] L1 silent failure: SpoilageConfig.resolveItemId — three catches DO log a WARNING at the end; refactoring is cosmetic. Verify the WARNING is actually emitted and useful.
-- [ ] L1 silent failure: BlockDropSpoilageHandler — check if any exceptions in the capture/apply flow are caught and ignored without logging.
+- [x] L1 silent failure: RecipeScanner.extractRecipeOutput — REFUTED (pass 1213): the per-class NoSuchFieldException is an expected walk step (superclass chain walked until result field found); the final failure IS reported via the scan summary (skippedUnreadableResult + firstUnreadableReason).
+- [x] L1 silent failure: SimpleTextureMixin — REFUTED (pass 1214): the IOException on NativeImage.read IS logged; the ignored catch is on stream.close() in finally (harmless).
+- [x] L1 silent failure: SpoilageEnhancedLogger writer thread — REFUTED (pass 1214): interrupt handled correctly; joiner side in closeWriters now logs it.
+- [x] L1 silent failure: SpoilageConfig.resolveItemId — COSMETIC (pass 1214): three catches DO log a WARNING at the end; refactoring is cosmetic, not a defect.
+- [x] L1 silent failure: BlockDropSpoilageHandler — NO_BUG (pass 1230): reviewed BlockDropSpoilageHandler.java and its three mixin callers. No try-catch blocks exist in the handler or its callers. Exceptions would propagate to the mixin framework and be logged as injection errors — not silently swallowed.
