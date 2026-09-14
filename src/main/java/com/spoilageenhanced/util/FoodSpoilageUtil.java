@@ -849,24 +849,54 @@ public class FoodSpoilageUtil {
      * returns the backing template list (BundleContents.java:95);
      * {@code ItemContainerContents.nonEmptyItems()} returns an Iterable over the
      * populated slots (ItemContainerContents.java:140).</p>
+     *
+     * <p>Pass 1199 (L13 observed): the probe is depth-limited recursive — one level
+     * was not enough for a bundle inside a shulker box, where the carrier's own
+     * template is a bundle (not spoilable) and the food sits one level deeper.
+     * Depth 2 covers Chest -> Shulker -> Bundle -> Apple; vanilla data components
+     * cannot cycle, so the limit only guards hypothetical foreign nesting.</p>
      */
     public static boolean stackIsOrCarriesSpoilableFood(ItemStack stack) {
-        if (stack.isEmpty()) return false;
+        return stackIsOrCarriesSpoilableFood(stack, 2);
+    }
+
+    private static boolean stackIsOrCarriesSpoilableFood(ItemStack stack, int depth) {
+        if (stack.isEmpty() || depth < 0) return false;
         if (SpoilageConfig.getInstance().isSpoilable(stack.getItem())) return true;
         if (stack.has(DataComponents.BUNDLE_CONTENTS)) {
             net.minecraft.world.item.component.BundleContents contents =
                     stack.get(DataComponents.BUNDLE_CONTENTS);
             for (net.minecraft.world.item.ItemStackTemplate template : contents.items()) {
-                if (SpoilageConfig.getInstance().isSpoilable(template.item().value())) {
-                    return true;
-                }
+                if (templateIsOrCarriesSpoilableFood(template, depth - 1)) return true;
             }
         } else if (stack.has(DataComponents.CONTAINER)) {
             net.minecraft.world.item.component.ItemContainerContents contents =
                     stack.get(DataComponents.CONTAINER);
             for (net.minecraft.world.item.ItemStackTemplate template : contents.nonEmptyItems()) {
-                if (SpoilageConfig.getInstance().isSpoilable(template.item().value())) {
-                    return true;
+                if (templateIsOrCarriesSpoilableFood(template, depth - 1)) return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean templateIsOrCarriesSpoilableFood(net.minecraft.world.item.ItemStackTemplate template, int depth) {
+        if (depth < 0) return false;
+        if (SpoilageConfig.getInstance().isSpoilable(template.item().value())) return true;
+        net.minecraft.core.component.DataComponentPatch patch = template.components();
+        if (patch != null && !patch.isEmpty()) {
+            // DataComponentPatch.get needs the item's default components as the prototype
+            // (DataComponentPatch.java:164) — the template's item provides them.
+            net.minecraft.core.component.DataComponentGetter prototype = template.item().value().components();
+            net.minecraft.world.item.component.BundleContents bundleContents = patch.get(prototype, DataComponents.BUNDLE_CONTENTS);
+            if (bundleContents != null) {
+                for (net.minecraft.world.item.ItemStackTemplate inner : bundleContents.items()) {
+                    if (templateIsOrCarriesSpoilableFood(inner, depth - 1)) return true;
+                }
+            }
+            net.minecraft.world.item.component.ItemContainerContents containerContents = patch.get(prototype, DataComponents.CONTAINER);
+            if (containerContents != null) {
+                for (net.minecraft.world.item.ItemStackTemplate inner : containerContents.nonEmptyItems()) {
+                    if (templateIsOrCarriesSpoilableFood(inner, depth - 1)) return true;
                 }
             }
         }
@@ -908,13 +938,15 @@ public class FoodSpoilageUtil {
         // cobblestone (no spoilable items) still paid the full 256-slot copyInto + 256 isEmpty
         // checks + N isSpoilable CHM gets for the non-empty ones, then the loop did nothing.
         // Fast-path: iterate the container's non-empty item templates (no ItemStack allocation)
-        // and bail before the copy if none of them are spoilable. nonEmptyItems() returns an
-        // Iterable<ItemStackTemplate> backed by the container's internal list, so this is a
-        // single pass over the populated slots — no stream pipeline, no Optional unwrap, no
-        // ItemStack creation.
+        // and bail before the copy if none of them are spoilable OR carry spoilable food.
+        // nonEmptyItems() returns an Iterable<ItemStackTemplate> backed by the container's
+        // internal list, so this is a single pass over the populated slots — no stream pipeline,
+        // no Optional unwrap, no ItemStack creation.
+        // Pass 1199 (L13 observed): the probe must also detect nested carriers (bundle in
+        // shulker, shulker in shulker) — use the depth-aware template probe.
         boolean anySpoilable = false;
         for (ItemStackTemplate template : container.nonEmptyItems()) {
-            if (SpoilageConfig.getInstance().isSpoilable(template.item().value())) {
+            if (templateIsOrCarriesSpoilableFood(template, 2)) {
                 anySpoilable = true;
                 break;
             }
@@ -936,33 +968,45 @@ public class FoodSpoilageUtil {
         boolean changed = false;
 
         for (ItemStack item : items) {
-            if (!item.isEmpty() && SpoilageConfig.getInstance().isSpoilable(item.getItem())) {
-                // Trim over-tracked (count < totalTracked) to count, keeping the WORST trackers,
-                // mirroring ItemEntityMixin.onTick (BUG-20 fix). A containerized item reached via
-                // copyWithCount (hopper/dispenser into a shulker, Q-drop into a bundle) can carry
-                // more trackers than its count; updateSpoilage() would otherwise "heal" it by keeping
-                // the BEST trackers (eat-the-worst semantics), inverting the spoilage of the item.
+            if (item.isEmpty()) continue;
+
+            // Pass 1199 (L13 observed): a bundle inside a shulker box (or any container)
+            // was never aged because the loop only called updateSpoilage on items that are
+            // themselves spoilable. A bundle is not spoilable, so updateSpoilage returned
+            // early without reaching its BUNDLE_CONTENTS branch. Mirror the top-level
+            // updateSpoilage logic: call updateSpoilage on ALL non-empty items, which
+            // internally handles CONTAINER, BUNDLE_CONTENTS, and isSpoilable.
+            // For direct spoilable food, keep the trim-over-tracked logic before the call.
+            if (SpoilageConfig.getInstance().isSpoilable(item.getItem())) {
                 int count = item.getCount();
                 if (count > 0) {
                     SpoilageData d = item.get(ModDataComponentTypes.SPOILAGE);
                     if (d != null && d.totalTracked() > count) {
                         SpoilageData[] split = extractWorstItems(d, count);
-                        item.set(ModDataComponentTypes.SPOILAGE, split[1]); // split[1] = worst `count` trackers
-                        // Pass 165 (Lens 1 — silent failure): the trim mutated the scratch copy,
-                        // but `changed` was only set by updateSpoilage's before/after comparison
-                        // below. When updateSpoilage returned early (null world) or found nothing
-                        // to change (steady state), changed stayed false and the trimmed data was
-                        // NEVER written back — the trim silently did nothing. The write-back must
-                        // also fire for the trim itself.
+                        item.set(ModDataComponentTypes.SPOILAGE, split[1]);
                         changed = true;
                     }
                 }
-                SpoilageData before = item.get(ModDataComponentTypes.SPOILAGE);
-                updateSpoilage(item, world);
-                SpoilageData after = item.get(ModDataComponentTypes.SPOILAGE);
-                if (!java.util.Objects.equals(before, after)) {
-                    changed = true;
-                }
+            }
+            // Pass 1199 (L13 observed): the before/after comparison must cover the
+            // item's CONTENTS, not only its own SPOILAGE component. updateSpoilage on
+            // a bundle ages the apple INSIDE BUNDLE_CONTENTS and leaves the bundle's
+            // own SPOILAGE null before and after — Objects.equals(null, null) is true,
+            // so `changed` never fired and the aged bundle died in the scratch list.
+            // The chest kept reading the original data forever while the trace showed
+            // "WROTE BACK" every second. Compare the carried components too.
+            SpoilageData before = item.get(ModDataComponentTypes.SPOILAGE);
+            net.minecraft.world.item.component.BundleContents beforeBundle =
+                    item.get(DataComponents.BUNDLE_CONTENTS);
+            net.minecraft.world.item.component.ItemContainerContents beforeContainer =
+                    item.get(DataComponents.CONTAINER);
+            updateSpoilage(item, world);
+            SpoilageData after = item.get(ModDataComponentTypes.SPOILAGE);
+            boolean spoilageChanged = !java.util.Objects.equals(before, after);
+            boolean bundleChanged = !java.util.Objects.equals(beforeBundle, item.get(DataComponents.BUNDLE_CONTENTS));
+            boolean containerChanged = !java.util.Objects.equals(beforeContainer, item.get(DataComponents.CONTAINER));
+            if (spoilageChanged || bundleChanged || containerChanged) {
+                changed = true;
             }
         }
 
