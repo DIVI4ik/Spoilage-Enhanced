@@ -191,22 +191,24 @@ public class SpoilageEnhancedLogger {
             writerThread.interrupt();
             try {
                 writerThread.join(2000); // Wait up to 2 seconds for flush
-            } catch (InterruptedException ignored) {
+            } catch (InterruptedException e) {
                 // Thread was interrupted while waiting for the writer to flush. The writer
                 // may have lost queued entries; record the loss so the next init() can
                 // surface it. Without this, a forced shutdown truncates the log silently.
                 closeFailures++;
+                System.err.println("[SpoilageEnhanced] Log writer interrupted during close: " + e.getMessage());
             }
         }
         for (PrintWriter writer : writers.values()) {
             try {
                 writer.flush();
                 writer.close();
-            } catch (Exception ignored) {
+            } catch (Exception e) {
                 // Flush or close failed (disk full, file handle gone, etc). Count it so
                 // the next init() can warn the operator instead of leaving them wondering
                 // why the log is truncated.
                 closeFailures++;
+                System.err.println("[SpoilageEnhanced] Log writer flush/close failed: " + e.getMessage());
             }
         }
         writers.clear();

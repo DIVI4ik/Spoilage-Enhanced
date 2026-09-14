@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1212
+Pass: 1213
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: refill queue with L1 silent-failure tasks (5 queued)
+Current task: L1 silent failure — closeWriters catches now log immediately (FIXED)
 Last lens: L1 silent failure
-Recent: REFILLED FIXED NO_BUG NO_BUG NO_BUG
+Recent: FIXED REFILLED FIXED NO_BUG NO_BUG
 Barren streak: 0
 Refills since L13: 0
 Commits since: release = 0
-Updated: 00:13:15
+Updated: 00:29:20
 
 ## Notes
 
