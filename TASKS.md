@@ -376,3 +376,9 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
 - [ ] L13 observed: food in bundle ages independently — BLOCKED (pass 1228): data modify silently no-ops on item components (AGENT_ENV.md claim confirmed). Summoning bundle item entities also fails (entity vanishes). Requires client selftest with give command. Will revisit when running a client selftest.
 - [x] L13 observed: food in shulker box ages — NO_BUG (pass 1226): placed shulker_box, put tracked apple [100L] in slot 0. After 30s: rotten_count:1. RandomizableContainerBlockEntityMixin covers shulker boxes.
 - [ ] L13 observed: food in ender chest ages — BLOCKED (pass 1227): needs online player (PlayerEnderChestMixin hooks Player.tick()). Requires client selftest (4-5 min launch). Will revisit when running a client selftest for another scenario.
+
+- [ ] L1 silent failure: RecipeScanner.extractRecipeOutput — NoSuchFieldException caught and ignored per-class; final failure reported via scan summary but individual class failures are silent. Add logging for the per-class exception or verify the summary is sufficient.
+- [ ] L1 silent failure: SimpleTextureMixin — IOException on NativeImage.read is logged; ignored catch is on stream.close() in finally. Verify this is harmless or add logging.
+- [ ] L1 silent failure: SpoilageEnhancedLogger writer thread — InterruptedException caught and ignored in writer loop; joiner side in closeWriters now logs it (pass 1213). Verify the writer loop itself logs the interrupt.
+- [ ] L1 silent failure: SpoilageConfig.resolveItemId — three catches DO log a WARNING at the end; refactoring is cosmetic. Verify the WARNING is actually emitted and useful.
+- [ ] L1 silent failure: BlockDropSpoilageHandler — check if any exceptions in the capture/apply flow are caught and ignored without logging.
