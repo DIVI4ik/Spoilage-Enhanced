@@ -298,3 +298,137 @@ same 20-tick phase-spread cadence as the fridge and brewing stand.
 Re-verified live 2026-09-13 (pass 1180): apple with
 `fresh_expirations:[100L]` placed in a hopper read back `rotten_count:1`
 after 15 seconds. Suite 687/0/0.
+
+---
+
+## 11. Modded plants show freshness with a visible delay after they are already grown
+
+**Symptom (player, 2026-09-14, with the 79-mod pack):** A modded plant that has
+ALREADY finished growing does not show its freshness label right away — the
+label appears after a noticeable pause. On vanilla crops the label appears
+quickly. Observed with Farmer's Delight tomatoes; the screenshot that came with
+the report shows `Tomato Seeds — Farmer's Delight` in hand next to planted beds.
+
+**This is NOT report §6.** That one was "a modded crop at 100% maturity never
+gains freshness at all", traced to `NO_FOOD_DROP` being cached from a stage-0
+probe, and it is fixed. Here freshness DOES arrive — the complaint is how long
+it takes, and that vanilla is visibly faster in the same world. Do not close
+this as a duplicate of §6 without driving it.
+
+**Lead, not a traced cause — verify before believing it.** Registration of a
+block for spoilage tracking goes through `BlockStateChangeMixin`, which fires on
+a state CHANGE. A plant that is already mature does not change state again, so
+whatever registers it must be some other path. Two things worth measuring
+before anything else:
+
+1. Time from "mature plant exists in a loaded chunk" to "label appears", for a
+   vanilla crop and a modded one, in the same world, same chunk, same tick.
+   Without that pair the word "delay" has no size.
+2. Whether the first modded plant of a given block type is slow and later ones
+   are fast. `DynamicFoodBlockCache.RIPENESS` is a runtime cache that starts
+   EMPTY for vanilla and modded alike; if only the first probe is slow, the cost
+   is `deriveRipeness` flipping each boolean property and re-querying the loot
+   table, and it is paid once per block type, not per plant. If EVERY modded
+   plant is slow, the cache is not being hit and that is a different defect.
+
+Note that `deriveRipeness` flips BooleanProperty values. A vanilla crop ripens
+through an integer `age`, a modded one may use a boolean flag, and the two take
+different paths through the derivation — that asymmetry is the first place to
+look if measurement (2) says the cache is fine.
+
+
+**Tools that already exist for this — do not build a harness.**
+
+```bash
+./gradlew.bat -Dorg.gradle.java.home="E:/jdk-25" runClient -Prenderdump=true
+```
+
+RENDERDUMP prints what the HUD actually drew, change-only, as text — so the moment the label
+appears is a log line with a timestamp, not something to eyeball. That turns "a noticeable
+pause" into a number.
+
+```bash
+./gradlew.bat -Dorg.gradle.java.home="E:/jdk-25" runClient -Pnetprobe=true
+```
+
+NETPROBE makes the HUD ASK THE SERVER about the block it is looking at. If the delay is the
+round trip — the client having nothing to draw until the server answers — this flag is where
+it becomes visible. Check it before reading any cache code: a network wait and a cold cache
+look identical from the player's chair and have nothing else in common.
+
+Pair every measurement with a vanilla crop in the same chunk on the same tick.
+
+**Do not fix this by special-casing a mod id.** The universality rule stands:
+the answer comes from the loot table, never from a name.
+
+---
+
+## 12. A single rotten item does not always apply its effect
+
+**Symptom (player, 2026-09-14):** Eating rotten food does not reliably poison.
+Reported with ONE rotten cabbage held in hand — a single item, so no stack and
+no mixing is involved. Noticed with modded food.
+
+**A wrong lead recorded here first, so nobody spends a pass re-deriving it.**
+The first reading of this blamed the if/else-if chain in `onFinishUsingItem`,
+which tests `freshExpirations` before `rottenCount`, and a merged stack that
+holds both (pass 1082 read back `{rotten_count: 1, fresh_expirations:[1000000L]}`).
+That explanation is REFUTED twice over: the player had a single item, and the
+code already extracts the worst slice before branching —
+`FoodSpoilageUtil.extractWorstItems(data, 1)`, commented "player eats oldest
+first". Mixed stacks are handled. Do not re-file this.
+
+**What the code says must happen.** For one rotten item, `freshExpirations` and
+`staleExpirations` are empty and `rottenCount > 0`, so the chain reaches the
+rotten branch. `rotten_poison_duration_ticks > 0` is the ONLY guard on the
+poison — there is no chance roll, unlike stale nausea — and that line sits
+outside the `entity instanceof Player && food != null` block, so a null
+FoodProperties does not suppress it either. Poison should be unconditional.
+
+**So the failure is upstream of the branch. Three gates can swallow it, in the
+order they are reached:**
+
+1. `world.isClientSide()` — effects are server-side only. If the report is based
+   on the client showing no particles, confirm server-side first.
+2. `!stack.hasNonDefault(ModDataComponentTypes.SPOILAGE)` — returns early when
+   the component is absent OR equal to the DEFAULT sentinel (see pass 1076).
+   A tooltip reading "Rotten" does not prove the component survived to this
+   point; read it with `/data get` at the moment of eating.
+3. `SpoilageConfig.getInstance().isSpoilable(stack.getItem())` — a modded item
+   is tracked because it carries `DataComponents.FOOD`, with no config entry.
+   Confirm `isSpoilable` agrees for this exact item id rather than assuming it.
+
+**And the possibility worth checking FIRST, because this project has just been
+bitten by it.** The injection is `@Inject(method = "finishUsingItem", at =
+@At("RETURN"))`. On 2026-09-14 the loop proved `ItemEntityMixin` was registered,
+compiled, free of errors and NEVER INVOKED, because `@Inject(method = "tick")`
+did not match the target signature. If `finishUsingItem` is not the path modded
+food takes in 26.2 — consumption moved toward Consumable components — this mixin
+never runs for that item and every gate above is irrelevant. Put a log line at
+the head of `onFinishUsingItem` and eat one rotten cabbage. If nothing prints,
+that is the whole answer.
+
+
+**Drive it with the harness, and note what the harness does NOT cover.**
+
+```bash
+./gradlew.bat -Dorg.gradle.java.home="E:/jdk-25" runClient -Pselftest=staleeat
+```
+
+`staleeat` eats a stale item as a real player and checks the nutrition arithmetic. There is
+NO `rotteneat` scenario: `eat` drives ClearAllStatusEffectsConsumeEffectMixin, `staleeat`
+drives the stale branch, and nothing eats a plain rotten item and asserts POISON. This report
+sits in the one eat path with no unattended coverage, which is the likeliest reason it
+survived this long.
+
+Two gotchas that cost passes before, both recorded in AGENT_ENV.md:
+  * The self-test sends commands through the CLIENT's connection, so the quickplay
+    `Player###` must be opped via RCON before the 300-tick settle window ends, or every
+    command returns `Unknown or incomplete command`.
+  * `/spoilage debug giveheld` puts the item in the MAIN HAND. `givespoiled` uses
+    `Inventory.add` and lands in the first empty slot, which is not what gets eaten.
+
+**Control that separates the two worlds:** drive the same single-item test with a
+vanilla rotten food and with the modded cabbage. If vanilla poisons and modded
+does not, the defect is in reaching the modded item's eat path, not in the
+effect logic.
