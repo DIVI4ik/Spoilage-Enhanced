@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1207
+Pass: 1208
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L7 boundary — extractWorstItems degenerate cases pinned (NO_BUG)
+Current task: L3 cache — eviction policy correct (NO_BUG)
 Last lens: L14 foreign content
 Recent: NO_BUG NO_BUG NO_BUG NO_BUG NO_BUG
-Barren streak: 3
+Barren streak: 4
 Refills since L13: 0
 Commits since: release = 0
-Updated: 21:44:13
+Updated: 21:51:54
 
 ## Notes
 
