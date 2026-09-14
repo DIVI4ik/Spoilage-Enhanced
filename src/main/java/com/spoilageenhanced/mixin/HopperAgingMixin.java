@@ -44,11 +44,13 @@ public abstract class HopperAgingMixin {
             return;
         }
 
-        // Fast-path probe: skip the whole method when no slot holds spoilable food.
+        // Pass 1195 (L1 silent failure): use the shared food-carrying probe.
+        // The old probe checked only isSpoilable(stack.getItem()), missing bundles and
+        // shulker boxes with food. And the update loop skipped non-spoilable items, so
+        // carried food never aged even if the probe passed due to another slot.
         boolean anySpoilable = false;
         for (int i = 0; i < hopper.getContainerSize(); i++) {
-            ItemStack stack = hopper.getItem(i);
-            if (!stack.isEmpty() && SpoilageConfig.getInstance().isSpoilable(stack.getItem())) {
+            if (FoodSpoilageUtil.stackIsOrCarriesSpoilableFood(hopper.getItem(i))) {
                 anySpoilable = true;
                 break;
             }
@@ -61,17 +63,21 @@ public abstract class HopperAgingMixin {
         for (int i = 0; i < hopper.getContainerSize(); i++) {
             ItemStack stack = hopper.getItem(i);
             if (stack.isEmpty()) continue;
-            if (!SpoilageConfig.getInstance().isSpoilable(stack.getItem())) continue;
 
-            int count = stack.getCount();
-            if (count > 0) {
-                SpoilageData data = stack.get(ModDataComponentTypes.SPOILAGE);
-                if (data != null && data.totalTracked() > count) {
-                    SpoilageData[] split = FoodSpoilageUtil.extractWorstItems(data, count);
-                    stack.set(ModDataComponentTypes.SPOILAGE, split[1]);
-                    changed = true;
+            // Trim over-tracked for direct spoilable food items
+            if (SpoilageConfig.getInstance().isSpoilable(stack.getItem())) {
+                int count = stack.getCount();
+                if (count > 0) {
+                    SpoilageData data = stack.get(ModDataComponentTypes.SPOILAGE);
+                    if (data != null && data.totalTracked() > count) {
+                        SpoilageData[] split = FoodSpoilageUtil.extractWorstItems(data, count);
+                        stack.set(ModDataComponentTypes.SPOILAGE, split[1]);
+                        changed = true;
+                    }
                 }
             }
+            
+            // updateSpoilage handles CONTAINER and BUNDLE_CONTENTS internally
             SpoilageData before = stack.get(ModDataComponentTypes.SPOILAGE);
             FoodSpoilageUtil.updateSpoilage(stack, level);
             SpoilageData after = stack.get(ModDataComponentTypes.SPOILAGE);
