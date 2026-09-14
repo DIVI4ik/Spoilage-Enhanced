@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1222
+Pass: 1223
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L12 claim drift sweep — all 5 claims verified (NO_BUG)
-Last lens: L12 claim drift
-Recent: NO_BUG NO_BUG NO_BUG NO_BUG NO_BUG
-Barren streak: 9
-Refills since L13: 2
+Current task: refill queue with L13 observed behaviour tasks (5 queued)
+Last lens: L13 observed behaviour
+Recent: REFILLED NO_BUG NO_BUG NO_BUG NO_BUG
+Barren streak: 10
+Refills since L13: 0
 Commits since: release = 0
-Updated: 02:00:27
+Updated: 02:04:33
 
 ## Notes
 
