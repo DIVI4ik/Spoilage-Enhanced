@@ -16,6 +16,7 @@
     "CakeEatMixin",
     "CampfireBlockEntityMixin",
     "CandleCakeEatMixin",
+    "ChestedHorseMixin",
     "ClearAllStatusEffectsConsumeEffectMixin",
     "ClientboundPayloadTypesMixin",
     "CommandsMixin",
