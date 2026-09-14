@@ -49,7 +49,10 @@ public abstract class AllayMixin {
         List<ItemStack> stacks = self.getInventory().getItems();
         boolean anySpoilable = false;
         for (ItemStack stack : stacks) {
-            if (!stack.isEmpty() && SpoilageConfig.getInstance().isSpoilable(stack.getItem())) {
+            // Pass 1201 (L13 observed): the isSpoilable probe skipped a bundle held
+            // by an allay — the food inside never aged. Use the depth-2 food-carrying
+            // probe (pass 1199).
+            if (!stack.isEmpty() && FoodSpoilageUtil.stackIsOrCarriesSpoilableFood(stack)) {
                 anySpoilable = true;
                 break;
             }
@@ -62,7 +65,11 @@ public abstract class AllayMixin {
         for (int i = 0; i < stacks.size(); i++) {
             ItemStack stack = stacks.get(i);
             if (stack.isEmpty()) continue;
-            if (!SpoilageConfig.getInstance().isSpoilable(stack.getItem())) continue;
+            // Pass 1201: no isSpoilable filter — updateSpoilage's own guards no-op on
+            // stacks that are neither spoilable nor food-carrying, and a bundle or
+            // nested shulker held by the allay must reach its BUNDLE_CONTENTS/CONTAINER
+            // branch (same reasoning as the minecart loop, pass 1191).
+            if (!FoodSpoilageUtil.stackIsOrCarriesSpoilableFood(stack)) continue;
             // Trim over-tracked to count, keeping the WORST trackers — same invariant as
             // ItemEntityMixin.onTick and the bundle/container/minecart/brewing-stand branches.
             int count = stack.getCount();

@@ -47,7 +47,12 @@ public abstract class ItemFrameMixin {
         if (itemStack.isEmpty()) {
             return;
         }
-        if (!SpoilageConfig.getInstance().isSpoilable(itemStack.getItem())) {
+        // Pass 1201 (L13 observed): the isSpoilable guard skipped a bundle displayed
+        // in a frame — a bundle is not itself food, so the apple inside never aged
+        // while the same apple displayed directly aged to rotten. Use the depth-2
+        // food-carrying probe (pass 1199) instead; updateSpoilage's own guards
+        // no-op on stacks that are neither spoilable nor food-carrying.
+        if (!FoodSpoilageUtil.stackIsOrCarriesSpoilableFood(itemStack)) {
             return;
         }
 
