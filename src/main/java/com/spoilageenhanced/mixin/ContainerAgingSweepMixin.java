@@ -1,6 +1,5 @@
 package com.spoilageenhanced.mixin;
 
-import com.spoilageenhanced.config.SpoilageConfig;
 import com.spoilageenhanced.util.FoodSpoilageUtil;
 import com.spoilageenhanced.util.SpoilageEnhancedLogger;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
@@ -137,42 +136,13 @@ public abstract class ContainerAgingSweepMixin {
      * exactly as the bundle and minecart branches do.
      */
     private static void ageContainer(Container container, ServerLevel level) {
+        // Pass 1192: shared probe — the pattern was copy-pasted in five mixins and the
+        // pass-1191 defect happened because the sweep's copy was fixed and the other
+        // four were missed. One method, five call sites.
         boolean anySpoilable = false;
         for (int i = 0; i < container.getContainerSize(); i++) {
-            ItemStack stack = container.getItem(i);
-            if (stack.isEmpty()) {
-                continue;
-            }
-            if (SpoilageConfig.getInstance().isSpoilable(stack.getItem())) {
+            if (FoodSpoilageUtil.stackIsOrCarriesSpoilableFood(container.getItem(i))) {
                 anySpoilable = true;
-                break;
-            }
-            // Pass 1189 (L13): a stack that is not itself food can still CARRY it — a
-            // bundle (BUNDLE_CONTENTS) or a shulker box (CONTAINER) sitting in this
-            // container. The old probe saw 'not spoilable' and skipped the whole
-            // container, so a bundle with a tracked apple inside a chest never aged
-            // (verified live: fresh_expirations unchanged after 25s). Probe the carried
-            // templates — no ItemStack allocation, just the backing lists.
-            if (stack.has(net.minecraft.core.component.DataComponents.BUNDLE_CONTENTS)) {
-                net.minecraft.world.item.component.BundleContents contents =
-                        stack.get(net.minecraft.core.component.DataComponents.BUNDLE_CONTENTS);
-                for (net.minecraft.world.item.ItemStackTemplate template : contents.items()) {
-                    if (SpoilageConfig.getInstance().isSpoilable(template.item().value())) {
-                        anySpoilable = true;
-                        break;
-                    }
-                }
-            } else if (stack.has(net.minecraft.core.component.DataComponents.CONTAINER)) {
-                net.minecraft.world.item.component.ItemContainerContents contents =
-                        stack.get(net.minecraft.core.component.DataComponents.CONTAINER);
-                for (net.minecraft.world.item.ItemStackTemplate template : contents.nonEmptyItems()) {
-                    if (SpoilageConfig.getInstance().isSpoilable(template.item().value())) {
-                        anySpoilable = true;
-                        break;
-                    }
-                }
-            }
-            if (anySpoilable) {
                 break;
             }
         }

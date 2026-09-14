@@ -837,6 +837,42 @@ public class FoodSpoilageUtil {
         return data.rottenCount() > 0;
     }
 
+    /**
+     * Pass 1192: the food-carrying probe shared by every container-aging mixin. A stack
+     * that is not itself food can still CARRY it — a bundle (BUNDLE_CONTENTS) or a
+     * nested shulker box (CONTAINER). This pattern was copy-pasted in five mixins
+     * (sweep, ender chest, minecart, fridge, brewing stand), and the pass-1191 defect
+     * happened precisely because the sweep's copy was fixed while the other four were
+     * missed. One method, five call sites.
+     *
+     * <p>Template scans only — no ItemStack allocation. {@code BundleContents.items()}
+     * returns the backing template list (BundleContents.java:95);
+     * {@code ItemContainerContents.nonEmptyItems()} returns an Iterable over the
+     * populated slots (ItemContainerContents.java:140).</p>
+     */
+    public static boolean stackIsOrCarriesSpoilableFood(ItemStack stack) {
+        if (stack.isEmpty()) return false;
+        if (SpoilageConfig.getInstance().isSpoilable(stack.getItem())) return true;
+        if (stack.has(DataComponents.BUNDLE_CONTENTS)) {
+            net.minecraft.world.item.component.BundleContents contents =
+                    stack.get(DataComponents.BUNDLE_CONTENTS);
+            for (net.minecraft.world.item.ItemStackTemplate template : contents.items()) {
+                if (SpoilageConfig.getInstance().isSpoilable(template.item().value())) {
+                    return true;
+                }
+            }
+        } else if (stack.has(DataComponents.CONTAINER)) {
+            net.minecraft.world.item.component.ItemContainerContents contents =
+                    stack.get(DataComponents.CONTAINER);
+            for (net.minecraft.world.item.ItemStackTemplate template : contents.nonEmptyItems()) {
+                if (SpoilageConfig.getInstance().isSpoilable(template.item().value())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     public static boolean isEntirelyRotten(ItemStack stack) {
         if (stack.isEmpty()) return false;
         SpoilageData data = stack.get(ModDataComponentTypes.SPOILAGE);

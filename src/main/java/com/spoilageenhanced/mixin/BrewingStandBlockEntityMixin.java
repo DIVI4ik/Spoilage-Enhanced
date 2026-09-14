@@ -1,7 +1,6 @@
 package com.spoilageenhanced.mixin;
 
 import com.spoilageenhanced.component.ModDataComponentTypes;
-import com.spoilageenhanced.config.SpoilageConfig;
 import com.spoilageenhanced.util.FoodSpoilageUtil;
 import com.spoilageenhanced.util.SpoilageEnhancedLogger;
 import net.minecraft.core.BlockPos;
@@ -52,39 +51,11 @@ public abstract class BrewingStandBlockEntityMixin {
         }
 
         NonNullList<ItemStack> stacks = ((BrewingStandBlockEntityMixin) (Object) blockEntity).getItems();
+        // Pass 1192: shared probe — see ContainerAgingSweepMixin.ageContainer.
         boolean anySpoilable = false;
         for (ItemStack stack : stacks) {
-            if (stack.isEmpty()) {
-                continue;
-            }
-            if (SpoilageConfig.getInstance().isSpoilable(stack.getItem())) {
+            if (FoodSpoilageUtil.stackIsOrCarriesSpoilableFood(stack)) {
                 anySpoilable = true;
-                break;
-            }
-            // Pass 1191 (L13): a stack that is not itself food can still CARRY it — a
-            // bundle or nested shulker box in the brewing stand. Same probe shape as
-            // ContainerAgingSweepMixin. (The sweep also covers the brewing stand as a
-            // Container block entity, but this mixin must not depend on that.)
-            if (stack.has(net.minecraft.core.component.DataComponents.BUNDLE_CONTENTS)) {
-                net.minecraft.world.item.component.BundleContents contents =
-                        stack.get(net.minecraft.core.component.DataComponents.BUNDLE_CONTENTS);
-                for (net.minecraft.world.item.ItemStackTemplate template : contents.items()) {
-                    if (SpoilageConfig.getInstance().isSpoilable(template.item().value())) {
-                        anySpoilable = true;
-                        break;
-                    }
-                }
-            } else if (stack.has(net.minecraft.core.component.DataComponents.CONTAINER)) {
-                net.minecraft.world.item.component.ItemContainerContents contents =
-                        stack.get(net.minecraft.core.component.DataComponents.CONTAINER);
-                for (net.minecraft.world.item.ItemStackTemplate template : contents.nonEmptyItems()) {
-                    if (SpoilageConfig.getInstance().isSpoilable(template.item().value())) {
-                        anySpoilable = true;
-                        break;
-                    }
-                }
-            }
-            if (anySpoilable) {
                 break;
             }
         }
