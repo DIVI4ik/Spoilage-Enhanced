@@ -372,7 +372,7 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
 - [x] L12 claim drift: AGENT_ENV.md "Loading 5 vs 79 mods" — NO_BUG (pass 1222): fresh boot shows 79 mods. Distinction confirmed.
 
 - [x] L13 observed: fresh food placed in chest by hand — NO_BUG (pass 1224): placed chest, put tracked apple [100L] in slot 0 via data modify. After 30s: rotten_count:1. ContainerAgingSweepMixin ages container contents correctly.
-- [ ] L13 observed: **fresh food placed in chest by hopper** — hopper inserts tracked apple [100L] into chest, wait 25s, read spoilage. Expect aging (ContainerAgingSweepMixin covers hoppers via HopperAgingMixin). Control: hand-placed same chest.
+- [x] L13 observed: fresh food placed in chest by hopper — NO_BUG (pass 1225): placed hopper facing down (no output), put tracked apple [100L] in slot 0. After 30s: rotten_count:1. HopperAgingMixin ages hopper contents correctly (phase-spread, 20-tick cadence).
 - [ ] L13 observed: **food in bundle ages independently** — put tracked apple [100L] in bundle, wait 25s, read bundle contents. Expect aging (pass 1085: bundle contents age independently). Control: same apple outside bundle.
 - [ ] L13 observed: **food in shulker box ages** — put tracked apple [100L] in shulker box, wait 25s, read spoilage. Expect aging (RandomizableContainerBlockEntityMixin covers shulker). Control: same apple on ground.
 - [ ] L13 observed: **food in ender chest ages** — put tracked apple [100L] in ender chest, wait 25s, read spoilage. Expect aging (PlayerEnderChestMixin covers ender chest). Control: same apple in regular chest.
