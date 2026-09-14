@@ -129,6 +129,19 @@ public abstract class BlockSpoilageHudMixin {
     private static final boolean spoilage_enhanced$SELF_TEST_STALE_EAT = "staleeat".equals(System.getProperty("spoilage_enhanced.selftest"));
 
     /**
+     * Pass 1211 (L13 behaviour): drive the REAL item-eating path for a ROTTEN item —
+     * the one eat branch with no unattended coverage. {@code eat} covers the fresh
+     * branch, {@code staleeat} the stale branch; nothing ate a plain ROTTEN item and
+     * asserted POISON. Uses {@code spoilage debug finisheat minecraft:apple rotten},
+     * which calls the real {@code ItemStack.finishUsingItem} — the exact method
+     * {@code ItemStackMixin.onFinishUsingItem} intercepts — so the poison is applied
+     * by the SHIPPED code. Rotten poison has no chance roll (unlike stale nausea),
+     * so the assertion is deterministic: POISON must be present in active_effects.
+     */
+    @org.spongepowered.asm.mixin.Unique
+    private static final boolean spoilage_enhanced$SELF_TEST_ROTTEN_EAT = "rotteneat".equals(System.getProperty("spoilage_enhanced.selftest"));
+
+    /**
      * Pass 672 (L13 behaviour): drive AbstractFurnaceBlockEntityMixin.canBurn rotten-refusal
      * guard. The furnace must not accept rotten food as fuel/input. No existing selftest
      * covers this path.
@@ -220,6 +233,10 @@ public abstract class BlockSpoilageHudMixin {
 
         if (spoilage_enhanced$SELF_TEST_STALE_EAT) {
             spoilage_enhanced$runStaleEatSelfTest(client);
+        }
+
+        if (spoilage_enhanced$SELF_TEST_ROTTEN_EAT) {
+            spoilage_enhanced$runRottenEatSelfTest(client);
         }
 
         if (spoilage_enhanced$SELF_TEST_FURNACE) {
@@ -1087,6 +1104,58 @@ public abstract class BlockSpoilageHudMixin {
             }
             case 1 -> {
                 spoilage_enhanced$sendRawCommand(rawConn, "execute at @p run spoilage debug finisheat minecraft:apple stale");
+            }
+            case 2 -> {
+                spoilage_enhanced$sendRawCommand(rawConn, "execute at @p run data get entity @s foodLevel");
+            }
+            case 3 -> {
+                spoilage_enhanced$sendRawCommand(rawConn, "execute at @p run data get entity @s active_effects");
+            }
+            default -> {
+            }
+        }
+        spoilage_enhanced$selfTestStep++;
+    }
+
+    /**
+     * Pass 1211 (L13 behaviour): the ROTTEN branch of the eat path. Same shape as
+     * {@code staleeat} (Pass 1106): creative mode, read foodLevel, finisheat a ROTTEN
+     * apple, read foodLevel + active_effects. POISON must appear — rotten poison has
+     * no chance roll, so the assertion is deterministic.
+     */
+    @org.spongepowered.asm.mixin.Unique
+    private static void spoilage_enhanced$runRottenEatSelfTest(Minecraft client) {
+        if (spoilage_enhanced$selfTestStarted && spoilage_enhanced$selfTestStep >= 4) {
+            return;
+        }
+        long now = client.level.getGameTime();
+        if (!spoilage_enhanced$selfTestStarted && spoilage_enhanced$selfTestNextStepTime == 0L) {
+            spoilage_enhanced$selfTestNextStepTime = now + 300L;
+            return;
+        }
+        if (now < spoilage_enhanced$selfTestNextStepTime) {
+            return;
+        }
+        spoilage_enhanced$selfTestNextStepTime = now + 40L;
+
+        net.minecraft.client.multiplayer.ClientPacketListener conn = client.getConnection();
+        if (conn == null) {
+            return;
+        }
+        net.minecraft.network.Connection rawConn =
+                ((com.spoilageenhanced.mixin.ClientCommonPacketListenerImplAccessor) conn).spoilage_enhanced$getConnection();
+        if (rawConn == null) {
+            return;
+        }
+
+        switch (spoilage_enhanced$selfTestStep) {
+            case 0 -> {
+                spoilage_enhanced$sendRawCommand(rawConn, "execute at @p run gamemode creative @s");
+                spoilage_enhanced$sendRawCommand(rawConn, "execute at @p run data get entity @s foodLevel");
+                spoilage_enhanced$selfTestStarted = true;
+            }
+            case 1 -> {
+                spoilage_enhanced$sendRawCommand(rawConn, "execute at @p run spoilage debug finisheat minecraft:apple rotten");
             }
             case 2 -> {
                 spoilage_enhanced$sendRawCommand(rawConn, "execute at @p run data get entity @s foodLevel");
