@@ -142,6 +142,13 @@ public abstract class BlockSpoilageHudMixin {
      * use/menuclick commands act AS a player, so they must run from a client. */
     private static final boolean spoilage_enhanced$SELF_TEST_ENDERCHEST = "enderchest".equals(System.getProperty("spoilage_enhanced.selftest"));
 
+    /** Pass 1194: chest scenario — a filled shulker box QUICK_MOVE'd into a placed chest
+     * through the real GUI. RCON cannot drive it: summon and block data modify both strip
+     * the container component (vanilla sanitization), so the give + menuclick path is the
+     * only way to place a filled shulker in a chest. Verifies the CONTAINER probe branch
+     * of the shared food-carrying probe end to end. */
+    private static final boolean spoilage_enhanced$SELF_TEST_CHEST = "chest".equals(System.getProperty("spoilage_enhanced.selftest"));
+
     @org.spongepowered.asm.mixin.Unique
     private static boolean spoilage_enhanced$selfTestStarted = false;
 
@@ -221,6 +228,9 @@ public abstract class BlockSpoilageHudMixin {
 
         if (spoilage_enhanced$SELF_TEST_ENDERCHEST) {
             spoilage_enhanced$runEnderChestSelfTest(client);
+        }
+        if (spoilage_enhanced$SELF_TEST_CHEST) {
+            spoilage_enhanced$runChestSelfTest(client);
         }
 
         HitResult hitResult = client.hitResult;
@@ -1216,6 +1226,79 @@ public abstract class BlockSpoilageHudMixin {
                 // slots + 27 main-inventory slots + 9 hotbar slots) the hotbar begins at index
                 // 54, so hotbar slot 0 is menu slot 54. QUICK_MOVE shifts it into the ender
                 // chest grid. (Slot 36/37 were tried first and clicked empty slots.)
+                spoilage_enhanced$sendRawCommand(rawConn, "execute at @p run spoilage debug menuclick 54 0 QUICK_MOVE");
+            }
+            default -> {
+            }
+        }
+        spoilage_enhanced$selfTestStep++;
+    }
+
+    /**
+     * Pass 1194 (L13): places a chest, gives the player a shulker box with a tracked
+     * apple inside (the give path preserves the container component — verified: summon
+     * and block data modify both strip it), opens the chest and QUICK_MOVEs the shulker
+     * in. The readback is done via RCON after the scenario completes.
+     *
+     * <p>Steps: 0 place chest + clear; 1 give filled shulker; 2 open chest; 3 QUICK_MOVE
+     * hotbar slot 0 (menu slot 54) into the chest grid. The shulker is not spoilable
+     * itself, so only the CONTAINER carrier branch of the shared probe can flag it and
+     * only updateSpoilage's CONTAINER branch can age the inner apple.</p>
+     */
+    @org.spongepowered.asm.mixin.Unique
+    private static void spoilage_enhanced$runChestSelfTest(Minecraft client) {
+        if (spoilage_enhanced$selfTestStarted && spoilage_enhanced$selfTestStep >= 4) {
+            return;
+        }
+        long now = client.level.getGameTime();
+        if (!spoilage_enhanced$selfTestStarted && spoilage_enhanced$selfTestNextStepTime == 0L) {
+            spoilage_enhanced$selfTestNextStepTime = now + 300L;
+            return;
+        }
+        if (now < spoilage_enhanced$selfTestNextStepTime) {
+            return;
+        }
+        spoilage_enhanced$selfTestNextStepTime = now + 40L;
+
+        net.minecraft.client.multiplayer.ClientPacketListener conn = client.getConnection();
+        if (conn == null) {
+            return;
+        }
+        net.minecraft.network.Connection rawConn =
+                ((com.spoilageenhanced.mixin.ClientCommonPacketListenerImplAccessor) conn).spoilage_enhanced$getConnection();
+        if (rawConn == null) {
+            return;
+        }
+
+        switch (spoilage_enhanced$selfTestStep) {
+            case 0 -> {
+                spoilage_enhanced$sendRawCommand(rawConn, "execute at @p run setblock ~2 ~ ~ minecraft:chest");
+                spoilage_enhanced$sendRawCommand(rawConn, "clear @p");
+                spoilage_enhanced$selfTestStarted = true;
+            }
+            case 1 -> {
+                // The container component's item entries use the 'item:' key (not 'id:'),
+                // and the spoilage component key must be quoted (it contains a colon).
+                // Both verified against the 26.2 codec and live give tests.
+                // The inner apple is BARE (no components): vanilla's give parse drops
+                // inner-item components inside the container component (verified live:
+                // fresh_expirations:[100L] and custom_name both vanished before the first
+                // tick), so a pre-aged apple cannot be constructed this way. The drive
+                // instead relies on the 100x spoilage_speed_multiplier set in the test
+                // server's config: the bare apple is lazy-stamped fresh with a ~336-tick
+                // (~17s) expiration, so the aging inside the chest is visible within a
+                // minute. The stamp itself happens in the player inventory (ItemMixin);
+                // the CHEST's contribution — the sweep's CONTAINER probe branch flagging
+                // the shulker and updateSpoilage's CONTAINER branch aging the inner apple
+                // — is what the readback proves.
+                spoilage_enhanced$sendRawCommand(rawConn, "give @p minecraft:shulker_box[minecraft:container=["
+                        + "{item:\"minecraft:apple\",count:1,slot:0}],minecraft:custom_name=\"shulker_selftest\"] 1");
+            }
+            case 2 -> {
+                spoilage_enhanced$sendRawCommand(rawConn, "execute at @p run spoilage debug use ~2 ~ ~");
+            }
+            case 3 -> {
+                // ChestMenu: 27 container slots + 27 main + 9 hotbar; hotbar 0 = slot 54.
                 spoilage_enhanced$sendRawCommand(rawConn, "execute at @p run spoilage debug menuclick 54 0 QUICK_MOVE");
             }
             default -> {

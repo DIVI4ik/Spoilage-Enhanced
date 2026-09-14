@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1167
+Pass: 1168
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: live-drive the pass-1191 surfaces (minecart, fridge, brewing stand)
+Current task: add chest selftest scenario + drive the CONTAINER probe branch
 Last lens: L14 foreign content
-Recent: FIXED FIXED RELEASED FIXED NO_BUG
+Recent: FIXED RELEASED FIXED NO_BUG FIXED
 Barren streak: 0
 Refills since L13: 0
 Commits since: release = 1
-Updated: 2026-09-14 03:50
+Updated: 2026-09-14 05:41
 
 ## Notes
 
