@@ -373,6 +373,6 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
 
 - [x] L13 observed: fresh food placed in chest by hand — NO_BUG (pass 1224): placed chest, put tracked apple [100L] in slot 0 via data modify. After 30s: rotten_count:1. ContainerAgingSweepMixin ages container contents correctly.
 - [x] L13 observed: fresh food placed in chest by hopper — NO_BUG (pass 1225): placed hopper facing down (no output), put tracked apple [100L] in slot 0. After 30s: rotten_count:1. HopperAgingMixin ages hopper contents correctly (phase-spread, 20-tick cadence).
-- [ ] L13 observed: **food in bundle ages independently** — put tracked apple [100L] in bundle, wait 25s, read bundle contents. Expect aging (pass 1085: bundle contents age independently). Control: same apple outside bundle.
+- [ ] L13 observed: food in bundle ages independently — BLOCKED (pass 1228): data modify silently no-ops on item components (AGENT_ENV.md claim confirmed). Summoning bundle item entities also fails (entity vanishes). Requires client selftest with give command. Will revisit when running a client selftest.
 - [x] L13 observed: food in shulker box ages — NO_BUG (pass 1226): placed shulker_box, put tracked apple [100L] in slot 0. After 30s: rotten_count:1. RandomizableContainerBlockEntityMixin covers shulker boxes.
 - [ ] L13 observed: food in ender chest ages — BLOCKED (pass 1227): needs online player (PlayerEnderChestMixin hooks Player.tick()). Requires client selftest (4-5 min launch). Will revisit when running a client selftest for another scenario.
