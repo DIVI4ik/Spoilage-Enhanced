@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1170
+Pass: 1171
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L2 silent failure: ItemEntityMixin.onTick phase spread
+Current task: refill queue (4 silent-failure tasks refuted)
 Last lens: L14 foreign content
-Recent: FIXED NO_BUG FIXED FIXED RELEASED
-Barren streak: 0
+Recent: NO_BUG FIXED FIXED RELEASED REFUTED
+Barren streak: 1
 Refills since L13: 0
 Commits since: release = 0
-Updated: 2026-09-14 07:00
+Updated: 2026-09-14 07:08
 
 ## Notes
 
