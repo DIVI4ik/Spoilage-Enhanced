@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1220
+Pass: 1221
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L14 Right Click Harvest — BLOCKED (needs client selftest)
-Last lens: L14 foreign content
-Recent: BLOCKED NO_BUG NO_BUG NO_BUG NO_BUG
-Barren streak: 7
-Refills since L13: 1
+Current task: refill queue with L12 claim drift tasks (5 queued)
+Last lens: L12 claim drift
+Recent: REFILLED BLOCKED NO_BUG NO_BUG NO_BUG
+Barren streak: 8
+Refills since L13: 2
 Commits since: release = 0
-Updated: 01:33:02
+Updated: 01:38:04
 
 ## Notes
 
