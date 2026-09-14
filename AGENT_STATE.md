@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1213
+Pass: 1214
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L1 silent failure — closeWriters catches now log immediately (FIXED)
+Current task: L1 silent-failure sweep complete (1 FIXED, 3 REFUTED, 1 cosmetic)
 Last lens: L1 silent failure
-Recent: FIXED REFILLED FIXED NO_BUG NO_BUG
-Barren streak: 0
+Recent: FIXED REFUTED REFUTED REFUTED COSMETIC
+Barren streak: 1
 Refills since L13: 0
 Commits since: release = 0
-Updated: 00:29:20
+Updated: 00:31:46
 
 ## Notes
 

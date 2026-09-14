@@ -355,6 +355,6 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
 
 - [x] L1 silent failure: RecipeScanner.extractRecipeOutput — REFUTED (pass 1213): the per-class NoSuchFieldException is an expected walk step (superclass chain walked until 'result' field found); the final failure IS reported via the scan summary (skippedUnreadableResult + firstUnreadableReason). Not a silent failure.
 - [x] L1 silent failure: SpoilageEnhancedLogger.closeWriters — FIXED (pass 1213): added System.err.println in both InterruptedException and Exception catches so failures are visible immediately. The counter + next-init surfacing remains.
-- [ ] L1 silent failure: SimpleTextureMixin catches IOException and ignores it in the texture loading path. If a texture fails to load, the failure is silent. Add a log.
-- [ ] L1 silent failure: SpoilageEnhancedLogger writer thread catches InterruptedException and ignores it (Thread.currentThread().interrupt() then break). The interrupt is re-set but the loop exits silently. Log the interruption.
-- [ ] L1 silent failure: SpoilageConfig.resolveItemId three catch (Exception ignored) {} — they DO log a WARNING at the end, so not truly silent. But the three separate catches could be consolidated and the log message improved to show which path failed. Refactor for clarity.
+- [x] L1 silent failure: SimpleTextureMixin — REFUTED (pass 1213): the IOException on NativeImage.read IS logged (GENERAL category); the ignored catch is on stream.close() in finally (harmless — image already read).
+- [x] L1 silent failure: SpoilageEnhancedLogger writer thread — REFUTED (pass 1213): the interrupt is handled correctly (Thread.currentThread().interrupt() restores flag); the joiner side in closeWriters now logs the interruption immediately. Covered.
+- [x] L1 silent failure: SpoilageConfig.resolveItemId — COSMETIC (pass 1213): the three catches DO log a WARNING at the end; refactoring is cosmetic, not a defect. Not worth a pass.
