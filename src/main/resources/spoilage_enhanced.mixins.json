@@ -22,6 +22,7 @@
     "CommandsMixin",
     "ComposterBlockMixin",
     "CookingPotBlockEntityMixin",
+    "CounterBlockEntityMixin",
     "CrafterBlockMixin",
     "CraftingResultSlotMixin",
     "DefaultDispenseItemBehaviorMixin",
