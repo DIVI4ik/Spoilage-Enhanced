@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1257
+Pass: 1258
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L1 ScreenHandlerMixin.moveItemStackTo — NO_BUG (shift-click uses worst-first extraction, rotten guards on QUICK_MOVE/QUICK_CRAFT/PICKUP_ALL)
-Last lens: L1 silent failure
+Current task: L13 WanderingTrader/BlastFurnace/Smoker/Lectern/Campfire — NO_BUG/REFUTED (all covered by existing mixins or not needed)
+Last lens: L13 observed
 Recent: NO_BUG NO_BUG NO_BUG NO_BUG NO_BUG
-Barren streak: 14
+Barren streak: 15
 Refills since L13: 0
 Commits since: release = 0
-Updated: 04:22:31
+Updated: 04:52:42
 
 ## Notes
 
