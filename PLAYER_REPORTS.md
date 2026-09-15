@@ -455,3 +455,21 @@ Two gotchas that cost passes before, both recorded in AGENT_ENV.md:
 vanilla rotten food and with the modded cabbage. If vanilla poisons and modded
 does not, the defect is in reaching the modded item's eat path, not in the
 effect logic.
+
+
+**NO_BUG (pass 1260, 2026-09-15, driven live).** A single rotten modded item —
+`farmersdelight:cabbage`, `rotten_count:1`, count 1 — eaten through the real
+`ItemStack.finishUsingItem` (the exact method a 1.6 s hold-right-click ends in, and the
+one `ItemStackMixin.onFinishUsingItem` intercepts at RETURN) applies the poison effect
+exactly as vanilla does:
+
+- modded: `active_effects` = `{duration: 196, show_icon: 1b, id: "minecraft:poison"}`,
+  events.log `09:17:11.406 Player consumed Rotten food -> Poison applied.`
+- vanilla control (`minecraft:apple` rotten, same session): `{duration: 197, ...,
+  id: "minecraft:poison"}`, events.log `09:21:35.465`.
+
+The effect line already exists in events.log (`Player consumed Rotten food -> Poison
+applied.`), so no additional head-of-mixin log line is needed: the path is observable
+as-is. The `rotteneat` selftest (pass 1211) covers the vanilla item unattended; the
+modded item was driven by hand here via `spoilage debug finisheat farmersdelight:cabbage
+rotten`, which builds the stack server-side and calls the real method.

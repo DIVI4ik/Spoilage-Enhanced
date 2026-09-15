@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1259
+Pass: 1260
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
 Current task: L13 WanderingTrader/BlastFurnace/Smoker/Lectern/Campfire — NO_BUG/REFUTED (all covered by existing mixins or not needed)
 Last lens: L13 observed
-Recent: NO_BUG NO_BUG NO_BUG NO_BUG REFUTED
-Barren streak: 16
+Recent: NO_BUG NO_BUG NO_BUG REFUTED NO_BUG
+Barren streak: 17
 Refills since L13: 0
 Commits since: release = 0
-Updated: 2026-09-15 08:42
+Updated: 2026-09-15 09:23
 
 ## Notes
 
