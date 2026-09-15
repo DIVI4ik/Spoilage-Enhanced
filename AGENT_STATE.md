@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1255
+Pass: 1256
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L1 ItemStackMixin.isSameItemSameComponents — NO_BUG (ignores SPOILAGE for equality, prevents cross-freshness merging)
+Current task: L1 ItemStackMixin.getComponents — NO_BUG (SPOILAGE already in vanilla components map; mushroom FOOD/CONSUMABLE added)
 Last lens: L1 silent failure
 Recent: NO_BUG NO_BUG NO_BUG NO_BUG NO_BUG
-Barren streak: 12
+Barren streak: 13
 Refills since L13: 0
 Commits since: release = 0
-Updated: 04:17:41
+Updated: 04:20:01
 
 ## Notes
 
