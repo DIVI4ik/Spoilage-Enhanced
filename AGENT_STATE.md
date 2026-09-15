@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1264
+Pass: 1265
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L13 WanderingTrader/BlastFurnace/Smoker/Lectern/Campfire — NO_BUG/REFUTED (all covered by existing mixins or not needed)
+Current task: L14 C4B cookie jar/fruit basket aging via ContainerAgingSweepMixin getContainer() reflection — FIXED (live-proven rotten_count:1)
 Last lens: L14 foreign content
-Recent: NO_BUG FIXED NO_BUG NO_BUG NO_BUG
-Barren streak: 3
+Recent: FIXED NO_BUG FIXED NO_BUG NO_BUG
+Barren streak: 0
 Refills since L13: 4
-Commits since: release = 0
-Updated: 2026-09-15 18:30
+Commits since: release = 1
+Updated: 2026-09-16 01:48
 
 ## Notes
 
