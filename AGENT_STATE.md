@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1233
+Pass: 1234
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L2 BlockSpoilageData registration paths — NO_BUG (setBlock handles all)
+Current task: L2 ItemEntityMixin lazy stamping — NO_BUG (stamps on first phase-spread tick)
 Last lens: L2 lifecycle
-Recent: NO_BUG NO_BUG NO_BUG REFILLED BLOCKED
-Barren streak: 20
+Recent: NO_BUG NO_BUG NO_BUG NO_BUG REFILLED
+Barren streak: 21
 Refills since L13: 2
 Commits since: release = 0
-Updated: 03:00:21
+Updated: 03:05:15
 
 ## Notes
 
