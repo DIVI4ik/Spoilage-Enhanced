@@ -443,7 +443,7 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
   for cook, read output slot component. If untracked, decide the right altitude: is there a
   universal contract (KitchenItemProcessor? Container output slot?) or does the sweep's lazy
   stamping already cover it within one aging pass? Control: vanilla furnace bread beside it.
-- [ ] L14: **C4B toaster bread aging.** ToasterBlockEntity has getContainer() (now covered by
+- [x] L14: **C4B toaster bread aging.** — NO_BUG pass 1267: breads aged to stale_expirations:[4009600L] inside toaster (sweep getContainer path); ejected 2x croptopia:toast tracked fresh_expirations:[3990545L,3990546L] via ItemEntity lazy stamping. End-to-end clean. ToasterBlockEntity has getContainer() (now covered by
   the sweep, pass 1265) — but does bread in the toaster age, and does the toasted output get
   stamped? Drive: setblock cookingforblockheads:toaster, insert bread via ItemHandler.Items,
   wait, read back. Control: same bread in a chest.
