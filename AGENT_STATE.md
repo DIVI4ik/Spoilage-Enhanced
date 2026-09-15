@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1232
+Pass: 1233
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L2 AutoFoodDetector timing — NO_BUG (runs on first server tick)
+Current task: L2 BlockSpoilageData registration paths — NO_BUG (setBlock handles all)
 Last lens: L2 lifecycle
-Recent: NO_BUG NO_BUG REFILLED BLOCKED BLOCKED
-Barren streak: 19
+Recent: NO_BUG NO_BUG NO_BUG REFILLED BLOCKED
+Barren streak: 20
 Refills since L13: 2
 Commits since: release = 0
-Updated: 02:58:30
+Updated: 03:00:21
 
 ## Notes
 
