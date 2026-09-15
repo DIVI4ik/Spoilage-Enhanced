@@ -408,7 +408,7 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
 - [x] L13 observed: CakeEatMixin.onCakeEat — NO_BUG (pass 1252): CakeEatMixin (CakeBlock.eat HEAD/RETURN) deducts nutrition/saturation and applies poison unconditionally on eating rotten cake slice. Full players pass without bite or penalty. Suite 697/0/0.
 
 - [x] L1 silent failure: ItemStackMixin.split — NO_BUG (pass 1253): split RETURN extracts worst items for split-off stack (split[1]) and keeps best for remainder (split[0]). Guards: hasNonDefault(SPOILAGE) and isSpoilable on both items. Suite 697/0/0.
-- [ ] L1 silent failure: ItemStackMixin.finishUsingItem — verify rotten food consumption applies effects before vanilla nutrition.
+- [x] L1 silent failure: ItemStackMixin.finishUsingItem — NO_BUG (pass 1254): extracts worst 1 item, applies stale/rotten effects (hunger/saturation penalties, nausea, poison) on top of vanilla nutrition. Guards: client-side, hasNonDefault(SPOILAGE), isSpoilable. Suite 697/0/0.
 - [ ] L1 silent failure: ItemStackMixin.isSameItemSameComponents — verify spoilage component equality check prevents stack merging across freshness boundaries.
 - [ ] L1 silent failure: ItemStackMixin.getComponents — verify SPOILAGE component is included in component snapshot for serialization.
 - [ ] L1 silent failure: ScreenHandlerMixin.moveItemStackTo — verify shift-click transfer respects worst-first extraction and rotten guards.

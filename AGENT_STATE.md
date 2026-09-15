@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1253
+Pass: 1254
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L1 ItemStackMixin.split — NO_BUG (worst-first extraction and remainder reconciliation verified)
+Current task: L1 ItemStackMixin.finishUsingItem — NO_BUG (rotten food applies poison before vanilla nutrition)
 Last lens: L1 silent failure
 Recent: NO_BUG NO_BUG NO_BUG NO_BUG NO_BUG
-Barren streak: 10
+Barren streak: 11
 Refills since L13: 0
 Commits since: release = 0
-Updated: 04:14:51
+Updated: 04:16:25
 
 ## Notes
 
