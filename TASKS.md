@@ -400,3 +400,9 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
 - [x] L7 boundary: CampfireBlockEntityMixin.placeFood — NO_BUG (pass 1245): campfire recipe cook time is vanilla (600t); spoilage speedMultiplier governs food expiration, not cook duration. placeFood cancels placement of rotten items (worstSliceContainsRotten(1)) and allows stale items to cook fresh. Suite 697/0/0.
 - [x] L9 integration: ThrownItemEntityMixin.onHit — NO_BUG (pass 1246): EggEntityMixin.onHit redirects random.nextInt to prevent chick hatching for rotten eggs (0% chance) and spawns ITEM_SLIME + SMOKE particles at impact location on any hit (entity/block alike). Suite 697/0/0.
 - [x] L1 silent failure: ClearAllStatusEffectsConsumeEffectMixin — NO_BUG (pass 1247): stale milk applies nausea; rotten milk applies nausea+poison+hunger and cancels vanilla effect clearing via cir.setReturnValue(false) when rotten_blocks_effect_clearing is enabled. Suite 697/0/0.
+
+- [x] L13 observed: AnimalEntityMixin.mobInteract — NO_BUG (pass 1248): feeding rotten food to animals cancels breeding (resetLove()), applies poison+weakness+particles, consumes 1 item with worst tracker extraction, and cancels vanilla breeding. Suite 697/0/0.
+- [ ] L13 observed: HarvestFarmlandMixin.onFarmlandTick — verify farmer villagers refuse to plant rotten seeds/crops.
+- [ ] L13 observed: DispenserBlockMixin.dispenseFrom — verify dispenser reconciles over-tracked food stacks on dispense.
+- [ ] L13 observed: DropperBlockMixin.dispenseFrom — verify dropper reconciles over-tracked food stacks on dispense.
+- [ ] L13 observed: CakeEatMixin.onCakeEat — verify eating rotten cake slice cancels nutrition/saturation and applies poison.

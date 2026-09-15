@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1247
+Pass: 1248
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L1 ClearAllStatusEffectsConsumeEffectMixin — NO_BUG (stale/rotten milk effects and effect cancellation verified)
-Last lens: L1 silent failure
-Recent: NO_BUG NO_BUG NO_BUG NO_BUG FIXED
-Barren streak: 4
-Refills since L13: 3
+Current task: L13 AnimalEntityMixin.mobInteract — NO_BUG (feeding rotten food cancels breeding, poisons animal, extracts worst tracker)
+Last lens: L13 observed
+Recent: NO_BUG NO_BUG NO_BUG NO_BUG NO_BUG
+Barren streak: 5
+Refills since L13: 0
 Commits since: release = 0
-Updated: 04:07:27
+Updated: 04:08:37
 
 ## Notes
 
