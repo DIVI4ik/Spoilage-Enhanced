@@ -361,6 +361,29 @@ Pair every measurement with a vanilla crop in the same chunk on the same tick.
 **Do not fix this by special-casing a mod id.** The universality rule stands:
 the answer comes from the loot table, never from a name.
 
+**REFUTED (pass 1259, 2026-09-15, measured live).** Driven with `-Prenderdump=true
+-Pnetprobe=true` on the 79-mod pack, six crops, each timed from teleport (RCON clock) to
+first HUD request (server network.log) and first drawn label (client general.log):
+
+| Crop | Cache | Time to label |
+|---|---|---|
+| minecraft:carrots | warm | 0.6 s |
+| farmersdelight:cabbages | warm | 0.55 s |
+| minecraft:potatoes | cold | 0.7 s |
+| minecraft:beetroots | cold | 0.42 s |
+| farmersdelight:onions | cold | 0.4 s |
+| croptopia:tomato_crop | cold | 0.42 s |
+
+Modded and vanilla are indistinguishable at both cache temperatures; the
+`DynamicFoodBlockCache.RIPENESS` cold-cache derivation costs nothing visible. One
+measurement (onions, first attempt) showed 7.3 s — traced to AIM GEOMETRY, not the
+mod: the crosshair ray from eye height grazes over a crop's 1/16-block collision
+shape unless the pitch is steep, so `client.hitResult` stays MISS and the HUD never
+asks. Re-aimed steeper, the same block answered in 0.4 s. A player walking past a
+field of low crops sees exactly this as "the label takes a while to appear" — the
+crosshair must actually rest on the plant's hitbox first, and low hitboxes are easy
+to skim past. That is vanilla pick behaviour, not a spoilage defect.
+
 ---
 
 ## 12. A single rotten item does not always apply its effect
