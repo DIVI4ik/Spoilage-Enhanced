@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1246
+Pass: 1247
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L9 ThrownItemEntityMixin / EggEntityMixin onHit — NO_BUG (rotten egg prevents hatching, emits slime+smoke particles on hit)
-Last lens: L9 integration
-Recent: NO_BUG NO_BUG NO_BUG FIXED NO_BUG
-Barren streak: 3
+Current task: L1 ClearAllStatusEffectsConsumeEffectMixin — NO_BUG (stale/rotten milk effects and effect cancellation verified)
+Last lens: L1 silent failure
+Recent: NO_BUG NO_BUG NO_BUG NO_BUG FIXED
+Barren streak: 4
 Refills since L13: 3
 Commits since: release = 0
-Updated: 04:06:48
+Updated: 04:07:27
 
 ## Notes
 
