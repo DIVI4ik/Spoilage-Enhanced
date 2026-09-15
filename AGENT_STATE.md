@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1250
+Pass: 1251
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L13 DispenserBlockMixin.dispenseFrom — NO_BUG (reconciles over-tracked slots and trims dispensed stack)
+Current task: L13 DropperBlockMixin.dispenseFrom — NO_BUG (reconciles over-tracked slots in dropper block entities)
 Last lens: L13 observed
 Recent: NO_BUG NO_BUG NO_BUG NO_BUG NO_BUG
-Barren streak: 7
+Barren streak: 8
 Refills since L13: 0
 Commits since: release = 0
-Updated: 04:10:12
+Updated: 04:10:49
 
 ## Notes
 
