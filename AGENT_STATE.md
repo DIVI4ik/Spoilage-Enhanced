@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1252
+Pass: 1253
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L13 CakeEatMixin.onCakeEat — NO_BUG (rotten cake cancels nutrition/saturation and applies poison)
-Last lens: L13 observed
+Current task: L1 ItemStackMixin.split — NO_BUG (worst-first extraction and remainder reconciliation verified)
+Last lens: L1 silent failure
 Recent: NO_BUG NO_BUG NO_BUG NO_BUG NO_BUG
-Barren streak: 9
+Barren streak: 10
 Refills since L13: 0
 Commits since: release = 0
-Updated: 04:11:28
+Updated: 04:14:51
 
 ## Notes
 
