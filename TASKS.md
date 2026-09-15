@@ -432,3 +432,31 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
 - [x] L14 foreign content: Better McDonald's Mod food timer sweep — NO_BUG (pass 1264, 2026-09-15): All BMM food items receive timers via #c:foods auto-detection. Verified live: Big Mac, Fries, Coca-Cola, Cheeseburger, McFlurry, Fanta, Ketchup, Mustard all get spoilage component (fresh→stale→rotten progression confirmed). Non-food Salt (in c:dusts/salt, not c:foods) correctly gets NO timer. BMM tags: c:foods/burger, c:foods/sauce, c:foods/ice_cream, c:drinks/soda, c:drinks/tea all covered. No false positives, no gaps.
 
 - [x] PLAYER_REPORT §12: rotten food poison effect — NO_BUG (pass 1260, 2026-09-15): driven live, single rotten farmersdelight:cabbage via real finishUsingItem -> POISON applied (active_effects {duration:196, id:minecraft:poison}, events.log 09:17:11.406 'Player consumed Rotten food -> Poison applied.'). Vanilla control minecraft:apple rotten same session -> POISON duration 197, events.log 09:21:35.465. Modded food reaches finishUsingItem identically; the events.log line already exists, no head log line needed.
+
+## Refill 2026-09-16 (L14 foreign content — C4B production surfaces; sweep getContainer() just landed pass 1265)
+
+- [x] L14: **C4B oven output freshness stamp.** — NO_BUG pass 1266: output slot 4 read back 2x croptopia:toast fresh_expirations:[3961680L,3961680L]; tracked via sweep lazy stamping (pass 1265 getContainer path covers OvenBlockEntity). Input bread also tracked. Vanilla furnace control: pass 1091 cited (harness data-modify trap hit, known non-defect). Vanilla furnace output is stamped FRESH by
+  AbstractFurnaceBlockEntityMixin.burn; the C4B oven is NOT an AbstractFurnaceBlockEntity, so
+  its cooked output may come out untracked (lazy-stamped only on next aging pass — same shape
+  as the FD cooking pot gap fixed in pass 1052). Drive: setblock cookingforblockheads:oven,
+  insert bread + fuel via data modify (check ItemHandler.Items path, pass 1265 recipe), wait
+  for cook, read output slot component. If untracked, decide the right altitude: is there a
+  universal contract (KitchenItemProcessor? Container output slot?) or does the sweep's lazy
+  stamping already cover it within one aging pass? Control: vanilla furnace bread beside it.
+- [ ] L14: **C4B toaster bread aging.** ToasterBlockEntity has getContainer() (now covered by
+  the sweep, pass 1265) — but does bread in the toaster age, and does the toasted output get
+  stamped? Drive: setblock cookingforblockheads:toaster, insert bread via ItemHandler.Items,
+  wait, read back. Control: same bread in a chest.
+- [ ] L14: **C4B chicken sink feed aging.** ChickenSinkBlockEntity has getContainer() (feed +
+  egg sub-containers). Drive: setblock cookingforblockheads:chicken_sink, insert seeds/wheat
+  into the feed container, wait, read back. Control: chest beside it.
+- [ ] L14: **C4B cabinet aging (inherits CounterBlockEntity).** CabinetBlockEntity extends
+  CounterBlockEntity so CounterBlockEntityMixin applies to it too — but the mixin's
+  getContainer() shadow binds to the COUNTER's container; the cabinet also has
+  getCombinedContainer(). Verify live: tracked apple in a placed cabinet ages (and does not
+  double-age via the sweep's new getContainer() path + the counter mixin). Control: chest.
+- [ ] L14: **C4B cow jar / milk jar — fluid food, not item food.** MilkJarBlockEntity is a
+  BalmFluidTankProvider, not an item container. Milk in a fluid tank: does the mod track it at
+  all (milk_bucket is tracked as an item)? If fluid milk is invisible to the spoilage system,
+  that is a gap shape (fluid food) the mod has never addressed — record it as a design
+  question in PLAYER_REPORTS.md if confirmed, do not invent a fluid-aging mechanic.
