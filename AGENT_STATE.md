@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1235
+Pass: 1236
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L2 DynamicFoodBlockCache deriveRipeness cache key — NO_BUG (caches only probed answers)
+Current task: L2 SpoilageConfig registration order — NO_BUG (save() only on discovery, real-game guard)
 Last lens: L2 lifecycle
 Recent: NO_BUG NO_BUG NO_BUG NO_BUG NO_BUG
-Barren streak: 22
+Barren streak: 23
 Refills since L13: 2
 Commits since: release = 0
-Updated: 03:07:27
+Updated: 03:11:25
 
 ## Notes
 
