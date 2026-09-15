@@ -1,7 +1,10 @@
 {
   "pack": {
     "description": "Spoilage Enhanced Resources",
-    "min_format": 15,
-    "max_format": 107
+    "pack_format": 65,
+    "supported_formats": {
+      "min_inclusive": 15,
+      "max_inclusive": 107
+    }
   }
 }

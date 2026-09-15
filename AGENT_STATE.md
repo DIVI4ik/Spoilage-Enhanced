@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1242
+Pass: 1243
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L12 Loading 5 vs 79 mods distinction — NO_BUG (verified)
+Current task: L12 pack.mcmeta format — FIXED (updated pack_format: 65, supported_formats: 15..107)
 Last lens: L12 claim drift
-Recent: NO_BUG NO_BUG NO_BUG FIXED NO_BUG
-Barren streak: 3
+Recent: FIXED NO_BUG NO_BUG NO_BUG FIXED
+Barren streak: 0
 Refills since L13: 3
 Commits since: release = 0
-Updated: 03:32:01
+Updated: 04:03:59
 
 ## Notes
 
