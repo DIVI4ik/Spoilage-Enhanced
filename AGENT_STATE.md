@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1251
+Pass: 1252
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L13 DropperBlockMixin.dispenseFrom — NO_BUG (reconciles over-tracked slots in dropper block entities)
+Current task: L13 CakeEatMixin.onCakeEat — NO_BUG (rotten cake cancels nutrition/saturation and applies poison)
 Last lens: L13 observed
 Recent: NO_BUG NO_BUG NO_BUG NO_BUG NO_BUG
-Barren streak: 8
+Barren streak: 9
 Refills since L13: 0
 Commits since: release = 0
-Updated: 04:10:49
+Updated: 04:11:28
 
 ## Notes
 
