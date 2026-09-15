@@ -396,7 +396,7 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
 - [x] L12 claim drift: Verify 'Loading 5 mods' vs 'Loading 79 mods' distinction in launch log — NO_BUG (pass 1242): verified. With modpack REMOVED: launch log shows 'Loading 5 mods' (vanilla + fabric-api + spoilage_enhanced). With modpack DEPLOYED: launch log shows 'Loading 79 mods' (14 fabric mods + 65 transitive). The distinction is clear and reliable. AGENT_ENV.md already documents this correctly.
 
 - [x] L12 claim drift: pack.mcmeta format — FIXED (pass 1243): updated pack_format to 65 and supported_formats to {min_inclusive: 15, max_inclusive: 107} in src/main/resources/pack.mcmeta to resolve JsonParseException during pack repository discovery in 26.2. Suite 697/0/0.
-- [ ] L1 silent failure: CrafterBlockMixin.onCraft — verify worst-first ingredient transfer logic on empty or missing ingredient slots.
+- [x] L1 silent failure: CrafterBlockMixin.onCraft — NO_BUG (pass 1244): audited CrafterBlockMixin and CraftingSpoilageTransfer.compute. Empty/null/non-spoilable ingredient slots are safely skipped. Worst-first ingredient selection and post-craft tracker reconciliation at dispenseFrom RETURN both operate cleanly. Suite 697/0/0.
 - [ ] L7 boundary: CampfireBlockEntityMixin.placeFood — verify cooking duration calculation with non-default speedMultiplier.
 - [ ] L9 integration: ThrownItemEntityMixin.onHit — verify rotten egg projectile hit effect application on entities vs blocks.
 - [ ] L1 silent failure: ClearAllStatusEffectsConsumeEffectMixin — verify stale and rotten milk effect duration and effect cancellation.
