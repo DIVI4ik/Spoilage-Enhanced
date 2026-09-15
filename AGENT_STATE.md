@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1256
+Pass: 1257
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L1 ItemStackMixin.getComponents — NO_BUG (SPOILAGE already in vanilla components map; mushroom FOOD/CONSUMABLE added)
+Current task: L1 ScreenHandlerMixin.moveItemStackTo — NO_BUG (shift-click uses worst-first extraction, rotten guards on QUICK_MOVE/QUICK_CRAFT/PICKUP_ALL)
 Last lens: L1 silent failure
 Recent: NO_BUG NO_BUG NO_BUG NO_BUG NO_BUG
-Barren streak: 13
+Barren streak: 14
 Refills since L13: 0
 Commits since: release = 0
-Updated: 04:20:01
+Updated: 04:22:31
 
 ## Notes
 
