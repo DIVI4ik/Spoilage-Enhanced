@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1249
+Pass: 1250
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L13 HarvestFarmlandMixin.refuseRottenSeed — NO_BUG (farmer villager skips rotten seeds during planting check)
+Current task: L13 DispenserBlockMixin.dispenseFrom — NO_BUG (reconciles over-tracked slots and trims dispensed stack)
 Last lens: L13 observed
 Recent: NO_BUG NO_BUG NO_BUG NO_BUG NO_BUG
-Barren streak: 6
+Barren streak: 7
 Refills since L13: 0
 Commits since: release = 0
-Updated: 04:09:23
+Updated: 04:10:12
 
 ## Notes
 
