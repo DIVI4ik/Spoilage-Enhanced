@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1248
+Pass: 1249
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L13 AnimalEntityMixin.mobInteract — NO_BUG (feeding rotten food cancels breeding, poisons animal, extracts worst tracker)
+Current task: L13 HarvestFarmlandMixin.refuseRottenSeed — NO_BUG (farmer villager skips rotten seeds during planting check)
 Last lens: L13 observed
 Recent: NO_BUG NO_BUG NO_BUG NO_BUG NO_BUG
-Barren streak: 5
+Barren streak: 6
 Refills since L13: 0
 Commits since: release = 0
-Updated: 04:08:37
+Updated: 04:09:23
 
 ## Notes
 

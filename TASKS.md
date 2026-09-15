@@ -402,7 +402,7 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
 - [x] L1 silent failure: ClearAllStatusEffectsConsumeEffectMixin — NO_BUG (pass 1247): stale milk applies nausea; rotten milk applies nausea+poison+hunger and cancels vanilla effect clearing via cir.setReturnValue(false) when rotten_blocks_effect_clearing is enabled. Suite 697/0/0.
 
 - [x] L13 observed: AnimalEntityMixin.mobInteract — NO_BUG (pass 1248): feeding rotten food to animals cancels breeding (resetLove()), applies poison+weakness+particles, consumes 1 item with worst tracker extraction, and cancels vanilla breeding. Suite 697/0/0.
-- [ ] L13 observed: HarvestFarmlandMixin.onFarmlandTick — verify farmer villagers refuse to plant rotten seeds/crops.
+- [x] L13 observed: HarvestFarmlandMixin.onFarmlandTick — NO_BUG (pass 1249): WrapOperation on ItemStack.is(TagKey) returns false for rotten seeds/crops, causing farmer villagers to skip planting rotten items without destroying them or laundering rot. Suite 697/0/0.
 - [ ] L13 observed: DispenserBlockMixin.dispenseFrom — verify dispenser reconciles over-tracked food stacks on dispense.
 - [ ] L13 observed: DropperBlockMixin.dispenseFrom — verify dropper reconciles over-tracked food stacks on dispense.
 - [ ] L13 observed: CakeEatMixin.onCakeEat — verify eating rotten cake slice cancels nutrition/saturation and applies poison.
