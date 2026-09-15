@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1245
+Pass: 1246
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L7 CampfireBlockEntityMixin.placeFood boundary — NO_BUG (campfire cook time is vanilla, placeFood refuses rotten)
-Last lens: L7 boundary
-Recent: NO_BUG NO_BUG FIXED NO_BUG NO_BUG
-Barren streak: 2
+Current task: L9 ThrownItemEntityMixin / EggEntityMixin onHit — NO_BUG (rotten egg prevents hatching, emits slime+smoke particles on hit)
+Last lens: L9 integration
+Recent: NO_BUG NO_BUG NO_BUG FIXED NO_BUG
+Barren streak: 3
 Refills since L13: 3
 Commits since: release = 0
-Updated: 04:06:00
+Updated: 04:06:48
 
 ## Notes
 
