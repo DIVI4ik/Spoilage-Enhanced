@@ -397,6 +397,6 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
 
 - [x] L12 claim drift: pack.mcmeta format — FIXED (pass 1243): updated pack_format to 65 and supported_formats to {min_inclusive: 15, max_inclusive: 107} in src/main/resources/pack.mcmeta to resolve JsonParseException during pack repository discovery in 26.2. Suite 697/0/0.
 - [x] L1 silent failure: CrafterBlockMixin.onCraft — NO_BUG (pass 1244): audited CrafterBlockMixin and CraftingSpoilageTransfer.compute. Empty/null/non-spoilable ingredient slots are safely skipped. Worst-first ingredient selection and post-craft tracker reconciliation at dispenseFrom RETURN both operate cleanly. Suite 697/0/0.
-- [ ] L7 boundary: CampfireBlockEntityMixin.placeFood — verify cooking duration calculation with non-default speedMultiplier.
+- [x] L7 boundary: CampfireBlockEntityMixin.placeFood — NO_BUG (pass 1245): campfire recipe cook time is vanilla (600t); spoilage speedMultiplier governs food expiration, not cook duration. placeFood cancels placement of rotten items (worstSliceContainsRotten(1)) and allows stale items to cook fresh. Suite 697/0/0.
 - [ ] L9 integration: ThrownItemEntityMixin.onHit — verify rotten egg projectile hit effect application on entities vs blocks.
 - [ ] L1 silent failure: ClearAllStatusEffectsConsumeEffectMixin — verify stale and rotten milk effect duration and effect cancellation.

@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1244
+Pass: 1245
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L1 CrafterBlockMixin.onCraft ingredient transfer — NO_BUG (handles null/empty/non-food slots correctly)
-Last lens: L1 silent failure
-Recent: NO_BUG FIXED NO_BUG NO_BUG NO_BUG
-Barren streak: 1
+Current task: L7 CampfireBlockEntityMixin.placeFood boundary — NO_BUG (campfire cook time is vanilla, placeFood refuses rotten)
+Last lens: L7 boundary
+Recent: NO_BUG NO_BUG FIXED NO_BUG NO_BUG
+Barren streak: 2
 Refills since L13: 3
 Commits since: release = 0
-Updated: 04:05:00
+Updated: 04:06:00
 
 ## Notes
 
