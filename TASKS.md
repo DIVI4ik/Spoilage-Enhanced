@@ -447,7 +447,7 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
   the sweep, pass 1265) — but does bread in the toaster age, and does the toasted output get
   stamped? Drive: setblock cookingforblockheads:toaster, insert bread via ItemHandler.Items,
   wait, read back. Control: same bread in a chest.
-- [ ] L14: **C4B chicken sink feed aging.** ChickenSinkBlockEntity has getContainer() (feed +
+- [x] L14: **C4B chicken sink feed aging.** — NO_BUG pass 1268: feed wheat aged fresh->stale (stale_expirations:[4013000L]) in chicken_sink slot 0 via sweep getContainer() path. No gap. ChickenSinkBlockEntity has getContainer() (feed +
   egg sub-containers). Drive: setblock cookingforblockheads:chicken_sink, insert seeds/wheat
   into the feed container, wait, read back. Control: chest beside it.
 - [ ] L14: **C4B cabinet aging (inherits CounterBlockEntity).** CabinetBlockEntity extends
