@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1236
+Pass: 1237
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L2 SpoilageConfig registration order — NO_BUG (save() only on discovery, real-game guard)
-Last lens: L2 lifecycle
-Recent: NO_BUG NO_BUG NO_BUG NO_BUG NO_BUG
-Barren streak: 23
-Refills since L13: 2
+Current task: refill queue with L12 claim drift tasks (5 queued)
+Last lens: L12 claim drift
+Recent: REFILLED NO_BUG NO_BUG NO_BUG NO_BUG
+Barren streak: 24
+Refills since L13: 3
 Commits since: release = 0
-Updated: 03:11:25
+Updated: 03:15:13
 
 ## Notes
 
