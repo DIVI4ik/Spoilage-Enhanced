@@ -473,7 +473,7 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
   A dropper feeding a hopper moves one item at a time; the worst-first extraction must send
   the rotten item first. Drive: dropper with mixed 2-stack facing a hopper, activate, read
   the hopper's contents. Control: chest beside it.
-- [ ] L13: **Stale milk drunk from a modded container (C4B fridge) — effects path.** The milk
+- [x] L13: **Stale milk drunk from a modded container (C4B fridge) — effects path.** — NO_BUG pass 1282: balm:milk is a Fluid (javap-verified); its only ItemStack form is vanilla milk_bucket, already covered (pass 670). Nothing modded to test. The milk
   effects (ClearAllStatusEffectsConsumeEffectMixin) were driven on vanilla milk_bucket; a
   modded milk source (balm:milk in a bucket?) may bypass. Check whether balm:milk can exist
   as an ItemStack at all; if not, record that and close.
