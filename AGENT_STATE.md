@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1289
+Pass: 1290
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L1 silent failure — FIXED (config save now atomic: temp file + move; crash mid-save can no longer truncate the config)
+Current task: Release v1.1.24 published (nested-bundle aging fix + atomic config save)
 Last lens: L1 silent failure
-Recent: FIXED NO_BUG NO_BUG NO_BUG NO_BUG
+Recent: FIXED FIXED NO_BUG NO_BUG NO_BUG
 Barren streak: 0
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-16 14:00
+Updated: 2026-09-16 14:36
 
 ## Notes
 
