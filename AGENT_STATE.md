@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1278
+Pass: 1279
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L13 observed — README 'cannot plant rotten seeds' verified live (rotten potato refused, fresh control planted)
-Last lens: L13 observed behaviour
-Recent: NO_BUG NO_BUG FIXED FIXED FIXED
-Barren streak: 3
+Current task: L12 claim drift — FIXED (loot_randomization comment said 'cumulative thresholds', values are weights)
+Last lens: L12 claim drift
+Recent: FIXED NO_BUG NO_BUG FIXED FIXED
+Barren streak: 4
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-16 08:32
+Updated: 2026-09-16 08:37
 
 ## Notes
 

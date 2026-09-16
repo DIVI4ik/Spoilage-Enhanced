@@ -184,7 +184,7 @@ public class SpoilageConfig {
 
     // ======================== Loot Randomization Config ========================
     @SuppressWarnings("unused")
-    private String _comment_loot_randomization = "Spoilage state distribution for food found in dungeon chests. Values are cumulative thresholds.";
+    private String _comment_loot_randomization = "Spoilage state distribution for food found in dungeon chests. Values are WEIGHTS (0.60/0.30/0.10 = 60%/30%/10%); they are normalized, so they do not need to sum to 1.";
     private LootRandomizationConfig loot_randomization = new LootRandomizationConfig();
 
     // ======================== Item Durations ========================
