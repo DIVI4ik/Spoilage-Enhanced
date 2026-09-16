@@ -493,7 +493,7 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
   does the tooltip/HUD show its state (not the bundle's)? Probe the code path
   (ItemClientMixin getTooltipLines on a bundle with selectedItem set) and drive via
   renderdump if reachable; else close by code trace with the citation.
-- [ ] L13: **Shulker box open/close cycle — component survives the menu round trip.** A
+- [x] L13: **Shulker box open/close cycle — component survives the menu round trip.** — NO_BUG pass 1286: bread PICKUP out of shulker slot 0 and back via real menuclick; component intact (fresh_expirations:[999999999L]) both sides. No data loss. A
   player opens a placed shulker, moves food in/out via menuclick, closes; the shulker's
   own component (if tracked as an item) and the food's must both survive. Drive with the
   joined client + spoilage debug menuclick (the chest selftest pattern, pass 1194).

@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1285
+Pass: 1286
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L13 bundle selected-item tooltip — NO_BUG (no state shown for bundle contents in tooltip; aging correct, state visible on extraction)
+Current task: L13 shulker menu round trip — NO_BUG (component survives PICKUP out and back intact)
 Last lens: L13 observed behaviour
 Recent: NO_BUG NO_BUG FIXED NO_BUG NO_BUG
-Barren streak: 2
+Barren streak: 3
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-16 12:28
+Updated: 2026-09-16 13:00
 
 ## Notes
 
