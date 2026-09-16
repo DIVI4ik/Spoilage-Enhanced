@@ -578,3 +578,21 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
   are per-player; one player puts tracked food in, the other opens their own end箱 and
   must NOT see it. Drive: two players, ender chest, verify the component is isolated per
   player (not shared).
+
+## Refill 2026-09-16 (L13 observed behaviour — the mod's own command surface)
+
+- [x] L13: **givespoiled with an invalid state string** — NO_BUG pass 1305: 'Invalid stage. Must be: fresh, stale, or rotten' — clean refusal.
+  givespoiled @p minecraft:apple nonsense 1 — must print a usage error, not throw. Also
+  givespoiled with a non-food item (stick) — must refuse or no-op cleanly.
+- [x] L13: **debug place with a non-block item** — NO_BUG pass 1305: 'Not a placeable block item: minecraft:stick' — clean refusal.
+  minecraft:stick fresh 0 100 0 — the code checks BlockItem, but verify the failure message
+  is clean and no stack trace hits the log.
+- [x] L13: **debug eat with an invalid state** — NO_BUG pass 1305: 'state must be one of: fresh, stale, rotten, mixed' — clean refusal.
+  minecraft:apple nonsense — same shape as givespoiled.
+- [x] L13: **spoilage config reload with a hand-corrupted config** — FIXED pass 1305: reload now refuses a corrupt file ('Failed to reload'), leaves it untouched; was reporting success and overwriting edits with defaults.
+  the config JSON (truncate it), reload, verify the mod logs the parse failure and falls
+  back to defaults without crashing; then restore the config and reload again to verify
+  recovery.
+- [x] L13: **debug inspect on an untracked block** — NO_BUG pass 1305: 'NOT TRACKED (Wild)' — clean output.
+  inspect on plain stone — must say not tracked, not throw. (Needs a player for the
+  command; use the joined client.)

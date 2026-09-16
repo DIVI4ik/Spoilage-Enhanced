@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1304
+Pass: 1305
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L13 merchant trade - NO_BUG (guard exists, pass 1111; live drive needs a villager-interact harness extension)
-Last lens: L9 integration
-Recent: NO_BUG NO_BUG FIXED FIXED NO_BUG
-Barren streak: 2
+Current task: L13 command robustness - FIXED (corrupt-config reload reported success and overwrote the file with defaults)
+Last lens: L13 observed behaviour
+Recent: FIXED NO_BUG NO_BUG NO_BUG NO_BUG
+Barren streak: 0
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-16 22:32
+Updated: 2026-09-17 00:20
 
 ## Notes
 

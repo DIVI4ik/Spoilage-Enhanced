@@ -321,8 +321,31 @@ public class SpoilageConfig {
      * Reload configuration from disk (used by /spoilage config reload command).
      * Returns true if reload was successful.
      */
+    /**
+     * Pass 1305 (L1 — silent failure): true when the config file on disk parses cleanly.
+     * A corrupt file must make /spoilage config reload report FAILURE — the old flow
+     * answered "reloaded successfully" while load() had silently substituted defaults,
+     * and the defaults branch then SAVED those defaults over the corrupt file,
+     * destroying the player's hand edits on disk.
+     */
+    private static boolean configParsesCleanly() {
+        Path configFile = SpoilageEnhancedPlatform.getConfigDir().resolve(CONFIG_FILENAME);
+        if (!Files.exists(configFile)) return true; // first run — defaults are correct
+        try (Reader reader = new FileReader(configFile.toFile(), java.nio.charset.StandardCharsets.UTF_8)) {
+            return GSON.fromJson(reader, SpoilageConfig.class) != null;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     public static boolean reload() {
         try {
+            if (!configParsesCleanly()) {
+                SpoilageEnhancedLogger.log(SpoilageEnhancedLogger.LogCategory.GENERAL,
+                        "Config reload refused: spoilage_enhanced.json does not parse — "
+                        + "the file was left untouched (fix the JSON and reload again)");
+                return false;
+            }
             synchronized (SpoilageConfig.class) {
                 INSTANCE = load();
                 if (INSTANCE != null) {
@@ -894,6 +917,11 @@ public class SpoilageConfig {
                 SpoilageEnhancedLogger.log(SpoilageEnhancedLogger.LogCategory.GENERAL,
                         "Failed to load spoilage config: " + e.getMessage());
             }
+            // Pass 1305 (L1 — silent failure): a file that EXISTS but does not parse
+            // still falls through to defaults here — the mod must start even with a
+            // corrupt config. But reload() must NOT report success in that case: it checks
+            // parse health itself before accepting the load, so /spoilage config reload
+            // answers honestly and the corrupt file is not overwritten with defaults.
         }
 
         if (config != null) {
