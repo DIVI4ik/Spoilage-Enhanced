@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1287
+Pass: 1288
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L13 chorus fruit exclusion — NO_BUG (no component after 25s on ground; excluded_items honored)
+Current task: L13 jukebox + flower pot sanity — NO_BUG (no component, no errors, no false food derivation)
 Last lens: L13 observed behaviour
-Recent: NO_BUG NO_BUG NO_BUG FIXED NO_BUG
-Barren streak: 4
+Recent: NO_BUG NO_BUG NO_BUG NO_BUG FIXED
+Barren streak: 5
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-16 13:08
+Updated: 2026-09-16 13:17
 
 ## Notes
 

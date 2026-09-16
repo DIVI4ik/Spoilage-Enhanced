@@ -502,11 +502,11 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
   Drive: give chorus fruit, eat via finisheat, verify teleport happened and no poison.
   (Exclusion confirmation is fine once — the log has golden apple/rotten flesh but not
   chorus fruit.)
-- [ ] L13: **Jukebox with a disc — non-food container sanity.** The jukebox holds a disc
+- [x] L13: **Jukebox with a disc — non-food container sanity.** — NO_BUG pass 1288: disc untracked after 25s (jukebox not a Container, sweep ignores); no errors. The jukebox holds a disc
   (not food); the sweep must not probe it as food. Drive: setblock jukebox with disc,
   wait, verify no errors and no spoilage component on the disc. Closes the "non-food
   container" half for one more vanilla block.
-- [ ] L13: **Flower pot with a flower — block-state food probe sanity.** A flower pot's
+- [x] L13: **Flower pot with a flower — block-state food probe sanity.** — NO_BUG pass 1288: potted_dandelion drops carry no component; no false food derivation. A flower pot's
   block state changes when planted; DynamicFoodBlockCache must not derive a food drop
   from it. Drive: place flower pot + flower, verify NOT TRACKED via spoilage debug
   inspect (needs player) or by breaking and reading the drop for a component.
