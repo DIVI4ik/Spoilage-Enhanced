@@ -616,3 +616,26 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
 - [x] L9: **NeoForge data component registration** — NO_BUG pass 1307: 'Data component check OK: spoilage_enhanced:spoilage (raw id 111)' on the NeoForge launch.
   break NeoForge init.** SpoilageEnhancedNeoForge calls SpoilageEnhancedCommon.init; verify
   the 'Data component check OK' line on the NeoForge launch.
+
+## Refill 2026-09-17 (L14 foreign content — pack verification after recent common-code fixes)
+
+- [x] L14: **Pack launch with the current jar** — NO_BUG pass 1308: 79 mods, Done (7.621s), 0 mixin failures/conflicts.
+  changes under 79 foreign mods.** The last pack launch was pass 1269 (12 Sept, before all
+  of them). Deploy + launch, verify Done + 0 spoilage mixin failures + no mixin conflicts
+  with the other 78 mods. Namespace: all 79; slice: launch + mixin application only.
+- [x] L14: **Foreign food in a nested bundle** — NO_BUG pass 1308: croptopia:tomato two bundles deep aged to rotten_count:1.
+  croptopia:tomato two bundles deep in a chest, wait, read back. Control: vanilla apple
+  nested the same way in the same session (pass 1283 proved vanilla; the foreign slice is
+  unproven).
+- [x] L14: **C4B cookie jar aging after the ContainerResolution extraction** — NO_BUG pass 1308: apple in cookie jar aged rotten_count:1 via the extracted reflection.
+  refactor under the real mod.** The reflection moved from the mixin to the util class;
+  drive a tracked apple in a cookie jar (getContainer() path) and verify it ages. Control:
+  same apple in a chest.
+- [x] L14: **Pack TPS with the current jar** — NO_BUG pass 1308: P99 2.0ms vs baseline 1.9ms (pass 1263) — depth-4 probe costs nothing measurable.
+  probe changes.** Pass 1263 measured P99 1.9ms with the pack; the probe depth went 2->4
+  (pass 1283) which adds one recursion level to every container probe. Re-measure and
+  report the pair.
+- [x] L14: **Foreign food detection after the pass-1292 logging change** — NO_BUG pass 1308: croptopia:tomato still gets a timer; vanilla control same session.
+  regression.** The gate change (bare isSpoilable -> depth probe) could in principle alter
+  which foreign items get stamped; drive croptopia:tomato fresh on the ground and verify
+  it still gets a timer. Control: vanilla apple.
