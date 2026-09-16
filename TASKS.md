@@ -521,7 +521,7 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
   items combined in an anvil (rename/repair) — the result's tracker count must equal 1, not
   the sum. Probe the code path (ScreenHandlerMixin covers anvil slots?) and drive if
   reachable; else close by code trace with citations.
-- [ ] L7: **Grindstone on a tracked item — component stripped or preserved?** The grindstone
+- [x] L7: **Grindstone on a tracked item — component stripped or preserved?** — NO_BUG pass 1295: rotten sword through the grindstone (real menuclick) comes out with rotten_count:1 intact. No laundering hole. The grindstone
   removes enchantments; does it strip the SPOILAGE component too (non-enchantment data)?
   Drive: tracked item + grindstone via menuclick, read result. If stripped, that is a
   laundering hole (fresh item from a rotten one).

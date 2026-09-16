@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1294
+Pass: 1295
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L7 anvil combine path - NO_BUG (input.copy preserves components; food not repairable; rotten guard covers anvil inputs)
+Current task: L7 grindstone component preservation - NO_BUG (rotten sword stays rotten through the grindstone)
 Last lens: L1 silent failure
-Recent: NO_BUG NO_BUG FIXED FIXED FIXED
-Barren streak: 2
+Recent: NO_BUG NO_BUG NO_BUG FIXED FIXED
+Barren streak: 3
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-16 16:38
+Updated: 2026-09-16 17:11
 
 ## Notes
 
