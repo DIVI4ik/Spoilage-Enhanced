@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1292
+Pass: 1293
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L1 silent failure — FIXED (misleading 'registered' log lines for excluded items; registerDynamicFoodItem now returns success)
+Current task: L7 boundary - Crafter output tracker/count invariant verified (1 output tracker for 1 item)
 Last lens: L1 silent failure
-Recent: FIXED FIXED FIXED NO_BUG NO_BUG
-Barren streak: 0
+Recent: NO_BUG FIXED FIXED FIXED FIXED
+Barren streak: 1
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-16 16:09
+Updated: 2026-09-16 16:30
 
 ## Notes
 

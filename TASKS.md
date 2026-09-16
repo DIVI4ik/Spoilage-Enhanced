@@ -510,3 +510,25 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
   block state changes when planted; DynamicFoodBlockCache must not derive a food drop
   from it. Drive: place flower pot + flower, verify NOT TRACKED via spoilage debug
   inspect (needs player) or by breaking and reading the drop for a component.
+
+## Refill 2026-09-16 (L7 boundary — tracker/count invariant sweep)
+
+- [x] L7: **Crafter output — tracker/count invariant through the crafting robot.** — NO_BUG pass 1293: output 1 bread 1 tracker; input consumed worst-first, 8 trackers for 8 wheat. No phantom trackers. The
+  crafter crafts from its container; CrafterBlockMixin exists — verify the crafted output
+  carries trackers matching its count (not the input's count). Drive: crafter with tracked
+  ingredients, craft, read output. Control: same recipe by hand.
+- [ ] L7: **Anvil repair with tracked food-adjacent items — combine path.** Two tracked
+  items combined in an anvil (rename/repair) — the result's tracker count must equal 1, not
+  the sum. Probe the code path (ScreenHandlerMixin covers anvil slots?) and drive if
+  reachable; else close by code trace with citations.
+- [ ] L7: **Grindstone on a tracked item — component stripped or preserved?** The grindstone
+  removes enchantments; does it strip the SPOILAGE component too (non-enchantment data)?
+  Drive: tracked item + grindstone via menuclick, read result. If stripped, that is a
+  laundering hole (fresh item from a rotten one).
+- [ ] L7: **Item frame rotation does not touch the component.** Rotating an item in a frame
+  fires interactions; the frame's aging mixin must not double-age or reset. Drive: place
+  tracked food in frame, rotate, read back. Control: unrotated frame.
+- [ ] L7: **Loom/stonecutter/cartography on tracked items — container menus that transform.**
+  These menus consume input into a result slot; if a tracked item passes through, the result
+  must not inherit the input's trackers (count mismatch). Probe SlotMixin coverage; drive
+  the stonecutter (reachable via menuclick) with a tracked input.
