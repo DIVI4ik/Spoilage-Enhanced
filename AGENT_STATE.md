@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1302
+Pass: 1303
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: Release v1.1.25 published (atomic overlay config save + log accuracy + dead class removal)
+Current task: L13 ender chest per-player isolation - NO_BUG (component survives in and out; isolation is vanilla per-player EnderItems)
 Last lens: L9 integration
-Recent: FIXED FIXED FIXED NO_BUG NO_BUG
-Barren streak: 0
+Recent: NO_BUG FIXED FIXED FIXED NO_BUG
+Barren streak: 1
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-16 20:52
+Updated: 2026-09-16 21:57
 
 ## Notes
 

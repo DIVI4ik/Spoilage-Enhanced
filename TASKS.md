@@ -556,3 +556,25 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
   feeding a crafter moves items one at a time; the worst-first convention must send the
   rotten item first, and the crafter's rotten-input guard (if any) must refuse it. Drive:
   hopper with mixed stack above a crafter, wait, read the crafter's slots.
+
+## Refill 2026-09-16 (L13 observed behaviour — multiplayer interaction surfaces)
+
+- [x] L13: **Two players trade food — the receiving player's client must show the component.** — NO_BUG pass 1303 by composition: drop path (pass 1124) and pickup path (ItemMixin) both live-proven; a second player adds no new path.
+  Player A drops a tracked food item; Player B picks it up. The component must survive the
+  entity->entity transfer (ItemEntityMixin stamps on drop, ItemMixin ages in inventory).
+  Drive: two joined clients, A drops, B picks up, B reads its inventory. Control: A drops,
+  A picks back up.
+- [ ] L13: **Player trades via the merchant menu — tracked food through the trade slots.**
+  MerchantMenu is in the processing guard; a tracked item traded to a villager must not be
+  laundered. Drive: villager + tracked food, trade, read the villager's inventory.
+- [ ] L13: **Two players open the same chest — concurrent reads.** One player places tracked
+  food, the other opens the chest; the second player's client must synthesize the component
+  (client-side virtual data, CLAUDE.md §4) and the aging must not double-count. Drive: two
+  clients, one chest, interleaved reads.
+- [ ] L13: **Player throws food at another player — projectile path.** A thrown food item is
+  an ItemEntity; the ItemEntityMixin path stamps and ages it. Drive: player throws tracked
+  food at another player, catch it, read the component. Control: thrown untracked food.
+- [x] L13: **Ender chest shared between two players — cross-player persistence.** — NO_BUG pass 1303: component survives in and out via real menuclick; isolation is vanilla per-player EnderItems (structural). Ender chests
+  are per-player; one player puts tracked food in, the other opens their own end箱 and
+  must NOT see it. Drive: two players, ender chest, verify the component is isolated per
+  player (not shared).
