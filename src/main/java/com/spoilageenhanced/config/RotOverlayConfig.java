@@ -133,11 +133,25 @@ public class RotOverlayConfig {
         Path configDir = SpoilageEnhancedPlatform.getConfigDir();
         Path configFile = configDir.resolve(CONFIG_FILENAME);
 
-        try (Writer writer = new FileWriter(configFile.toFile())) {
+        // Pass 1291 (L1 — silent failure): same fix as SpoilageConfig.save (pass 1289) —
+        // a direct FileWriter truncates the target first, so a crash mid-write left a
+        // half-written JSON and the next load silently reset the player's overlay
+        // overrides to defaults. Write to a temp file and move atomically.
+        Path tempFile = configFile.resolveSibling(CONFIG_FILENAME + ".tmp");
+        try (Writer writer = new FileWriter(tempFile.toFile())) {
             GSON.toJson(this, writer);
         } catch (Exception e) {
             SpoilageEnhancedLogger.log(SpoilageEnhancedLogger.LogCategory.GENERAL,
                     "Failed to save rot overlay config: " + e.getMessage());
+            return;
+        }
+        try {
+            java.nio.file.Files.move(tempFile, configFile,
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            SpoilageEnhancedLogger.log(SpoilageEnhancedLogger.LogCategory.GENERAL,
+                    "Failed to replace rot overlay config (new copy left in "
+                    + tempFile.getFileName() + "): " + e.getMessage());
         }
     }
 }

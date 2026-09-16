@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1290
+Pass: 1291
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: Release v1.1.24 published (nested-bundle aging fix + atomic config save)
+Current task: L1 silent failure — FIXED (RotOverlayConfig.save atomic, same fix as pass 1289)
 Last lens: L1 silent failure
 Recent: FIXED FIXED NO_BUG NO_BUG NO_BUG
 Barren streak: 0
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-16 14:36
+Updated: 2026-09-16 15:17
 
 ## Notes
 
