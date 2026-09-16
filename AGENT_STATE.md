@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1273
+Pass: 1274
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L12 claim drift — FIXED (WanderingTrader tick citation pointed at inner Goal class)
-Last lens: L12 claim drift
-Recent: FIXED FIXED FIXED NO_BUG NO_BUG
-Barren streak: 6
+Current task: L5 render path — FIXED (anchor map never cleared on connection change; clear() had no caller)
+Last lens: L5 render path
+Recent: FIXED FIXED FIXED FIXED NO_BUG
+Barren streak: 0
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-16 03:57
+Updated: 2026-09-16 05:18
 
 ## Notes
 

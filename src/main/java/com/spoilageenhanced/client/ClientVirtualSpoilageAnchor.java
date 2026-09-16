@@ -71,6 +71,12 @@ public final class ClientVirtualSpoilageAnchor {
      * the first sighting even while in view" — it does not.</p>
      */
     public static long firstSeen(ItemStack stack, long currentGameTime) {
+        // Pass 1274: connection switch invalidates every origin (see the field javadoc).
+        int connHash = currentConnectionHash();
+        if (connHash != cachedConnectionHash) {
+            ANCHORS.clear();
+            cachedConnectionHash = connHash;
+        }
         int key = System.identityHashCode(stack);
         int itemHash = stack.getItem().hashCode();
 
@@ -97,8 +103,27 @@ public final class ClientVirtualSpoilageAnchor {
         return currentGameTime;
     }
 
-    /** Drop everything. Called on disconnect so a new world does not inherit stale origins. */
+    /** Drop everything. Called on connection change so a new world does not inherit stale origins. */
     public static void clear() {
         ANCHORS.clear();
+    }
+
+    /**
+     * Pass 1274 (L5 — render path): the javadoc on {@link #clear()} claimed "called on
+     * disconnect" but NOTHING called it — grep found no caller, so origins survived a server
+     * switch. A recycled identity hash on the same item type then handed the new world a
+     * {@code firstSeen} from the old one, and the countdown started from a wrong origin (the
+     * {@code currentGameTime >= firstSeen} guard only resets when the new clock is EARLIER;
+     * a later clock on the new server keeps the stale origin silently). Same fix shape as
+     * {@code ClientBlockSpoilageCache} (pass 206): fingerprint the connection and clear on
+     * any change. Checked inside {@link #firstSeen} so no disconnect event hook is needed.
+     */
+    private static int cachedConnectionHash;
+
+    private static int currentConnectionHash() {
+        net.minecraft.client.Minecraft client = net.minecraft.client.Minecraft.getInstance();
+        if (client == null) return 0;
+        net.minecraft.client.multiplayer.ClientPacketListener conn = client.getConnection();
+        return conn == null ? 0 : System.identityHashCode(conn);
     }
 }

@@ -167,4 +167,20 @@ public class ClientVirtualSpoilageAnchorTest {
         long after = ClientVirtualSpoilageAnchor.firstSeen(stack, 1602L);
         assertEquals(1602L, after, "Past TTL of last touch should reset origin");
     }
+
+    /**
+     * Pass 1274 regression: the connection-hash guard. In a headless test
+     * Minecraft.getInstance() is null, so currentConnectionHash() returns 0 for
+     * every call — the hash never changes and the guard never clears mid-test,
+     * which is exactly what these tests need (they exercise firstSeen directly
+     * and rely on clear() in @AfterEach). This test pins that the guard does not
+     * break the stable-origin contract when the connection hash is constant.
+     */
+    @Test
+    void constantConnectionHashPreservesOrigin() {
+        ItemStack stack = new ItemStack(Items.APPLE);
+        long first = ClientVirtualSpoilageAnchor.firstSeen(stack, 1000L);
+        long second = ClientVirtualSpoilageAnchor.firstSeen(stack, 1200L);
+        assertEquals(first, second, "origin must stay stable while the connection hash is constant");
+    }
 }
