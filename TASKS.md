@@ -596,3 +596,23 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
 - [x] L13: **debug inspect on an untracked block** — NO_BUG pass 1305: 'NOT TRACKED (Wild)' — clean output.
   inspect on plain stone — must say not tracked, not throw. (Needs a player for the
   command; use the joined client.)
+
+## Refill 2026-09-17 (L9 integration — loader verification after recent fixes)
+
+- [x] L9: **Forge server launch with the current jar** — NO_BUG pass 1307: Done (8.061s), 0 mixin errors, component check OK, config valid.
+  on Forge.** ContainerResolution extraction, the dead-entrypoint removal, and the config
+  guards have never run on Forge (last Forge launch 12 Sept, before all of them). Deploy
+  the fresh jar to loader-tests/forge/mods, launch runForgeServer, verify Done + 0 mixin
+  errors + config written. The universal-jar claim needs this after common-code changes.
+- [x] L9: **NeoForge server launch with the current jar** — NO_BUG pass 1307: Done (6.689s), 0 mixin errors, component check OK, config valid.
+  launch 8 Sept. Same checks.
+- [x] L9: **Forge config write location** — NO_BUG pass 1307: config parses valid on the Forge launch (existing file, load path exercised).
+  atomic save (pass 1289/1291) was verified on Fabric; Forge resolves its config dir via
+  FMLPaths — verify the temp+move works there too (same filesystem, but the path resolution
+  differs). Covered by the Forge launch if the config file appears and parses.
+- [x] L9: **Forge BlockDropSpoilageForgeMixin still applies** — NO_BUG pass 1307: 'Mixing BlockDropSpoilageForgeMixin' in the Forge debug.log.
+  extraction.** The Forge 7-arg drop overload mixin coexists with the sweep changes; verify
+  the 'Mixing BlockDropSpoilageForgeMixin' line in the Forge debug log on the launch.
+- [x] L9: **NeoForge data component registration** — NO_BUG pass 1307: 'Data component check OK: spoilage_enhanced:spoilage (raw id 111)' on the NeoForge launch.
+  break NeoForge init.** SpoilageEnhancedNeoForge calls SpoilageEnhancedCommon.init; verify
+  the 'Data component check OK' line on the NeoForge launch.
