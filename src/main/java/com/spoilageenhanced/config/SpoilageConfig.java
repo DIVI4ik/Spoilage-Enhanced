@@ -830,12 +830,12 @@ public class SpoilageConfig {
         }
     }
 
-    public void registerDynamicFoodItem(String itemId, long freshTicks, long staleTicks) {
-        registerDynamicFoodItem(itemId, freshTicks, staleTicks, false);
+    public boolean registerDynamicFoodItem(String itemId, long freshTicks, long staleTicks) {
+        return registerDynamicFoodItem(itemId, freshTicks, staleTicks, false);
     }
 
-    public void registerDynamicFoodItem(String itemId, long freshTicks, long staleTicks, boolean autoSave) {
-        registerDynamicFoodItem(itemId, freshTicks, staleTicks, autoSave, false);
+    public boolean registerDynamicFoodItem(String itemId, long freshTicks, long staleTicks, boolean autoSave) {
+        return registerDynamicFoodItem(itemId, freshTicks, staleTicks, autoSave, false);
     }
 
     /**
@@ -845,8 +845,13 @@ public class SpoilageConfig {
      *                count as food evidence when the scanner looks at further recipes, or
      *                spoilage walks down every crafting chain that starts at a vegetable.
      */
-    public void registerDynamicFoodItem(String itemId, long freshTicks, long staleTicks, boolean autoSave, boolean derived) {
-        if (getExcludedSet().contains(itemId)) return;
+    public boolean registerDynamicFoodItem(String itemId, long freshTicks, long staleTicks, boolean autoSave, boolean derived) {
+        // Pass 1292 (L1 — silent failure): returns whether the item was actually
+        // registered, so callers can log accurately. An excluded item is silently
+        // rejected here — the old void signature let AutoFoodDetector log
+        // 'registered minecraft:chorus_fruit' for an item the exclusion had just
+        // refused, a log line that contradicts the config.
+        if (getExcludedSet().contains(itemId)) return false;
 
         if (derived && !derived_items.contains(itemId)) {
             derived_items.add(itemId);
@@ -872,6 +877,7 @@ public class SpoilageConfig {
         // from additional_tracked_items / derived_items and would otherwise stay stale.
         additionalSet = null;
         if (derived) derivedSet = null;
+        return true;
     }
 
     // ======================== Load / Save ========================

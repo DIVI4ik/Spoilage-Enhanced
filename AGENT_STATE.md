@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1291
+Pass: 1292
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L1 silent failure — FIXED (RotOverlayConfig.save atomic, same fix as pass 1289)
+Current task: L1 silent failure — FIXED (misleading 'registered' log lines for excluded items; registerDynamicFoodItem now returns success)
 Last lens: L1 silent failure
-Recent: FIXED FIXED NO_BUG NO_BUG NO_BUG
+Recent: FIXED FIXED FIXED NO_BUG NO_BUG
 Barren streak: 0
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-16 15:17
+Updated: 2026-09-16 16:09
 
 ## Notes
 

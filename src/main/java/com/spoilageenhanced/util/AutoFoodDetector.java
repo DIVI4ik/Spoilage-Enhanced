@@ -147,10 +147,15 @@ public class AutoFoodDetector {
                 String itemId = BuiltInRegistries.ITEM.getKey(item).toString();
                 long fresh = Math.max(1L, (long) (config.getBaseFreshDurationForItem(item) * factor));
                 long stale = Math.max(1L, (long) (config.getBaseStaleDurationForItem(item) * factor));
-                config.registerDynamicFoodItem(itemId, fresh, stale, false);
-                SpoilageEnhancedLogger.log(SpoilageEnhancedLogger.LogCategory.DATA,
-                        "AutoFoodDetector: registered " + itemId + " (fresh=" + fresh + ", stale=" + stale + ")");
-                items++;
+                // Pass 1292: log only when the registration actually happened — an
+                // excluded item is silently rejected inside registerDynamicFoodItem,
+                // and the old unconditional line logged 'registered' for items the
+                // exclusion had just refused (chorus_fruit in the default config).
+                if (config.registerDynamicFoodItem(itemId, fresh, stale, false)) {
+                    SpoilageEnhancedLogger.log(SpoilageEnhancedLogger.LogCategory.DATA,
+                            "AutoFoodDetector: registered " + itemId + " (fresh=" + fresh + ", stale=" + stale + ")");
+                    items++;
+                }
             } catch (Throwable t) {
                 // One broken item must never abort world loading.
                 SpoilageEnhancedLogger.log(SpoilageEnhancedLogger.LogCategory.DATA,

@@ -199,11 +199,16 @@ public class RecipeScanner {
                                 // evidence of foodness on the next of the five scanner passes,
                                 // which is what walked spoilage from beetroot to dye to wool to
                                 // beds.
-                                SpoilageConfig.getInstance().registerDynamicFoodItem(outputId, avgFresh, avgStale, false, true);
-                                SpoilageEnhancedLogger.log(SpoilageEnhancedLogger.LogCategory.DATA, "RecipeScanner: Discovered composite recipe food " + outputId
-                                        + " (Pass " + pass + ", Spoilable ratio: " + String.format("%.0f%%", spoilableRatio * 100) + ", Fresh duration: " + avgFresh + " ticks)");
-                                totalCompositeFoodsFound++;
-                                newlyDiscoveredThisPass++;
+                                // Pass 1292: log only when the registration actually happened —
+                                // an excluded item is silently rejected inside
+                                // registerDynamicFoodItem, and the old unconditional line
+                                // logged 'Discovered' for items the exclusion had refused.
+                                if (SpoilageConfig.getInstance().registerDynamicFoodItem(outputId, avgFresh, avgStale, false, true)) {
+                                    SpoilageEnhancedLogger.log(SpoilageEnhancedLogger.LogCategory.DATA, "RecipeScanner: Discovered composite recipe food " + outputId
+                                            + " (Pass " + pass + ", Spoilable ratio: " + String.format("%.0f%%", spoilableRatio * 100) + ", Fresh duration: " + avgFresh + " ticks)");
+                                    totalCompositeFoodsFound++;
+                                    newlyDiscoveredThisPass++;
+                                }
                             }
                         }
                     }
