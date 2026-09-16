@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1277
+Pass: 1278
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L13 observed — README 'dig up early get rotten produce' claim verified live (carrot age=1 -> rotten_count:1)
+Current task: L13 observed — README 'cannot plant rotten seeds' verified live (rotten potato refused, fresh control planted)
 Last lens: L13 observed behaviour
-Recent: NO_BUG FIXED FIXED FIXED FIXED
-Barren streak: 2
+Recent: NO_BUG NO_BUG FIXED FIXED FIXED
+Barren streak: 3
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-16 07:49
+Updated: 2026-09-16 08:32
 
 ## Notes
 
