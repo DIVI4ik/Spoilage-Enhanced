@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1298
+Pass: 1299
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L13 furnace minecart - NO_BUG (MinecartFurnace carries only Fuel, no inventory; nothing to age)
+Current task: L13 comparator non-interference + hopper->crafter - NO_BUG (signal reads counts only; hopper->crafter covered by passes 1280+1293)
 Last lens: L1 silent failure
 Recent: NO_BUG NO_BUG NO_BUG NO_BUG NO_BUG
-Barren streak: 6
+Barren streak: 7
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-16 17:43
+Updated: 2026-09-16 18:20
 
 ## Notes
 

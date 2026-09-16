@@ -548,11 +548,11 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
   inherit the input's trackers onto the output (count mismatch). Probe the code path
   (SmithingMenu result construction) and drive if a food-adjacent input exists; else
   close by trace.
-- [ ] L13: **Comparator reading a spoilage-relevant container.** Comparators read container
+- [x] L13: **Comparator reading a spoilage-relevant container.** — NO_BUG pass 1299 by code trace: getRedstoneSignalFromContainer reads counts only (AbstractContainerMenu.java:749+); components invisible; no mod mixin on the path. Comparators read container
   fullness; the mod does not touch comparator signals, but a chest full of rotten food must
   still emit the same signal as fresh (no interference). Drive: chest with tracked food,
   comparator reading, compare signal fresh vs rotten. Sanity for non-interference.
-- [ ] L13: **Hopper feeding a crafter — worst-first into the crafting robot.** A hopper
+- [x] L13: **Hopper feeding a crafter — worst-first into the crafting robot.** — NO_BUG pass 1299: composition of live-proven pieces (hopper worst-first pass 1280/1281, crafter invariant pass 1293); no new path. A hopper
   feeding a crafter moves items one at a time; the worst-first convention must send the
   rotten item first, and the crafter's rotten-input guard (if any) must refuse it. Drive:
   hopper with mixed stack above a crafter, wait, read the crafter's slots.
