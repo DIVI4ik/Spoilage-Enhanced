@@ -1,5 +1,6 @@
 package com.spoilageenhanced.mixin;
 
+import com.spoilageenhanced.util.ContainerResolution;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -17,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Pass 1275 regression test: the pass-1265 getContainer() reflection in
- * {@code ContainerAgingSweepMixin.asAgingContainer}.
+ * {@code ContainerResolution.asAgingContainer}.
  *
  * The sweep originally recognised only block entities that implement {@link Container}
  * directly. Cooking for Blockheads' block entities do not — they expose their inventory
@@ -96,10 +97,10 @@ public class AsAgingContainerTest {
     }
 
     /** A block entity exposing its inventory via getContainer() — the Balm/C4B shape. */
-    static class GetterContainerBe extends BlockEntity {
+    public static class GetterContainerBe extends BlockEntity {
         final SimpleContainer backing = new SimpleContainer(1);
 
-        GetterContainerBe() {
+        public GetterContainerBe() {
             super(net.minecraft.world.level.block.entity.BlockEntityTypes.CHEST, BlockPos.ZERO, stoneState());
         }
 
@@ -129,27 +130,27 @@ public class AsAgingContainerTest {
     @Test
     void directContainerBeReturnsItself() {
         DirectContainerBe be = new DirectContainerBe();
-        assertSame(be, ContainerAgingSweepMixin.asAgingContainer(be),
+        assertSame(be, ContainerResolution.asAgingContainer(be),
                 "a BlockEntity implementing Container must resolve to itself");
     }
 
     @Test
     void getterContainerBeReturnsItsBacking() {
         GetterContainerBe be = new GetterContainerBe();
-        Container resolved = ContainerAgingSweepMixin.asAgingContainer(be);
+        Container resolved = ContainerResolution.asAgingContainer(be);
         assertSame(be.backing, resolved,
                 "a BlockEntity with a public getContainer() must resolve to that container");
     }
 
     @Test
     void wrongReturnTypeIsAnsweredNull() {
-        assertNull(ContainerAgingSweepMixin.asAgingContainer(new WrongReturnTypeBe()),
+        assertNull(ContainerResolution.asAgingContainer(new WrongReturnTypeBe()),
                 "a getContainer() returning a non-Container type must not resolve");
     }
 
     @Test
     void noAccessorIsAnsweredNull() {
-        assertNull(ContainerAgingSweepMixin.asAgingContainer(new NoAccessorBe()),
+        assertNull(ContainerResolution.asAgingContainer(new NoAccessorBe()),
                 "a BlockEntity with no accessor must answer null");
     }
 
@@ -159,8 +160,8 @@ public class AsAgingContainerTest {
         // Method and still resolve correctly (the cache is keyed by class, not instance).
         GetterContainerBe first = new GetterContainerBe();
         GetterContainerBe second = new GetterContainerBe();
-        assertSame(first.backing, ContainerAgingSweepMixin.asAgingContainer(first));
-        assertSame(second.backing, ContainerAgingSweepMixin.asAgingContainer(second),
+        assertSame(first.backing, ContainerResolution.asAgingContainer(first));
+        assertSame(second.backing, ContainerResolution.asAgingContainer(second),
                 "the cached accessor must be invoked per instance, not return one instance's container");
     }
 }
