@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1293
+Pass: 1294
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L7 boundary - Crafter output tracker/count invariant verified (1 output tracker for 1 item)
+Current task: L7 anvil combine path - NO_BUG (input.copy preserves components; food not repairable; rotten guard covers anvil inputs)
 Last lens: L1 silent failure
-Recent: NO_BUG FIXED FIXED FIXED FIXED
-Barren streak: 1
+Recent: NO_BUG NO_BUG FIXED FIXED FIXED
+Barren streak: 2
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-16 16:30
+Updated: 2026-09-16 16:38
 
 ## Notes
 

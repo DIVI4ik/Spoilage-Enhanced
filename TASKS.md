@@ -517,7 +517,7 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
   crafter crafts from its container; CrafterBlockMixin exists — verify the crafted output
   carries trackers matching its count (not the input's count). Drive: crafter with tracked
   ingredients, craft, read output. Control: same recipe by hand.
-- [ ] L7: **Anvil repair with tracked food-adjacent items — combine path.** Two tracked
+- [x] L7: **Anvil repair with tracked food-adjacent items — combine path.** — NO_BUG pass 1294 by code trace: createResult = input.copy() (AnvilMenu.java:126) preserves components; food not repairable; rotten guard covers anvil inputs (ScreenHandlerMixin.java:275,309). Two tracked
   items combined in an anvil (rename/repair) — the result's tracker count must equal 1, not
   the sum. Probe the code path (ScreenHandlerMixin covers anvil slots?) and drive if
   reachable; else close by code trace with citations.
