@@ -100,7 +100,8 @@ public class RotOverlayConfig {
         Path configDir = SpoilageEnhancedPlatform.getConfigDir();
         Path configFile = configDir.resolve(CONFIG_FILENAME);
 
-        if (Files.exists(configFile)) {
+        boolean fileExists = Files.exists(configFile);
+        if (fileExists) {
             try (Reader reader = new FileReader(configFile.toFile())) {
                 RotOverlayConfig config = GSON.fromJson(reader, RotOverlayConfig.class);
                 if (config != null) {
@@ -111,6 +112,12 @@ public class RotOverlayConfig {
                         "Failed to load rot overlay config: " + e.getMessage());
             }
         }
+        // Pass 1306 (L1 — silent failure): a file that EXISTS but does not parse must not
+        // be overwritten below. The old flow fell through to the defaults branch, whose
+        // save() wrote the defaults over the corrupt file — destroying the player's
+        // overlay overrides on disk (same shape as the SpoilageConfig reload defect,
+        // pass 1305). Defaults are still USED for this session so the overlays render;
+        // the file is left untouched for repair.
 
         RotOverlayConfig config = new RotOverlayConfig();
         config.item_overrides.put("minecraft:cooked_beef", "mold_web");
@@ -125,7 +132,10 @@ public class RotOverlayConfig {
         config.item_overrides.put("minecraft:pumpkin_pie", "mold_crust");
         config.item_overrides.put("minecraft:cake", "mold_crust");
 
-        config.save();
+        if (!fileExists) {
+            // First run only — writing defaults over a corrupt file would destroy edits.
+            config.save();
+        }
         return config;
     }
 

@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1305
+Pass: 1306
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L13 command robustness - FIXED (corrupt-config reload reported success and overwrote the file with defaults)
-Last lens: L13 observed behaviour
-Recent: FIXED NO_BUG NO_BUG NO_BUG NO_BUG
+Current task: L1 silent failure - FIXED (RotOverlayConfig.load no longer overwrites a corrupt file with defaults)
+Last lens: L1 silent failure
+Recent: FIXED FIXED NO_BUG NO_BUG NO_BUG
 Barren streak: 0
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-17 00:20
+Updated: 2026-09-17 00:49
 
 ## Notes
 
