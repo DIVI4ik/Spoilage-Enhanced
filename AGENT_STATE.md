@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1295
+Pass: 1296
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L7 grindstone component preservation - NO_BUG (rotten sword stays rotten through the grindstone)
+Current task: L7 transform menus + frame rotation - NO_BUG (recipe.assemble path for food, non-food for the rest, rotation does not touch components)
 Last lens: L1 silent failure
-Recent: NO_BUG NO_BUG NO_BUG FIXED FIXED
-Barren streak: 3
+Recent: NO_BUG NO_BUG NO_BUG NO_BUG FIXED
+Barren streak: 4
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-16 17:11
+Updated: 2026-09-16 17:15
 
 ## Notes
 

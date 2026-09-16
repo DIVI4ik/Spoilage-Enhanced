@@ -525,10 +525,10 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
   removes enchantments; does it strip the SPOILAGE component too (non-enchantment data)?
   Drive: tracked item + grindstone via menuclick, read result. If stripped, that is a
   laundering hole (fresh item from a rotten one).
-- [ ] L7: **Item frame rotation does not touch the component.** Rotating an item in a frame
+- [x] L7: **Item frame rotation does not touch the component.** — NO_BUG pass 1296 by code trace: rotation changes the frame Rotation field only; ItemFrameMixin ages the held stack regardless (pass 1158). Rotating an item in a frame
   fires interactions; the frame's aging mixin must not double-age or reset. Drive: place
   tracked food in frame, rotate, read back. Control: unrotated frame.
-- [ ] L7: **Loom/stonecutter/cartography on tracked items — container menus that transform.**
+- [x] L7: **Loom/stonecutter/cartography on tracked items — container menus that transform.** — NO_BUG pass 1296 by code trace: stonecutter result via recipe.assemble (StonecutterMenu.java:157, food stamped FRESH by design); loom/cartography transform non-food only.
   These menus consume input into a result slot; if a tracked item passes through, the result
   must not inherit the input's trackers (count mismatch). Probe SlotMixin coverage; drive
   the stonecutter (reachable via menuclick) with a tracked input.
