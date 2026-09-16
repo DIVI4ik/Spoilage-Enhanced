@@ -450,7 +450,7 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
 - [x] L14: **C4B chicken sink feed aging.** — NO_BUG pass 1268: feed wheat aged fresh->stale (stale_expirations:[4013000L]) in chicken_sink slot 0 via sweep getContainer() path. No gap. ChickenSinkBlockEntity has getContainer() (feed +
   egg sub-containers). Drive: setblock cookingforblockheads:chicken_sink, insert seeds/wheat
   into the feed container, wait, read back. Control: chest beside it.
-- [ ] L14: **C4B cabinet aging (inherits CounterBlockEntity).** CabinetBlockEntity extends
+- [x] L14: **C4B cabinet aging (inherits CounterBlockEntity).** — NO_BUG pass 1269: apple aged fresh->stale (stale_expirations:[3999600L]) in cabinet slot 0. Counter mixin + sweep both cover it; idempotent (pass 1187), no double-aging. CabinetBlockEntity extends
   CounterBlockEntity so CounterBlockEntityMixin applies to it too — but the mixin's
   getContainer() shadow binds to the COUNTER's container; the cabinet also has
   getCombinedContainer(). Verify live: tracked apple in a placed cabinet ages (and does not
