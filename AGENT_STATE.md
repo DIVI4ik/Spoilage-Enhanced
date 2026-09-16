@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1296
+Pass: 1297
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L7 transform menus + frame rotation - NO_BUG (recipe.assemble path for food, non-food for the rest, rotation does not touch components)
+Current task: L13 campfire four-slot cooking - NO_BUG (all slots cook, outputs stamped FRESH, 1 tracker per item)
 Last lens: L1 silent failure
-Recent: NO_BUG NO_BUG NO_BUG NO_BUG FIXED
-Barren streak: 4
+Recent: NO_BUG NO_BUG NO_BUG NO_BUG NO_BUG
+Barren streak: 5
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-16 17:15
+Updated: 2026-09-16 17:30
 
 ## Notes
 

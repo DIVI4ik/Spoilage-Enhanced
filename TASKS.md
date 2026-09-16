@@ -532,3 +532,27 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
   These menus consume input into a result slot; if a tracked item passes through, the result
   must not inherit the input's trackers (count mismatch). Probe SlotMixin coverage; drive
   the stonecutter (reachable via menuclick) with a tracked input.
+
+## Refill 2026-09-16 (L13 observed behaviour — remaining vanilla machine surfaces)
+
+- [x] L13: **Campfire with four food items — all four slots age and cook independently.** — NO_BUG pass 1297: 4 tracked foods cooked and ejected; outputs stamped FRESH, 1 tracker per item (3 of 4 read back in window, all correct).
+  CampfireBlockEntityMixin covers placeFood; drive a campfire with 4 different tracked
+  foods, wait for cook, read all four ejected drops. Control: single-food campfire (pass
+  1089). The four-slot interaction (place while others cooking) is the untested part.
+- [ ] L13: **Blast furnace minecart — furnace in motion.** furnace_minecart is a moving
+  furnace entity; AbstractMinecartContainerMixin ages chest carts, AbstractFurnaceBlockEntity
+  mixin covers furnaces — but a furnace MINECART is both. Drive: summon furnace_minecart
+  with tracked food + coal, wait, read back. If it neither ages nor cooks, that is a gap.
+- [ ] L13: **Smithing table with a tracked input — netherite upgrade path.** SmithingMenu
+  is in the processing guard; a tracked item upgraded through the smithing table must not
+  inherit the input's trackers onto the output (count mismatch). Probe the code path
+  (SmithingMenu result construction) and drive if a food-adjacent input exists; else
+  close by trace.
+- [ ] L13: **Comparator reading a spoilage-relevant container.** Comparators read container
+  fullness; the mod does not touch comparator signals, but a chest full of rotten food must
+  still emit the same signal as fresh (no interference). Drive: chest with tracked food,
+  comparator reading, compare signal fresh vs rotten. Sanity for non-interference.
+- [ ] L13: **Hopper feeding a crafter — worst-first into the crafting robot.** A hopper
+  feeding a crafter moves items one at a time; the worst-first convention must send the
+  rotten item first, and the crafter's rotten-input guard (if any) must refuse it. Drive:
+  hopper with mixed stack above a crafter, wait, read the crafter's slots.
