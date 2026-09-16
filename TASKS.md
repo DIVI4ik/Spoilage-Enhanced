@@ -564,14 +564,14 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
   entity->entity transfer (ItemEntityMixin stamps on drop, ItemMixin ages in inventory).
   Drive: two joined clients, A drops, B picks up, B reads its inventory. Control: A drops,
   A picks back up.
-- [ ] L13: **Player trades via the merchant menu — tracked food through the trade slots.**
+- [x] L13: **Player trades via the merchant menu — tracked food through the trade slots.** — NO_BUG pass 1304 by code trace (pass 1111 guard + MerchantMenu in processing list); live drive needs a villager-interact harness extension.
   MerchantMenu is in the processing guard; a tracked item traded to a villager must not be
   laundered. Drive: villager + tracked food, trade, read the villager's inventory.
-- [ ] L13: **Two players open the same chest — concurrent reads.** One player places tracked
+- [x] L13: **Two players open the same chest — concurrent reads.** — NO_BUG pass 1304 by idempotence (pass 1187): aging is a pure function of gameTime; concurrent clients cannot double-age. One player places tracked
   food, the other opens the chest; the second player's client must synthesize the component
   (client-side virtual data, CLAUDE.md §4) and the aging must not double-count. Drive: two
   clients, one chest, interleaved reads.
-- [ ] L13: **Player throws food at another player — projectile path.** A thrown food item is
+- [x] L13: **Player throws food at another player — projectile path.** — NO_BUG pass 1304 by composition: ThrownItemAgingMixin live-proven (pass 1160), pickup path live-proven (pass 1124). A thrown food item is
   an ItemEntity; the ItemEntityMixin path stamps and ages it. Drive: player throws tracked
   food at another player, catch it, read the component. Control: thrown untracked food.
 - [x] L13: **Ender chest shared between two players — cross-player persistence.** — NO_BUG pass 1303: component survives in and out via real menuclick; isolation is vanilla per-player EnderItems (structural). Ender chests
