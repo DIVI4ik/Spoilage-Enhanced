@@ -469,7 +469,7 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
   2-stack of tracked food (1 fresh 1 rotten via data modify), activate it (setblock redstone
   block beside), read the ejected ItemEntity's component — the worst-first convention says
   the ejected single item must be the ROTTEN one. Control: same stack split by hand.
-- [ ] L13: **Rotten food thrown by a dropper into a hopper — worst-first through the chain.**
+- [x] L13: **Rotten food thrown by a dropper into a hopper — worst-first through the chain.** — NO_BUG pass 1281: apparent whole-stack move was the harness multi-firing the dropper (setblock redstone_block cascades); trace shows each fire moves count=1 worst-first with over-tracked trim. Per-fire logic correct.
   A dropper feeding a hopper moves one item at a time; the worst-first extraction must send
   the rotten item first. Drive: dropper with mixed 2-stack facing a hopper, activate, read
   the hopper's contents. Control: chest beside it.

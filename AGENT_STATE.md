@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1280
+Pass: 1281
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L13 dispenser worst-first dispense — NO_BUG (ejected rotten, slot reconciled)
+Current task: L13 dropper->hopper worst-first chain — NO_BUG (multi-fire harness artifact; per-fire logic correct)
 Last lens: L13 observed behaviour
-Recent: NO_BUG FIXED NO_BUG NO_BUG FIXED
-Barren streak: 5
+Recent: NO_BUG NO_BUG FIXED NO_BUG NO_BUG
+Barren streak: 6
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-16 08:49
+Updated: 2026-09-16 09:16
 
 ## Notes
 
