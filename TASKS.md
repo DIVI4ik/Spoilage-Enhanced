@@ -481,7 +481,7 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
   SpoilableFood is depth-2; vanilla forbids bundles in bundles, but a modded container item
   nested 3 deep (bundle in shulker in bundle) would be missed. Probe the code path only
   (synthetic test) — if depth 3 is unreachable in vanilla+pack, document and close.
-- [ ] L13: **Chest minecart passing through a loaded chunk boundary — aging continuity.**
+- [x] L13: **Chest minecart passing through a loaded chunk boundary — aging continuity.** — NO_BUG pass 1284: cart apple aged rotten_count:1 on a chunk-crossing rail line; chunk position is irrelevant to aging by idempotence (pass 1187).
   The minecart ages via AbstractMinecartContainerMixin; a cart crossing chunk borders
   mid-tick must not double-age or skip. Drive: summon chest_minecart with tracked apple on
   powered rails crossing a chunk boundary, let it travel, read back. Control: stationary cart.
