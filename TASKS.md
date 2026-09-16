@@ -460,3 +460,28 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
   all (milk_bucket is tracked as an item)? If fluid milk is invisible to the spoilage system,
   that is a gap shape (fluid food) the mod has never addressed — record it as a design
   question in PLAYER_REPORTS.md if confirmed, do not invent a fluid-aging mechanic.
+
+## Refill 2026-09-16 (L13 observed behaviour — untested player-facing paths)
+
+- [x] L13: **Dispenser dispenses rotten food — tracker reconciliation on the ejected stack.** — NO_BUG pass 1280: ejected stack = rotten_count:1 (worst first), remaining slot = 1 apple 1 fresh tracker (reconciled). Verified live.
+  DispenserBlockMixin + DefaultDispenseItemBehaviorMixin reconcile counts (pass 1250), but
+  the DISPENSED stack's state was verified only structurally. Drive live: dispenser with a
+  2-stack of tracked food (1 fresh 1 rotten via data modify), activate it (setblock redstone
+  block beside), read the ejected ItemEntity's component — the worst-first convention says
+  the ejected single item must be the ROTTEN one. Control: same stack split by hand.
+- [ ] L13: **Rotten food thrown by a dropper into a hopper — worst-first through the chain.**
+  A dropper feeding a hopper moves one item at a time; the worst-first extraction must send
+  the rotten item first. Drive: dropper with mixed 2-stack facing a hopper, activate, read
+  the hopper's contents. Control: chest beside it.
+- [ ] L13: **Stale milk drunk from a modded container (C4B fridge) — effects path.** The milk
+  effects (ClearAllStatusEffectsConsumeEffectMixin) were driven on vanilla milk_bucket; a
+  modded milk source (balm:milk in a bucket?) may bypass. Check whether balm:milk can exist
+  as an ItemStack at all; if not, record that and close.
+- [ ] L13: **Food in a bundle inside a bundle — depth-2 probe boundary.** stackIsOrCarries
+  SpoilableFood is depth-2; vanilla forbids bundles in bundles, but a modded container item
+  nested 3 deep (bundle in shulker in bundle) would be missed. Probe the code path only
+  (synthetic test) — if depth 3 is unreachable in vanilla+pack, document and close.
+- [ ] L13: **Chest minecart passing through a loaded chunk boundary — aging continuity.**
+  The minecart ages via AbstractMinecartContainerMixin; a cart crossing chunk borders
+  mid-tick must not double-age or skip. Drive: summon chest_minecart with tracked apple on
+  powered rails crossing a chunk boundary, let it travel, read back. Control: stationary cart.

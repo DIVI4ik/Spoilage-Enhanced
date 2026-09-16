@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1279
+Pass: 1280
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L12 claim drift — FIXED (loot_randomization comment said 'cumulative thresholds', values are weights)
-Last lens: L12 claim drift
-Recent: FIXED NO_BUG NO_BUG FIXED FIXED
-Barren streak: 4
+Current task: L13 dispenser worst-first dispense — NO_BUG (ejected rotten, slot reconciled)
+Last lens: L13 observed behaviour
+Recent: NO_BUG FIXED NO_BUG NO_BUG FIXED
+Barren streak: 5
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-16 08:37
+Updated: 2026-09-16 08:49
 
 ## Notes
 
