@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1301
+Pass: 1302
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L9 integration - FIXED (dead Fabric entrypoint removed from common code; loader isolation restored)
+Current task: Release v1.1.25 published (atomic overlay config save + log accuracy + dead class removal)
 Last lens: L9 integration
-Recent: FIXED FIXED NO_BUG NO_BUG NO_BUG
+Recent: FIXED FIXED FIXED NO_BUG NO_BUG
 Barren streak: 0
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-16 20:19
+Updated: 2026-09-16 20:52
 
 ## Notes
 
