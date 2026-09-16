@@ -10,8 +10,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
  * Pass 1204: the wandering trader half of the villager-inventory aging gap.
- * WanderingTrader.tick() is declared at WanderingTrader.java:250; the body is
- * shared with VillagerInventoryMixin via VillagerInventoryAging.
+ * WanderingTrader declares no tick() of its own (the tick at WanderingTrader.java:250
+ * belongs to an inner Goal class); aiStep() (WanderingTrader.java:204) is the per-tick
+ * method it does declare. The body is shared with VillagerInventoryMixin via
+ * VillagerInventoryAging.
  */
 @Mixin(WanderingTrader.class)
 public abstract class WanderingTraderInventoryMixin {

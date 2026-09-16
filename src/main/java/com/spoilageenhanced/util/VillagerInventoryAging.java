@@ -7,10 +7,11 @@ import net.minecraft.world.item.ItemStack;
 import java.util.List;
 
 /**
- * Shared aging body for the villager-inventory gap (pass 1204). AbstractVillager
- * declares no tick() of its own, so the hook must be injected into each
- * subclass's tick (Villager.java:278, WanderingTrader.java:250); both delegate
- * here so the logic exists once.
+ * Shared aging body for the villager-inventory aging gap (pass 1204). AbstractVillager
+ * declares no tick() of its own, so the hook must be injected into each subclass's
+ * per-tick entry point — Villager.tick() (Villager.java:278) and WanderingTrader.aiStep()
+ * (WanderingTrader.java:204; WanderingTrader declares no tick(), the tick at :250 is an
+ * inner Goal class) — both delegate here so the logic exists once.
  */
 public final class VillagerInventoryAging {
 

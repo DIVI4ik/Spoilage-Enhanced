@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1272
+Pass: 1273
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: Release v1.1.22 published (C4B container aging fixes)
+Current task: L12 claim drift — FIXED (WanderingTrader tick citation pointed at inner Goal class)
 Last lens: L12 claim drift
-Recent: FIXED FIXED NO_BUG NO_BUG NO_BUG
+Recent: FIXED FIXED FIXED NO_BUG NO_BUG
 Barren streak: 6
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-16 03:53
+Updated: 2026-09-16 03:57
 
 ## Notes
 
