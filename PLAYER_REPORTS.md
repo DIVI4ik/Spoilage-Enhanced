@@ -473,3 +473,22 @@ applied.`), so no additional head-of-mixin log line is needed: the path is obser
 as-is. The `rotteneat` selftest (pass 1211) covers the vanilla item unattended; the
 modded item was driven by hand here via `spoilage debug finisheat farmersdelight:cabbage
 rotten`, which builds the stack server-side and calls the real method.
+
+## 13. Fluid milk (C4B cow jar / milk jar) is invisible to the spoilage system (design question)
+
+Driven live on the 79-mod pack (pass 1269): a `cookingforblockheads:cow_jar` filled with
+`balm:milk` carries only a `FluidTank` — no item stack, no `spoilage_enhanced:spoilage`
+component, nothing the spoilage system can see. The mod's entire data model is an ItemStack
+component; fluid food has no representation in it, so milk in a jar never ages and never
+could, by construction.
+
+**This is a design question, not a gap.** The mod has never claimed to age fluids — the
+premise is item spoilage. A `milk_bucket` item IS tracked (it is an ItemStack), so the same
+milk is tracked in one form and untracked in another, which is the inconsistency a player
+would notice.
+
+**My lean: leave it.** Fluid aging would need a whole second data model (fluid component
+registry, per-tank state, sync) for one edge case, and the C4B cow jar is a novelty block
+(compressed cow producing infinite milk) whose whole point is convenience. If fluid food
+aging is ever wanted, it should be its own feature request with its own design, not a
+"fix" smuggled into a container-aging pass. Closed NO_BUG with this entry as the outcome.

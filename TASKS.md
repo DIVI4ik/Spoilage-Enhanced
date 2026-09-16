@@ -455,7 +455,7 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
   getContainer() shadow binds to the COUNTER's container; the cabinet also has
   getCombinedContainer(). Verify live: tracked apple in a placed cabinet ages (and does not
   double-age via the sweep's new getContainer() path + the counter mixin). Control: chest.
-- [ ] L14: **C4B cow jar / milk jar — fluid food, not item food.** MilkJarBlockEntity is a
+- [x] L14: **C4B cow jar / milk jar — fluid food, not item food.** — NO_BUG pass 1270: fluid milk carries no spoilage data (data model is ItemStack-only); milk_bucket item IS tracked. Design question written to PLAYER_REPORTS.md §13, lean: leave it. Not a gap. MilkJarBlockEntity is a
   BalmFluidTankProvider, not an item container. Milk in a fluid tank: does the mod track it at
   all (milk_bucket is tracked as an item)? If fluid milk is invisible to the spoilage system,
   that is a gap shape (fluid food) the mod has never addressed — record it as a design
