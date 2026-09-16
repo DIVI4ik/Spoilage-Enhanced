@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1276
+Pass: 1277
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: Release v1.1.23 published (anchor fix + ContainerResolution extraction)
-Last lens: L10 test coverage
-Recent: FIXED FIXED FIXED FIXED FIXED
-Barren streak: 1
+Current task: L13 observed — README 'dig up early get rotten produce' claim verified live (carrot age=1 -> rotten_count:1)
+Last lens: L13 observed behaviour
+Recent: NO_BUG FIXED FIXED FIXED FIXED
+Barren streak: 2
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-16 07:19
+Updated: 2026-09-16 07:49
 
 ## Notes
 
