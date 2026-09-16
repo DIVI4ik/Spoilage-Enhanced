@@ -173,7 +173,7 @@ public abstract class ContainerAgingSweepMixin {
      * block entity follows either convention is aged by this sweep without further work —
      * the generalisation test from the L14 rules.</p>
      */
-    private static Container asAgingContainer(BlockEntity blockEntity) {
+    static Container asAgingContainer(BlockEntity blockEntity) {
         if (blockEntity instanceof Container direct) {
             return direct;
         }
