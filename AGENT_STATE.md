@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1284
+Pass: 1285
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L13 chest minecart aging — NO_BUG (cart apple aged rotten_count:1; chunk position irrelevant by idempotence)
+Current task: L13 bundle selected-item tooltip — NO_BUG (no state shown for bundle contents in tooltip; aging correct, state visible on extraction)
 Last lens: L13 observed behaviour
-Recent: NO_BUG FIXED NO_BUG NO_BUG NO_BUG
-Barren streak: 1
+Recent: NO_BUG NO_BUG FIXED NO_BUG NO_BUG
+Barren streak: 2
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-16 12:20
+Updated: 2026-09-16 12:28
 
 ## Notes
 

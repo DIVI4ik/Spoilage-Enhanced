@@ -485,3 +485,28 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
   The minecart ages via AbstractMinecartContainerMixin; a cart crossing chunk borders
   mid-tick must not double-age or skip. Drive: summon chest_minecart with tracked apple on
   powered rails crossing a chunk boundary, let it travel, read back. Control: stationary cart.
+
+## Refill 2026-09-16 (L13 observed behaviour — remaining vanilla interaction surfaces)
+
+- [x] L13: **Bundle SELECTED item aging — the selected slot is drawn separately.** — NO_BUG pass 1285 by code trace: tooltip gates on isSpoilable (bundle is not), no state line for bundle contents; aging correct (pass 1283), state visible on extraction. Bundle-contents state line would be a feature. The
+  bundle's selectedItem index picks the item drawn in hand; if the selected item is food,
+  does the tooltip/HUD show its state (not the bundle's)? Probe the code path
+  (ItemClientMixin getTooltipLines on a bundle with selectedItem set) and drive via
+  renderdump if reachable; else close by code trace with the citation.
+- [ ] L13: **Shulker box open/close cycle — component survives the menu round trip.** A
+  player opens a placed shulker, moves food in/out via menuclick, closes; the shulker's
+  own component (if tracked as an item) and the food's must both survive. Drive with the
+  joined client + spoilage debug menuclick (the chest selftest pattern, pass 1194).
+- [ ] L13: **Chorus fruit — excluded item, teleport unaffected.** Chorus fruit is in
+  excluded_items; eating it must teleport normally with NO spoilage effects and NO timer.
+  Drive: give chorus fruit, eat via finisheat, verify teleport happened and no poison.
+  (Exclusion confirmation is fine once — the log has golden apple/rotten flesh but not
+  chorus fruit.)
+- [ ] L13: **Jukebox with a disc — non-food container sanity.** The jukebox holds a disc
+  (not food); the sweep must not probe it as food. Drive: setblock jukebox with disc,
+  wait, verify no errors and no spoilage component on the disc. Closes the "non-food
+  container" half for one more vanilla block.
+- [ ] L13: **Flower pot with a flower — block-state food probe sanity.** A flower pot's
+  block state changes when planted; DynamicFoodBlockCache must not derive a food drop
+  from it. Drive: place flower pot + flower, verify NOT TRACKED via spoilage debug
+  inspect (needs player) or by breaking and reading the drop for a component.
