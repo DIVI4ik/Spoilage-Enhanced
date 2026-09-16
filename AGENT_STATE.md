@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1282
+Pass: 1283
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L13 modded milk from C4B fridge — NO_BUG (balm:milk is a Fluid, only ItemStack form is vanilla milk_bucket, already covered)
+Current task: L13 nested bundle aging — FIXED (depth-2 probe + isSpoilable-only gate + missing BUNDLE_CONTENTS write-back; live-proven rotten_count:1)
 Last lens: L13 observed behaviour
-Recent: NO_BUG NO_BUG NO_BUG FIXED NO_BUG
-Barren streak: 7
+Recent: FIXED NO_BUG NO_BUG NO_BUG FIXED
+Barren streak: 0
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-16 09:19
+Updated: 2026-09-16 12:06
 
 ## Notes
 

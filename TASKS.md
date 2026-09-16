@@ -477,7 +477,7 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
   effects (ClearAllStatusEffectsConsumeEffectMixin) were driven on vanilla milk_bucket; a
   modded milk source (balm:milk in a bucket?) may bypass. Check whether balm:milk can exist
   as an ItemStack at all; if not, record that and close.
-- [ ] L13: **Food in a bundle inside a bundle — depth-2 probe boundary.** stackIsOrCarries
+- [x] L13: **Food in a bundle inside a bundle — depth-2 probe boundary.** — FIXED pass 1283: vanilla 26.2 allows bundle-in-bundle; three defects fixed (probe depth 2->4, isSpoilable-only gate, missing BUNDLE_CONTENTS write-back). Live-proven rotten_count:1 nested; direct-bundle control same chest. stackIsOrCarries
   SpoilableFood is depth-2; vanilla forbids bundles in bundles, but a modded container item
   nested 3 deep (bundle in shulker in bundle) would be missed. Probe the code path only
   (synthetic test) — if depth 3 is unreachable in vanilla+pack, document and close.

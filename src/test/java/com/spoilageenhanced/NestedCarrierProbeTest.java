@@ -21,8 +21,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Pass 1199 (L13 observed): a bundle inside a shulker box was never aged because
- * the food-carrying probe was one level deep. This test pins the depth-2 probe:
- * shulker -> bundle -> apple must be flagged.
+ * the food-carrying probe was one level deep. This test pins the nested-carrier
+ * probe: shulker -> bundle -> apple must be flagged.
+ *
+ * Pass 1283 (L13 observed): vanilla 26.2 allows bundles inside bundles
+ * (BundleContents.BUNDLE_IN_BUNDLE_WEIGHT), so bundle -> bundle -> apple is
+ * reachable in pure vanilla and the depth-2 probe missed it — verified live:
+ * a tracked apple nested two bundles deep in a chest never aged. The probe is
+ * now depth 4; bundleInBundleInBundleIsFlaggedByProbe pins the regression.
  */
 public class NestedCarrierProbeTest {
 
@@ -81,5 +87,25 @@ public class NestedCarrierProbeTest {
 
         assertTrue(FoodSpoilageUtil.stackIsOrCarriesSpoilableFood(outerShulker),
                 "shulker holding a shulker containing an apple must be flagged by the probe");
+    }
+    @Test
+    void bundleInBundleInBundleIsFlaggedByProbe() {
+        // Pass 1283: vanilla 26.2 allows bundle-in-bundle, so this shape is
+        // reachable in pure vanilla. The depth-2 probe stopped at the inner
+        // bundle and never saw the apple.
+        ItemStack apple = new ItemStack(Items.APPLE);
+        ItemStackTemplate appleTemplate = ItemStackTemplate.fromNonEmptyStack(apple);
+
+        BundleContents innerContents = new BundleContents(List.of(appleTemplate));
+        ItemStack innerBundle = new ItemStack(Items.BUNDLE);
+        innerBundle.set(DataComponents.BUNDLE_CONTENTS, innerContents);
+
+        BundleContents outerContents = new BundleContents(
+                List.of(ItemStackTemplate.fromNonEmptyStack(innerBundle)));
+        ItemStack outerBundle = new ItemStack(Items.BUNDLE);
+        outerBundle.set(DataComponents.BUNDLE_CONTENTS, outerContents);
+
+        assertTrue(FoodSpoilageUtil.stackIsOrCarriesSpoilableFood(outerBundle),
+                "bundle holding a bundle containing an apple must be flagged by the probe");
     }
 }

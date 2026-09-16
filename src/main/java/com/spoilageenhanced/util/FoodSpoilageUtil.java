@@ -854,12 +854,20 @@ public class FoodSpoilageUtil {
      *
      * <p>Pass 1199 (L13 observed): the probe is depth-limited recursive — one level
      * was not enough for a bundle inside a shulker box, where the carrier's own
-     * template is a bundle (not spoilable) and the food sits one level deeper.
-     * Depth 2 covers Chest -> Shulker -> Bundle -> Apple; vanilla data components
-     * cannot cycle, so the limit only guards hypothetical foreign nesting.</p>
+     * template is a bundle (not spoilable) and the food sits one level deeper.</p>
+     *
+     * <p>Pass 1283 (L13 observed): depth 2 was NOT enough — vanilla 26.2 allows
+     * bundles inside bundles ({@code BundleContents.BUNDLE_IN_BUNDLE_WEIGHT},
+     * BundleContents.java:32; {@code canItemBeInBundle} only requires
+     * {@code canFitInsideContainerItems()}, which BundleItem does not override),
+     * so Bundle -> Bundle -> Apple is reachable in pure vanilla and the depth-2
+     * probe never reached the apple — verified live: a tracked apple nested two
+     * bundles deep in a chest never aged. Depth 4 covers Chest -> Bundle ->
+     * Bundle -> Bundle -> Apple with a level to spare; data components cannot
+     * cycle, so the limit only guards pathological nesting.</p>
      */
     public static boolean stackIsOrCarriesSpoilableFood(ItemStack stack) {
-        return stackIsOrCarriesSpoilableFood(stack, 2);
+        return stackIsOrCarriesSpoilableFood(stack, 4);
     }
 
     private static boolean stackIsOrCarriesSpoilableFood(ItemStack stack, int depth) {
@@ -946,9 +954,11 @@ public class FoodSpoilageUtil {
         // no Optional unwrap, no ItemStack creation.
         // Pass 1199 (L13 observed): the probe must also detect nested carriers (bundle in
         // shulker, shulker in shulker) — use the depth-aware template probe.
+        // Pass 1283: depth 4, matching stackIsOrCarriesSpoilableFood — vanilla 26.2
+        // allows bundle-in-bundle, so Bundle -> Bundle -> Apple is reachable.
         boolean anySpoilable = false;
         for (ItemStackTemplate template : container.nonEmptyItems()) {
-            if (templateIsOrCarriesSpoilableFood(template, 2)) {
+            if (templateIsOrCarriesSpoilableFood(template, 4)) {
                 anySpoilable = true;
                 break;
             }
@@ -1040,7 +1050,11 @@ public class FoodSpoilageUtil {
 
         boolean anySpoilable = false;
         for (net.minecraft.world.item.ItemStackTemplate template : contents.items()) {
-            if (SpoilageConfig.getInstance().isSpoilable(template.item().value())) {
+            // Pass 1283: the gate must use the depth-aware carrier probe, not bare
+            // isSpoilable — a bundle inside this bundle is not spoilable itself, but
+            // the food it carries still needs aging, and vanilla 26.2 allows
+            // bundle-in-bundle (BundleContents.java:32).
+            if (templateIsOrCarriesSpoilableFood(template, 3)) {
                 anySpoilable = true;
                 break;
             }
@@ -1056,7 +1070,12 @@ public class FoodSpoilageUtil {
         boolean changed = false;
         for (net.minecraft.world.item.ItemStackTemplate template : contents.items()) {
             ItemStack item = template.create();
-            if (!item.isEmpty() && SpoilageConfig.getInstance().isSpoilable(item.getItem())) {
+            // Pass 1283: process carriers too, not just direct food — a nested bundle
+            // reaches its own contents through updateSpoilage's BUNDLE_CONTENTS branch
+            // (line 408), which recurses here. The isSpoilable-only gate skipped the
+            // inner bundle entirely, so food two bundles deep never aged.
+            if (!item.isEmpty() && (SpoilageConfig.getInstance().isSpoilable(item.getItem())
+                    || item.has(DataComponents.BUNDLE_CONTENTS))) {
                 int count = item.getCount();
                 if (count > 0) {
                     SpoilageData d = item.get(ModDataComponentTypes.SPOILAGE);
@@ -1067,9 +1086,18 @@ public class FoodSpoilageUtil {
                     }
                 }
                 SpoilageData before = item.get(ModDataComponentTypes.SPOILAGE);
+                // Pass 1283: a nested bundle carries its change in BUNDLE_CONTENTS, not in
+                // its own (absent) SPOILAGE component — comparing only SPOILAGE left
+                // changed=false and the aged inner contents were never written back to the
+                // outer bundle. Compare both.
+                net.minecraft.world.item.component.BundleContents beforeBundle =
+                        item.get(DataComponents.BUNDLE_CONTENTS);
                 updateSpoilage(item, world);
                 SpoilageData after = item.get(ModDataComponentTypes.SPOILAGE);
-                if (!java.util.Objects.equals(before, after)) {
+                net.minecraft.world.item.component.BundleContents afterBundle =
+                        item.get(DataComponents.BUNDLE_CONTENTS);
+                if (!java.util.Objects.equals(before, after)
+                        || !java.util.Objects.equals(beforeBundle, afterBundle)) {
                     changed = true;
                 }
             }
