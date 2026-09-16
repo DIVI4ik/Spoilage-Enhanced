@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1286
+Pass: 1287
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L13 shulker menu round trip — NO_BUG (component survives PICKUP out and back intact)
+Current task: L13 chorus fruit exclusion — NO_BUG (no component after 25s on ground; excluded_items honored)
 Last lens: L13 observed behaviour
-Recent: NO_BUG NO_BUG FIXED NO_BUG NO_BUG
-Barren streak: 3
+Recent: NO_BUG NO_BUG NO_BUG FIXED NO_BUG
+Barren streak: 4
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-16 13:00
+Updated: 2026-09-16 13:08
 
 ## Notes
 

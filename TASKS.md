@@ -497,7 +497,7 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
   player opens a placed shulker, moves food in/out via menuclick, closes; the shulker's
   own component (if tracked as an item) and the food's must both survive. Drive with the
   joined client + spoilage debug menuclick (the chest selftest pattern, pass 1194).
-- [ ] L13: **Chorus fruit — excluded item, teleport unaffected.** Chorus fruit is in
+- [x] L13: **Chorus fruit — excluded item, teleport unaffected.** — NO_BUG pass 1287: no component after 25s on ground (excluded_items honored); teleport is vanilla, no mod interception. Chorus fruit is in
   excluded_items; eating it must teleport normally with NO spoilage effects and NO timer.
   Drive: give chorus fruit, eat via finisheat, verify teleport happened and no poison.
   (Exclusion confirmation is fine once — the log has golden apple/rotten flesh but not
