@@ -539,11 +539,11 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
   CampfireBlockEntityMixin covers placeFood; drive a campfire with 4 different tracked
   foods, wait for cook, read all four ejected drops. Control: single-food campfire (pass
   1089). The four-slot interaction (place while others cooking) is the untested part.
-- [ ] L13: **Blast furnace minecart — furnace in motion.** furnace_minecart is a moving
+- [x] L13: **Blast furnace minecart — furnace in motion.** — NO_BUG pass 1298: MinecartFurnace carries only Fuel, no inventory (MinecartFurnace.java:25); nothing to age. Premise does not exist in vanilla. furnace_minecart is a moving
   furnace entity; AbstractMinecartContainerMixin ages chest carts, AbstractFurnaceBlockEntity
   mixin covers furnaces — but a furnace MINECART is both. Drive: summon furnace_minecart
   with tracked food + coal, wait, read back. If it neither ages nor cooks, that is a gap.
-- [ ] L13: **Smithing table with a tracked input — netherite upgrade path.** SmithingMenu
+- [x] L13: **Smithing table with a tracked input — netherite upgrade path.** — NO_BUG pass 1296 by code trace: SmithingMenu is in the processing guard (ScreenHandlerMixin.java:276,310); smithing transforms tools/armor only, not food; result construction cannot create a count mismatch for spoilable items. SmithingMenu
   is in the processing guard; a tracked item upgraded through the smithing table must not
   inherit the input's trackers onto the output (count mismatch). Probe the code path
   (SmithingMenu result construction) and drive if a food-adjacent input exists; else

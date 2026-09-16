@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1297
+Pass: 1298
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L13 campfire four-slot cooking - NO_BUG (all slots cook, outputs stamped FRESH, 1 tracker per item)
+Current task: L13 furnace minecart - NO_BUG (MinecartFurnace carries only Fuel, no inventory; nothing to age)
 Last lens: L1 silent failure
 Recent: NO_BUG NO_BUG NO_BUG NO_BUG NO_BUG
-Barren streak: 5
+Barren streak: 6
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-16 17:30
+Updated: 2026-09-16 17:43
 
 ## Notes
 
