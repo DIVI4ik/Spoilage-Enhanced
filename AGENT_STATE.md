@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1300
+Pass: 1301
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L10 test coverage - FIXED (nested-bundle gate pinned by 2 headless tests; write-back live-proven pass 1283)
-Last lens: L10 test coverage
-Recent: FIXED NO_BUG NO_BUG NO_BUG NO_BUG
+Current task: L9 integration - FIXED (dead Fabric entrypoint removed from common code; loader isolation restored)
+Last lens: L9 integration
+Recent: FIXED FIXED NO_BUG NO_BUG NO_BUG
 Barren streak: 0
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-16 19:26
+Updated: 2026-09-16 20:19
 
 ## Notes
 
