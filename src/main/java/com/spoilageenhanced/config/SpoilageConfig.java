@@ -1186,7 +1186,16 @@ public class SpoilageConfig {
         // Charset stated explicitly: FileWriter/FileReader without one use the PLATFORM
         // default, so a config written on one machine could be read as mojibake on another.
         // The file already contains non-ASCII (the guide at the top), and ids may too.
-        try (FileWriter writer = new FileWriter(file, java.nio.charset.StandardCharsets.UTF_8)) {
+        //
+        // Pass 1289 (L1 — silent failure): write to a temp file and move atomically. The
+        // old direct FileWriter TRUNCATES the file first — a crash or power loss mid-write
+        // leaves a half-written config, the next load fails to parse it, and the player's
+        // every hand edit is silently reset to defaults (load() logs one line and falls
+        // back). Files.move with ATOMIC_MOVE is either the complete old file or the
+        // complete new one; on platforms where atomic move is unsupported, fall back to a
+        // plain rename (still never truncates before the new file is complete).
+        File temp = new File(file.getParentFile(), CONFIG_FILENAME + ".tmp");
+        try (FileWriter writer = new FileWriter(temp, java.nio.charset.StandardCharsets.UTF_8)) {
             GSON.toJson(this, writer);
         } catch (IOException e) {
             // Pass 1118 (L1 — silent failure): printStackTrace goes to stderr, not the
@@ -1195,6 +1204,19 @@ public class SpoilageConfig {
             SpoilageEnhancedLogger.log(SpoilageEnhancedLogger.LogCategory.GENERAL,
                     "SpoilageConfig.save: FAILED to write config file " + file
                     + " — all unsaved config changes are lost: "
+                    + e.getClass().getSimpleName() + ": " + e.getMessage());
+            return;
+        }
+        try {
+            java.nio.file.Files.move(temp.toPath(), file.toPath(),
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            // ATOMIC_MOVE is not guaranteed on every filesystem; a plain move still
+            // replaces the file only after the temp file was fully written, so the
+            // worst case is the old config surviving, never a truncated one.
+            SpoilageEnhancedLogger.log(SpoilageEnhancedLogger.LogCategory.GENERAL,
+                    "SpoilageConfig.save: FAILED to replace config file " + file
+                    + " (new config left in " + temp.getName() + "): "
                     + e.getClass().getSimpleName() + ": " + e.getMessage());
         }
     }

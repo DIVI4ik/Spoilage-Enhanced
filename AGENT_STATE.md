@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1288
+Pass: 1289
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L13 jukebox + flower pot sanity — NO_BUG (no component, no errors, no false food derivation)
-Last lens: L13 observed behaviour
-Recent: NO_BUG NO_BUG NO_BUG NO_BUG FIXED
-Barren streak: 5
+Current task: L1 silent failure — FIXED (config save now atomic: temp file + move; crash mid-save can no longer truncate the config)
+Last lens: L1 silent failure
+Recent: FIXED NO_BUG NO_BUG NO_BUG NO_BUG
+Barren streak: 0
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-16 13:17
+Updated: 2026-09-16 14:00
 
 ## Notes
 
