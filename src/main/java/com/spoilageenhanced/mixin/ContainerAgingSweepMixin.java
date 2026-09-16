@@ -214,7 +214,8 @@ public abstract class ContainerAgingSweepMixin {
     private static void ageContainer(Container container, ServerLevel level) {
         // Pass 1192: shared probe — the pattern was copy-pasted in five mixins and the
         // pass-1191 defect happened because the sweep's copy was fixed and the other
-        // four were missed. One method, five call sites.
+        // four were missed. One method replaced them all; later container mixins call
+        // it instead of re-copying.
         boolean anySpoilable = false;
         for (int i = 0; i < container.getContainerSize(); i++) {
             if (FoodSpoilageUtil.stackIsOrCarriesSpoilableFood(container.getItem(i))) {

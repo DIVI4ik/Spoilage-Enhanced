@@ -843,7 +843,9 @@ public class FoodSpoilageUtil {
      * nested shulker box (CONTAINER). This pattern was copy-pasted in five mixins
      * (sweep, ender chest, minecart, fridge, brewing stand), and the pass-1191 defect
      * happened precisely because the sweep's copy was fixed while the other four were
-     * missed. One method, five call sites.
+     * missed. One method replaced them all; every container-aging mixin added since
+     * (hopper, item frame, allay, chested horse, villager inventory, C4B counter)
+     * calls this probe instead of re-copying the pattern.
      *
      * <p>Template scans only — no ItemStack allocation. {@code BundleContents.items()}
      * returns the backing template list (BundleContents.java:95);

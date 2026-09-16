@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1270
+Pass: 1271
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L14 C4B cow jar fluid milk — NO_BUG (design question §13, fluid food out of scope)
-Last lens: L14 foreign content
-Recent: NO_BUG NO_BUG NO_BUG NO_BUG NO_BUG
-Barren streak: 5
+Current task: L12 claim drift — FIXED (stale 'five call sites' comments + MOD_ARCHITECTURE sweep entry)
+Last lens: L12 claim drift
+Recent: FIXED NO_BUG NO_BUG NO_BUG NO_BUG
+Barren streak: 6
 Refills since L13: 4
 Commits since: release = 1
-Updated: 2026-09-16 03:12
+Updated: 2026-09-16 03:16
 
 ## Notes
 
