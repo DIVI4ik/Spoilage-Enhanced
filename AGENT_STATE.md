@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1322
+Pass: 1323
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L14 pot follow-up batch - NO_BUG (shelf ages via Container; nested bundle ages via list path; aged values persist restart)
+Current task: L14 list-path edge batch - NO_BUG (exclusivity traced; wrong-return-type and both-accessors pinned by tests; shulker-in-pot closed by structural identity)
 Last lens: L14 foreign content
-Recent: NO_BUG FIXED FIXED FIXED NO_BUG
-Barren streak: 1
+Recent: NO_BUG NO_BUG FIXED FIXED NO_BUG
+Barren streak: 2
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-17 07:26
+Updated: 2026-09-17 08:11
 
 ## Notes
 

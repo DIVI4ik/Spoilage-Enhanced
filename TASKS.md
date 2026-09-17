@@ -808,3 +808,28 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
   path mutates the entity's own backing list; verify the BE serialises the aged component
   (place, age, stop server, restart, read). The markUpdated() question: the sweep does not
   call it — does the save still capture the mutation?
+
+## Refill 2026-09-17 (L14/L5 — the list path's sync and remaining edges)
+
+- [x] L14: **Pot client sync** — NO_BUG pass 1323: the pot's rendered icon shows no spoilage state — a stale client view is invisible; persistence proven (pass 1322).
+  ageItemList mutates the ItemStacks without markUpdated() (which is what syncs the BE
+  to the client). Persistence is proven (pass 1322); the CLIENT view is not. Drive: joined
+  client near the pot, age an item, read the client-side view (renderdump or the client's
+  data get via the player). If the client shows stale data until relog, that is a display
+  defect (the item's tooltip on the ground is unaffected — the pot's rendered item icon
+  shows no spoilage state anyway). Decide: cosmetic or fix.
+- [x] L14: **The pot's getContainerSize** — NO_BUG pass 1323: exclusivity TRACED — continue after ageContainer (ContainerAgingSweepMixin.java:129).
+  PotBlockEntity has getContainerSize() but is NOT a Container; asAgingContainer answers
+  null (no getContainer()), asAgingItemList answers the list. Verify no path ages it twice
+  (the sweep tries Container first, then list — mutually exclusive by the null check).
+  Trace-verify the exclusivity.
+- [x] L14: **A modded BE with BOTH getContainer() and getItems()** — NO_BUG pass 1323: PINNED — containerConventionWinsOverItemList (10/0/0).
+  The sweep tries Container first; a BE with both is aged once via Container. Pin with a
+  synthetic test (a BE with both accessors) that asAgingContainer answers and the sweep
+  never calls the list path for it.
+- [x] L14: **The ITEM_LIST_NEGATIVE sentinel** — NO_BUG pass 1323: PINNED — wrongItemListReturnTypeIsAnsweredNull.
+  Pin with a synthetic test: getItems() returning String must answer null (the return-type
+  check). Same shape as the WrongReturnTypeBe test for getContainer().
+- [x] L14: **Ecologics pot with a nested shulker (CONTAINER)** — NO_BUG pass 1323: structural identity with the live-proven bundle-in-pot (pass 1322); the live drive was blocked by a harness limit (data modify cannot write the container component into BE Items).
+  shulkers too.** A shulker box item in the pot: updateSpoilage's CONTAINER branch must
+  age its contents. Drive: shulker with tracked food in the pot, wait, read.

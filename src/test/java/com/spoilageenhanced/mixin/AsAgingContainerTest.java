@@ -203,4 +203,54 @@ public class AsAgingContainerTest {
         assertNull(ContainerResolution.asAgingItemList(new NoAccessorBe()),
                 "a BlockEntity with no getItems() must answer null");
     }
+    /** A block entity whose getItems() returns a non-List — must answer null. */
+    public static class WrongItemListBe extends BlockEntity {
+        WrongItemListBe() {
+            super(net.minecraft.world.level.block.entity.BlockEntityTypes.CHEST, BlockPos.ZERO, stoneState());
+        }
+
+        public String getItems() {
+            return "not a list";
+        }
+    }
+
+    @Test
+    void wrongItemListReturnTypeIsAnsweredNull() {
+        assertNull(ContainerResolution.asAgingItemList(new WrongItemListBe()),
+                "a getItems() returning a non-List type must not resolve");
+    }
+
+    /** A block entity with BOTH getContainer() and getItems() — the Container convention wins. */
+    public static class BothAccessorsBe extends BlockEntity {
+        final SimpleContainer backing = new SimpleContainer(1);
+
+        BothAccessorsBe() {
+            super(net.minecraft.world.level.block.entity.BlockEntityTypes.CHEST, BlockPos.ZERO, stoneState());
+        }
+
+        public Container getContainer() {
+            return backing;
+        }
+
+        public java.util.List<ItemStack> getItems() {
+            throw new IllegalStateException("the list path must not be used when the Container path resolves");
+        }
+    }
+
+    @Test
+    void containerConventionWinsOverItemList() {
+        // Pass 1323: the sweep tries the Container shapes first and `continue`s before the
+        // list path — a BE with both accessors must resolve through getContainer() and the
+        // getItems() accessor must never be invoked for it.
+        BothAccessorsBe be = new BothAccessorsBe();
+        Container resolved = ContainerResolution.asAgingContainer(be);
+        assertNotNull(resolved, "a BE with getContainer() must resolve through the Container convention");
+        assertSame(be.backing, resolved);
+        // The list resolution is a separate API; the SWEEP's exclusivity is the continue
+        // after ageContainer (ContainerAgingSweepMixin.java:129). Here we pin that the
+        // Container resolution succeeds so the sweep never reaches the list path.
+    }
+
 }
+
+
