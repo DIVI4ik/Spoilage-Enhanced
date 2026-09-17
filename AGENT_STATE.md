@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1321
+Pass: 1322
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: Release v1.1.26 published (Ecologics pot fix + corrupt-config protection)
+Current task: L14 pot follow-up batch - NO_BUG (shelf ages via Container; nested bundle ages via list path; aged values persist restart)
 Last lens: L14 foreign content
-Recent: FIXED FIXED FIXED NO_BUG NO_BUG
-Barren streak: 0
+Recent: NO_BUG FIXED FIXED FIXED NO_BUG
+Barren streak: 1
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-17 07:03
+Updated: 2026-09-17 07:26
 
 ## Notes
 

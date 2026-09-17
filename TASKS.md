@@ -787,3 +787,24 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
 - [x] L7: **mergeItems with both null** — NO_BUG pass 1318: guarded in the method (FoodSpoilageUtil.java:209-210); merge tested.
   is called with targetData possibly null (HopperBlockEntityMixin:139); verify the null
   handling is pinned by a test.
+
+## Refill 2026-09-17 (L14 foreign content — remaining pack container surfaces)
+
+- [x] L14: **Ecologics shelf — verify it ages** — NO_BUG pass 1322: coconut_shelf carrot aged rotten_count:1 (first convention, ListBackedContainer extends Container).
+  Container).** Drive: tracked apple on an ecologics shelf, wait, read. Should be covered
+  by the first convention (instanceof Container) — verify live.
+- [x] L14: **bclib / better-end block entities** — NO_BUG pass 1322: no food-holding containers in their BE lists.
+  block entities; check whether any hold food (better-end has its own plants). Probe the
+  jars for Container-implementing BEs that hold items; if none hold food, close.
+- [x] L14: **FD getInventory() convention** — NO_BUG pass 1322: deferred latent gap (pass 1319) — no current FD container has long food dwell.
+  is not a Container or a List; adding it needs either an FD-specific adapter or deep
+  reflection. No current FD container has long food dwell (cutting board is seconds).
+  Revisit only if a pack adds one; keep as a recorded latent gap.
+- [x] L14: **The pack's Ecologics pot with a bundle inside** — NO_BUG pass 1322: bundle in pot aged inner bread rotten_count:1 — the list path recurses into BUNDLE_CONTENTS.
+  carriers.** The new ageItemList calls updateSpoilage on every stack, which recurses into
+  BUNDLE_CONTENTS/CONTAINER — verify with a bundle in the pot. Control: direct apple
+  (pass 1320).
+- [x] L14: **Ecologics pot persistence** — NO_BUG pass 1322: after full restart, aged values intact — the BE serialises the in-place mutation on save.
+  path mutates the entity's own backing list; verify the BE serialises the aged component
+  (place, age, stop server, restart, read). The markUpdated() question: the sweep does not
+  call it — does the save still capture the mutation?
