@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1320
+Pass: 1321
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L14 Ecologics pot freezer - FIXED (third accessor convention getItems() added to ContainerResolution + sweep)
+Current task: Release v1.1.26 published (Ecologics pot fix + corrupt-config protection)
 Last lens: L14 foreign content
-Recent: FIXED NO_BUG NO_BUG NO_BUG NO_BUG
+Recent: FIXED FIXED FIXED NO_BUG NO_BUG
 Barren streak: 0
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-17 06:51
+Updated: 2026-09-17 07:03
 
 ## Notes
 
