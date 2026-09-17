@@ -767,3 +767,23 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
   fire, wait, verify gone.
 - [x] L1: **Water flows over a tracked block** — NO_BUG pass 1315: same air-removal branch (pass 477).
   shape as fire. Drive: tracked block, water source beside it, wait, verify gone.
+
+## Refill 2026-09-17 (L7 boundary — remaining arithmetic edges)
+
+- [x] L7: **rescaleItemTimestamps with ratio 0** — NO_BUG pass 1318: TESTED (zeroRatioClampsToNeverBothBranches).
+  guards ratio via Math.max(ratio, 1e-9) (FoodSpoilageUtil.java:361); verify a unit test
+  pins the guard (ratio 0 must not produce Infinity/NaN timestamps). Check existing
+  coverage first.
+- [x] L7: **rescaleItemTimestamps with Long.MAX_VALUE remaining** — NO_BUG pass 1318: TESTED (neverSentinelStaysNever + the clamp family).
+  The remaining > Long.MAX_VALUE / ratio guard (line 361); verify a unit test pins that a
+  huge remaining clamps to NEVER rather than wrapping negative.
+- [x] L7: **The stale-duration overflow guard in classifyFreshExpiration** — NO_BUG pass 1318: TESTED (hugeStaleDurationDoesNotCountAsRotten, pass 1165).
+  wrapping.** Pass 1164/1165 covered this; verify the test still exists and covers the
+  wrap case (exp near Long.MAX_VALUE + a huge staleDuration).
+- [x] L7: **extractWorstItems with amount > tracked** — NO_BUG pass 1318: degenerate inputs TESTED (ExtractWorstItemsDegenerateTest + NegativeAmountTest).
+  dispenser/dropper reconcilers call extractWorstItems(data, tracked - count); a caller
+  passing amount > totalTracked would... check the method's guard and pin it with a test
+  if unguarded.
+- [x] L7: **mergeItems with both null** — NO_BUG pass 1318: guarded in the method (FoodSpoilageUtil.java:209-210); merge tested.
+  is called with targetData possibly null (HopperBlockEntityMixin:139); verify the null
+  handling is pinned by a test.
