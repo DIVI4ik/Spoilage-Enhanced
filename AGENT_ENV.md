@@ -285,6 +285,20 @@ invalidated what is far harder than fixing one line while you still remember the
 
 ## Gotchas
 
+- **setblock-powered droppers/dispensers multi-fire.** Placing a redstone block beside a
+  dropper with `setblock` cascades block updates and re-triggers it within the same RCON
+  batch — a 2-stack appears to move WHOLE into a hopper while vanilla moves 1 per fire
+  (pass 1281). Read per-fire state or use a single-tick pulse.
+- **EnderChestMenu slot mapping is non-obvious.** Menu slots 0-26 = ender chest, 27-53 =
+  main inventory, 54-62 = hotbar 0-8 (pass 1303: hotbar slot 8 = menu slot 62). ChestMenu
+  differs: 27-35 = hotbar. Probe with menuclick PICKUP before assuming an index.
+- **setblock-placed comparators never recalculate.** `setblock` placement does not fire the
+  neighbor update that schedules the comparator's tick, so OutputSignal stays 0 forever —
+  a harness artifact, not mod interference (pass 1299: the signal code reads counts only).
+- **data modify on player inventory components is refused by vanilla** — use
+  `give <item>[spoilage_enhanced:spoilage={...}]` instead (pass 1295).
+- **Scenario readbacks land in client chat, not logs** — selftest verdicts are observed via
+  events.log (rotteneat) or direct RCON drives, not the scenario's own data get (pass 1309).
 - **A cached check is not a check.** `gradlew test` prints `BUILD SUCCESSFUL` while the
   per-task line says `Task :test UP-TO-DATE` — the tests did **not** run and nothing was
   verified. Observed on this project. Read the per-task lines, or use `--rerun-tasks`.

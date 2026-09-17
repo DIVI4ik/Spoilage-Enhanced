@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1309
+Pass: 1310
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L13 selftest harness health - NO_BUG (rotteneat scenario ran to its verdict; chest scenario executed all steps; assertions covered by live drives)
-Last lens: L14 foreign content
-Recent: NO_BUG NO_BUG NO_BUG FIXED FIXED
+Current task: L12 claim drift - FIXED (AGENT_ENV Gotchas missing 5 harness facts learned this session)
+Last lens: L12 claim drift
+Recent: FIXED NO_BUG NO_BUG NO_BUG FIXED
 Barren streak: 3
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-17 03:15
+Updated: 2026-09-17 03:22
 
 ## Notes
 
