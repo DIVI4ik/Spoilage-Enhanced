@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1329
+Pass: 1330
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L14: rightclickharvest on a modded crop — the learned mapping persists.
+Current task: L14: sweep betterend — 197 items, four mentions in the entire history.
 Last lens: L14 foreign content
-Recent: NO_BUG NO_BUG FIXED FIXED NO_BUG NO_BUG NO_BUG NO_BUG NO_BUG
-Barren streak: 8
-Refills since L13: 9
+Recent: NO_BUG NO_BUG FIXED FIXED NO_BUG NO_BUG NO_BUG NO_BUG NO_BUG BLOCKED
+Barren streak: 9
+Refills since L13: 10
 Commits since: release = 0
-Updated: 2026-09-17 17:26
+Updated: 2026-09-17 17:58
 
 ## Notes
 

@@ -872,7 +872,7 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
 - [x] L14: **croptopia crops after the pass-1292 gate change — detection unregressed.**
   Pass 1308 verified a fresh tomato on the ground; the crop-break path (drop stamping) is
   separate. Drive: break a mature croptopia crop, read the drop. Control: vanilla carrots.
-- [ ] L14: **rightclickharvest on a modded crop — the learned mapping persists.** The
+- [x] L14: **rightclickharvest on a modded crop — the learned mapping persists.** The
   learning path (pass 816) was verified; drive a rightclickharvest on croptopia (needs
   the client selftest — pass 1220 was BLOCKED on this). If still blocked, re-verify the
   BLOCKED status and keep it parked.
