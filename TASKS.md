@@ -861,7 +861,7 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
 - [x] L14: **bclib/better-end plants — growthProperty coverage.** bclib powers better-end's
   plants; if any has an age-like IntegerProperty and drops food, the growthProperty probe
   covers it. Probe the jars for crop-like blocks with food drops; if none, close.
-- [ ] L14: **Ecologics crops (lettuce, tomato, salt) — growth + drop coverage.** Ecologics
+- [x] L14: **Ecologics crops (lettuce, tomato, salt) — growth + drop coverage.** Ecologics
   has BMMLettuceCropBlock/BMMTomatoCropBlock (wait — those are better_mcdonalds). Ecologics'
   own crops: probe the jar for CropBlock subclasses and verify the growthProperty path
   covers them; drive one live if found.

@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1326
+Pass: 1327
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L14: Ecologics crops (lettuce, tomato, salt) — growth + drop coverage. Ecologics' own crops: probe the jar for CropBlock subclasses and verify the growthProperty path covers them; drive one live if found.
+Current task: L14: better_mcdonalds crops (lettuce, tomato) — the pass-1260 coverage still holds after the probe changes.
 Last lens: L14 foreign content
-Recent: NO_BUG NO_BUG FIXED FIXED NO_BUG NO_BUG
-Barren streak: 5
-Refills since L13: 6
+Recent: NO_BUG NO_BUG FIXED FIXED NO_BUG NO_BUG NO_BUG
+Barren streak: 6
+Refills since L13: 7
 Commits since: release = 0
-Updated: 2026-09-17 16:41
+Updated: 2026-09-17 17:02
 
 ## Notes
 
