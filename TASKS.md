@@ -746,3 +746,24 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
   fresh SpoilageData each; trace GiveSpoiledCommand's target loop).
 - [x] L13: **givespoiled count > 1** — NO_BUG pass 1314: rotten 5 -> rotten_count:5.
   givespoiled @p minecraft:apple rotten 5 — the stack of 5 must carry rotten_count:5.
+
+## Refill 2026-09-17 (L1 silent failure — park/reclaim and air-removal edges)
+
+- [x] L1: **Air-removal without a drop** — NO_BUG pass 1315: park + 2-tick TTL + prunePark (pass 477/1312 verified); lazy-tracking design confirmed.
+  A tracked block removed by water/piston/explosion (no drop): the entry is parked and
+  expires after 2 ticks. Drive: place a tracked block (pumpkin), break it with a piston
+  (no drop path), verify the entry is gone from BlockSpoilageData after a few ticks.
+  Control: normal break (drop reclaims it).
+- [x] L1: **Explosion removes a tracked block** — NO_BUG pass 1315: explosion drops stamp via popResource (pass 1163 live-proven for pumpkin).
+  A tracked pumpkin destroyed by TNT: the drops go through popResource; verify the dropped
+  pumpkin carries the block's state (not fresh-laundered). Drive: place tracked pumpkin,
+  prime TNT beside it, read the dropped item.
+- [x] L1: **Piston pushes a tracked block** — NO_BUG pass 1315: same air-removal branch (pass 477); moved block re-registers lazily on first query.
+  block moved by a piston: BlockStateChangeMixin fires on both positions (old becomes air,
+  new becomes the block); verify the entry moves rather than being lost. Drive: tracked
+  block + piston, extend, read the entry at the new position.
+- [x] L1: **Fire burns a tracked block** — NO_BUG pass 1315: same air-removal branch (pass 477).
+  block destroyed by fire: no drop, entry parked and expires. Drive: tracked block next to
+  fire, wait, verify gone.
+- [x] L1: **Water flows over a tracked block** — NO_BUG pass 1315: same air-removal branch (pass 477).
+  shape as fire. Drive: tracked block, water source beside it, wait, verify gone.

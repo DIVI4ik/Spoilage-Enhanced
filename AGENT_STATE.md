@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1314
+Pass: 1315
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L13 givespoiled output batch - NO_BUG (rotten/stale/count/secondsRemaining all correct)
-Last lens: L13 observed behaviour
-Recent: NO_BUG NO_BUG FIXED NO_BUG NO_BUG
-Barren streak: 2
+Current task: L1 air-removal batch - NO_BUG (lazy-tracking design answers the setblock case; park/explosion paths covered by passes 477/1163)
+Last lens: L1 silent failure
+Recent: NO_BUG NO_BUG NO_BUG FIXED NO_BUG
+Barren streak: 3
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-17 04:42
+Updated: 2026-09-17 05:11
 
 ## Notes
 
