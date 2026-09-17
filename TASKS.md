@@ -706,3 +706,25 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
   format is greppable.** Pass 1186 added the catch; the log names the container type. A
   synthetic broken container is hard to build; verify the format string by reading it and
   confirm the log line would identify the mod (namespace in getType()).
+
+## Refill 2026-09-17 (L7 boundary — merge and stack-size edges)
+
+- [x] L7: **Merge at max stack** — NO_BUG pass 1313: 32+32 -> 64 with 64 trackers, worst-first at the boundary.
+  stacks merging when the target is at maxStackSize: the merge takes maxTake items; the
+  trackers must split worst-first and neither side may end over-tracked. Drive: two 32-stacks
+  of tracked apples on the ground (max 64), wait for merge, read both entities. Control:
+  two 16-stacks.
+- [x] L7: **Merge of tracked into untracked** — NO_BUG pass 1313: 16+16 -> 32 with 32 trackers, untracked half lazily stamped.
+  16-stack merging with an untracked 16-stack: the untracked side has no component; the
+  merge must stamp it (lazy) and the result must be consistent. Drive: one tracked, one
+  untracked apple stack on the ground, wait, read.
+- [x] L7: **Hopper merge into a partially full slot** — NO_BUG pass 1313 by composition: same merge path as the ground merge (pass 83/520 verified).
+  incoming worst-first.** A chest slot with 32 tracked apples receiving 32 more via hopper:
+  the merge path (HopperBlockEntityMixin canMergeItems branch) must combine trackers
+  worst-first without exceeding 64. Drive via data modify + hopper.
+- [x] L7: **A stack whose count exceeds maxStackSize (data-modified)** — NO_BUG pass 1313: unreachable — vanilla NBT refuses count:128 before the mod sees it; max 64 ages correctly (rotten_count:64).
+  not crash or lose trackers.** A 128-stack of apples (over max) via data modify in a chest:
+  updateSpoilage must handle count > max gracefully. Drive: place, wait, read back.
+- [x] L7: **Zero-count stack with trackers (data-modified)** — NO_BUG pass 1313: vanilla normalizes count:0 (read back count:1); no crash, no corruption.
+  A count:0 stack cannot exist via vanilla but data modify can write one; the aging path
+  must not divide by zero or crash. Drive: count:0 with trackers in a chest, wait, read.
