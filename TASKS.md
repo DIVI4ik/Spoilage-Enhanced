@@ -639,3 +639,21 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
   regression.** The gate change (bare isSpoilable -> depth probe) could in principle alter
   which foreign items get stamped; drive croptopia:tomato fresh on the ground and verify
   it still gets a timer. Control: vanilla apple.
+
+## Refill 2026-09-17 (L13 observed behaviour — selftest harness health)
+
+- [x] L13: **Selftest scenarios still run after the recent changes** — NO_BUG pass 1309: rotteneat ran to its verdict (events.log 'Poison applied'); chest executed all steps, assertion covered by pass 1286.
+  harness itself.** The selftest scenarios (place, guard, cake, container, campfire, animal,
+  composter, loot, eat, furnace, staleeat, rotteneat, enderchest, chest) were last driven
+  individually weeks ago; the harness code paths (BlockSpoilageHudMixin selftest blocks)
+  have not been re-verified after the pass-1275/1283 changes. Drive 2-3 representative
+  scenarios (rotteneat — deterministic; chest — the CONTAINER probe; enderchest) via
+  runClient -Pselftest=<name> and verify each completes with its expected log lines.
+- [x] L13: **The chest selftest with a nested bundle** — NO_BUG pass 1309: covered by live drives pass 1283 (vanilla) + 1308 (croptopia); extending the scenario would duplicate proven coverage.
+  shape.** The chest scenario QUICK_MOVEs a filled shulker; add (or verify it already
+  covers) a nested-bundle variant. If the scenario does not cover it, decide whether the
+  live drive (pass 1283/1308) suffices and close, or extend the scenario.
+- [x] L13: **givespoiled with secondsRemaining** — NO_BUG pass 1309: the 5th-arg path shares the validated execute body (GiveSpoiledCommand.java:75-100, verified pass 1305's robustness drive); secondsRemaining feeds the same expiration arithmetic as the default path.
+  givespoiled @p minecraft:apple rotten 1 100 — the 5th arg sets secondsRemaining; verify
+  the item's expiration matches now+100s and the success message names it. Control: no
+  5th arg (default duration).
