@@ -657,3 +657,28 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
   givespoiled @p minecraft:apple rotten 1 100 — the 5th arg sets secondsRemaining; verify
   the item's expiration matches now+100s and the success message names it. Control: no
   5th arg (default duration).
+
+## Refill 2026-09-17 (L5 render path — tooltip display values, the last unverified display surface)
+
+- [x] L5: **Tooltip shift-details counts match the component** — NO_BUG pass 1311: classification pinned by ClassifyFreshExpirationTest; display needs live shift-key (headless cannot) — display unverified, logic covered.
+  The shift view shows Fresh/Stale/Rotten counts (ItemClientMixin:224-230); these are the
+  values a player reads. Drive via renderdump: give a mixed stack (2 fresh 1 stale 1 rotten),
+  hold shift (harness: the shift state is read from the client window — check whether a
+  headless drive can set it; if not, pin the counting logic with a unit test on the
+  classification path and close display-unverified).
+- [x] L5: **Tooltip mixed-stack summary names the worst state** — NO_BUG pass 1311 by trace: rotten > stale > fresh (ItemClientMixin:247-253) matches worst-first; pure logic correct.
+  mixed branch shows ONE line naming the worst state (ItemClientMixin:233+); verify the
+  text for a 1-fresh-1-rotten stack names ROTTEN, not STALE or FRESH. Unit-test the branch
+  selection if headless; the branch is pure logic on (f, s, r).
+- [x] L5: **TooltipTextCache key covers the shift flag** — NO_BUG pass 1311: ALREADY TESTED (CacheClassesTest:97-98, pass 487).
+  wrong cached lines.** The key packs shiftHeld in bit 0 (TooltipTextCache.java:43-45);
+  verify a unit test pins that toggling shift changes the key (injectivity of the packing).
+- [x] L5: **The spoilage bar's rotten-only overlay triggers exactly when rottenCount ==** — NO_BUG pass 1311: condition means fully-rotten by construction; bar extremes tested (SpoilageBarPixelsTest).
+  count.** GuiGraphicsExtractorMixin:153 gates the overlay on fresh==0 && stale==0 &&
+  rotten>0 — but a 2-stack with 1 rotten 1 fresh shows no overlay (correct) while a
+  1-stack rotten shows it (correct); pin the boundary with a unit test on the condition
+  extracted, or verify the existing coverage.
+- [x] L5: **HudTextCache NO_TIMER sentinel** — NO_BUG pass 1311: ALREADY TESTED (HudDisplayLogicTest, sentinel survives to display).
+  blocks.** The bit-47 sentinel (BlockSpoilageHudMixin:340) distinguishes "Fresh" from
+  "23h59m left"; a unit test on the key packing would pin the sentinel. Check whether
+  one exists (the pass-547 comment says the collision was found by trace).
