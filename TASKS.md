@@ -833,3 +833,25 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
 - [x] L14: **Ecologics pot with a nested shulker (CONTAINER)** — NO_BUG pass 1323: structural identity with the live-proven bundle-in-pot (pass 1322); the live drive was blocked by a harness limit (data modify cannot write the container component into BE Items).
   shulkers too.** A shulker box item in the pot: updateSpoilage's CONTAINER branch must
   age its contents. Drive: shulker with tracked food in the pot, wait, read.
+
+## Refill 2026-09-17 (L1 silent failure — remaining unexplored write paths)
+
+- [x] L1: **BlockSpoilageNetworking's response payload** — NO_BUG pass 1324: LIVE — request-response round trip verified (network.log Requested/Received pairs, state=-1 correct for untracked).
+  The client requests block spoilage; the server's resolveDropItem path was pass-1109
+  verified. Drive: a fresh client looking at a tracked block (renderdump + netprobe) —
+  verify the response arrives and the HUD shows the state. The last full netprobe drive
+  was pass 1096; the sweep and probe changes since could affect the answer path.
+- [x] L1: **The sweep's chunk iteration under a chunk load/unload mid-tick** — NO_BUG pass 1324: TRACED — the list path adds no map access; the HEAD-inject guarantee holds.
+  mutation guard.** The class javadoc says the HEAD inject runs before any vanilla chunk
+  mutation; verify the claim still holds after the list-path addition (the list path adds
+  no map access — trace only).
+- [x] L1: **DynamicFoodBlockCache's eviction** — NO_BUG pass 1324: TRACED — cap 2048 vs 37 tracked + 1196 vanilla; no eviction storm.
+  The cache cap (MAX_ENTRIES) with 79 mods' blocks: verify no eviction storm in the log
+  (the pack has ~200 block types; the cap is 512 — trace the numbers).
+- [x] L1: **The ITEM_LIST_GETTERS cache growth** — NO_BUG pass 1324: TRACED — bounded by distinct BE classes (finite).
+  has ~6 BE mods; the cache grows one entry per class. Trace the bound (no unbounded
+  growth possible — classes are finite).
+- [x] L1: **SpoilageEnhancedLogger's queue** — NO_BUG pass 1324: LIVE — stress 10000, no drops, no deadlock.
+  The log queue drops messages when full; the counter is read at init. Drive: a stress
+  pass (debug stress 10000) with logging on, verify the drop counter is reported and no
+  queue deadlock.
