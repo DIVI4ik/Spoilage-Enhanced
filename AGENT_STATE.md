@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1313
+Pass: 1314
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L7 merge boundary batch - NO_BUG (max-stack merge, tracked+untracked merge, over-max and zero-count all clean)
-Last lens: L7 boundary
-Recent: NO_BUG FIXED NO_BUG NO_BUG NO_BUG
-Barren streak: 1
+Current task: L13 givespoiled output batch - NO_BUG (rotten/stale/count/secondsRemaining all correct)
+Last lens: L13 observed behaviour
+Recent: NO_BUG NO_BUG FIXED NO_BUG NO_BUG
+Barren streak: 2
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-17 04:09
+Updated: 2026-09-17 04:42
 
 ## Notes
 

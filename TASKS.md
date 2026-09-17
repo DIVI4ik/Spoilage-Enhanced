@@ -728,3 +728,21 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
 - [x] L7: **Zero-count stack with trackers (data-modified)** — NO_BUG pass 1313: vanilla normalizes count:0 (read back count:1); no crash, no corruption.
   A count:0 stack cannot exist via vanilla but data modify can write one; the aging path
   must not divide by zero or crash. Drive: count:0 with trackers in a chest, wait, read.
+
+## Refill 2026-09-17 (L13 observed behaviour — givespoiled output correctness)
+
+- [x] L13: **givespoiled rotten — the item's component is rotten_count** — NO_BUG pass 1314: rotten_count:1, no expiration lists.
+  expiration.** Drive: givespoiled @p minecraft:apple rotten 1, read the player's
+  inventory. The rotten stage must produce rotten_count:1 (no fresh/stale lists).
+- [x] L13: **givespoiled stale — the expiration is in the future** — NO_BUG pass 1314: stale_expirations:[4548371L] (future).
+  Drive: givespoiled @p minecraft:apple stale 1, read the component: stale_expirations
+  with a future timestamp. Control: fresh.
+- [x] L13: **givespoiled with secondsRemaining** — NO_BUG pass 1314: fresh 1 100 -> +2007 ticks ~= 100s exactly.
+  expiration.** Drive: givespoiled @p minecraft:apple fresh 1 100 — the expiration must
+  be ~now+2000 ticks (100 seconds), not the default duration.
+- [x] L13: **givespoiled to multiple targets** — NO_BUG pass 1314 by trace: fresh SpoilageData per target in the loop.
+  Drive: givespoiled @a minecraft:apple rotten 1 with two players (needs the joined
+  client + a second player — or close by composition: the loop is per-target with a
+  fresh SpoilageData each; trace GiveSpoiledCommand's target loop).
+- [x] L13: **givespoiled count > 1** — NO_BUG pass 1314: rotten 5 -> rotten_count:5.
+  givespoiled @p minecraft:apple rotten 5 — the stack of 5 must carry rotten_count:5.
