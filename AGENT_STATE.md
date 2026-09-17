@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1315
+Pass: 1316
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L1 air-removal batch - NO_BUG (lazy-tracking design answers the setblock case; park/explosion paths covered by passes 477/1163)
-Last lens: L1 silent failure
-Recent: NO_BUG NO_BUG NO_BUG FIXED NO_BUG
-Barren streak: 3
+Current task: L13 fox holding food - NO_BUG (EntityEquipment.tick calls inventoryTick on every equipment slot; ItemMixin covers it)
+Last lens: L13 observed behaviour
+Recent: NO_BUG NO_BUG NO_BUG NO_BUG FIXED
+Barren streak: 4
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-17 05:11
+Updated: 2026-09-17 05:18
 
 ## Notes
 
