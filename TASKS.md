@@ -869,7 +869,7 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
   after the probe changes.** Pass 1260 drove the §12 report with them; the probe depth and
   gate changes since could affect detection. Drive: place a mature BMM tomato, break, read
   the drop's component. Control: vanilla wheat.
-- [ ] L14: **croptopia crops after the pass-1292 gate change — detection unregressed.**
+- [x] L14: **croptopia crops after the pass-1292 gate change — detection unregressed.**
   Pass 1308 verified a fresh tomato on the ground; the crop-break path (drop stamping) is
   separate. Drive: break a mature croptopia crop, read the drop. Control: vanilla carrots.
 - [ ] L14: **rightclickharvest on a modded crop — the learned mapping persists.** The

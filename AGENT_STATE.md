@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1328
+Pass: 1329
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L14: croptopia crops after the pass-1292 gate change — detection unregressed.
+Current task: L14: rightclickharvest on a modded crop — the learned mapping persists.
 Last lens: L14 foreign content
-Recent: NO_BUG NO_BUG FIXED FIXED NO_BUG NO_BUG NO_BUG NO_BUG
-Barren streak: 7
-Refills since L13: 8
+Recent: NO_BUG NO_BUG FIXED FIXED NO_BUG NO_BUG NO_BUG NO_BUG NO_BUG
+Barren streak: 8
+Refills since L13: 9
 Commits since: release = 0
-Updated: 2026-09-17 17:14
+Updated: 2026-09-17 17:26
 
 ## Notes
 
