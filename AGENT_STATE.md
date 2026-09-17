@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1325
+Pass: 1326
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L1 silent failure - NO_BUG (item entities age correctly in force-loaded chunks; task 879 was a chunk-load issue, not a tick issue)
-Last lens: L1 silent failure
-Recent: NO_BUG NO_BUG FIXED FIXED NO_BUG
-Barren streak: 4
-Refills since L13: 5
+Current task: L14: Ecologics crops (lettuce, tomato, salt) — growth + drop coverage. Ecologics' own crops: probe the jar for CropBlock subclasses and verify the growthProperty path covers them; drive one live if found.
+Last lens: L14 foreign content
+Recent: NO_BUG NO_BUG FIXED FIXED NO_BUG NO_BUG
+Barren streak: 5
+Refills since L13: 6
 Commits since: release = 0
-Updated: 2026-09-17 13:55
+Updated: 2026-09-17 16:41
 
 ## Notes
 

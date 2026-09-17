@@ -858,7 +858,7 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
 
 ## Refill 2026-09-17 (L14 foreign content — remaining pack growth surfaces)
 
-- [ ] L14: **bclib/better-end plants — growthProperty coverage.** bclib powers better-end's
+- [x] L14: **bclib/better-end plants — growthProperty coverage.** bclib powers better-end's
   plants; if any has an age-like IntegerProperty and drops food, the growthProperty probe
   covers it. Probe the jars for crop-like blocks with food drops; if none, close.
 - [ ] L14: **Ecologics crops (lettuce, tomato, salt) — growth + drop coverage.** Ecologics
