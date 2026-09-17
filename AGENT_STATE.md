@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1327
+Pass: 1328
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L14: better_mcdonalds crops (lettuce, tomato) — the pass-1260 coverage still holds after the probe changes.
+Current task: L14: croptopia crops after the pass-1292 gate change — detection unregressed.
 Last lens: L14 foreign content
-Recent: NO_BUG NO_BUG FIXED FIXED NO_BUG NO_BUG NO_BUG
-Barren streak: 6
-Refills since L13: 7
+Recent: NO_BUG NO_BUG FIXED FIXED NO_BUG NO_BUG NO_BUG NO_BUG
+Barren streak: 7
+Refills since L13: 8
 Commits since: release = 0
-Updated: 2026-09-17 17:02
+Updated: 2026-09-17 17:14
 
 ## Notes
 

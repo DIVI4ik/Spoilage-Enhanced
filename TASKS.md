@@ -865,7 +865,7 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
   has BMMLettuceCropBlock/BMMTomatoCropBlock (wait — those are better_mcdonalds). Ecologics'
   own crops: probe the jar for CropBlock subclasses and verify the growthProperty path
   covers them; drive one live if found.
-- [ ] L14: **better_mcdonalds crops (lettuce, tomato) — the pass-1260 coverage still holds
+- [x] L14: **better_mcdonalds crops (lettuce, tomato) — the pass-1260 coverage still holds
   after the probe changes.** Pass 1260 drove the §12 report with them; the probe depth and
   gate changes since could affect detection. Drive: place a mature BMM tomato, break, read
   the drop's component. Control: vanilla wheat.
