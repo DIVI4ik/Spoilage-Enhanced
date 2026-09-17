@@ -112,19 +112,32 @@ public abstract class ContainerAgingSweepMixin {
                 }
                 for (Map.Entry<net.minecraft.core.BlockPos, BlockEntity> entry : chunk.getBlockEntities().entrySet()) {
                     BlockEntity blockEntity = entry.getValue();
+                    // Pass 1320: three conventions — Container, getContainer(), and the
+                    // getItems() list shape (Ecologics pot). Try the Container shapes first
+                    // (the common case), then the list shape.
                     Container container = asAgingContainer(blockEntity);
-                    if (container == null) {
+                    if (container != null) {
+                        // One bad container must not kill the server tick: the sweep is the FIRST
+                        // code that ever touches many of these containers (vanilla never ticks a
+                        // chest), so a modded container whose getItem() throws would otherwise
+                        // crash through this loop every second. Log and move on.
+                        try {
+                            ageContainer(container, level);
+                        } catch (Throwable t) {
+                            SpoilageEnhancedLogger.log("ContainerAgingSweep: skipped container at "
+                                    + entry.getKey() + " (" + blockEntity.getType() + "): " + t);
+                        }
                         continue;
                     }
-                    // One bad container must not kill the server tick: the sweep is the FIRST
-                    // code that ever touches many of these containers (vanilla never ticks a
-                    // chest), so a modded container whose getItem() throws would otherwise
-                    // crash through this loop every second. Log and move on.
-                    try {
-                        ageContainer(container, level);
-                    } catch (Throwable t) {
-                        SpoilageEnhancedLogger.log("ContainerAgingSweep: skipped container at "
-                                + entry.getKey() + " (" + blockEntity.getType() + "): " + t);
+                    java.util.List<ItemStack> itemList =
+                            com.spoilageenhanced.util.ContainerResolution.asAgingItemList(blockEntity);
+                    if (itemList != null) {
+                        try {
+                            ageItemList(itemList, level);
+                        } catch (Throwable t) {
+                            SpoilageEnhancedLogger.log("ContainerAgingSweep: skipped list-backed container at "
+                                    + entry.getKey() + " (" + blockEntity.getType() + "): " + t);
+                        }
                     }
                 }
             }
@@ -147,6 +160,31 @@ public abstract class ContainerAgingSweepMixin {
      * component access, and {@code updateSpoilage} lazily stamps unstamped spoilable food
      * exactly as the bundle and minecart branches do.
      */
+    /**
+     * Pass 1320: ages a list-backed container (the getItems() convention). The list is
+     * the entity's own backing list — updateSpoilage mutates the ItemStack objects in
+     * place, so the entity serialises the aged values on save. Same probe-then-update
+     * shape as {@link #ageContainer}.
+     */
+    private static void ageItemList(java.util.List<ItemStack> items, ServerLevel level) {
+        boolean anySpoilable = false;
+        for (ItemStack stack : items) {
+            if (FoodSpoilageUtil.stackIsOrCarriesSpoilableFood(stack)) {
+                anySpoilable = true;
+                break;
+            }
+        }
+        if (!anySpoilable) {
+            return;
+        }
+        for (ItemStack stack : items) {
+            if (stack.isEmpty()) {
+                continue;
+            }
+            FoodSpoilageUtil.updateSpoilage(stack, level);
+        }
+    }
+
     private static void ageContainer(Container container, ServerLevel level) {
         // Pass 1192: shared probe — the pattern was copy-pasted in five mixins and the
         // pass-1191 defect happened because the sweep's copy was fixed and the other

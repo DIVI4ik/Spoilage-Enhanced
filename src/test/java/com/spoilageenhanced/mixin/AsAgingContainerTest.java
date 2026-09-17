@@ -10,6 +10,7 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -163,5 +164,43 @@ public class AsAgingContainerTest {
         assertSame(first.backing, ContainerResolution.asAgingContainer(first));
         assertSame(second.backing, ContainerResolution.asAgingContainer(second),
                 "the cached accessor must be invoked per instance, not return one instance's container");
+    }
+    /** A block entity exposing its inventory via getItems() — the Ecologics pot shape. */
+    public static class ItemListBe extends BlockEntity {
+        final net.minecraft.core.NonNullList<ItemStack> backing =
+                net.minecraft.core.NonNullList.withSize(1, ItemStack.EMPTY);
+
+        ItemListBe() {
+            super(net.minecraft.world.level.block.entity.BlockEntityTypes.CHEST, BlockPos.ZERO, stoneState());
+        }
+
+        public java.util.List<ItemStack> getItems() {
+            return backing;
+        }
+    }
+
+    @Test
+    void getItemsConventionResolvesToTheBackingList() {
+        // Pass 1320: the third convention — getItems() returning a List.
+        ItemListBe be = new ItemListBe();
+        java.util.List<ItemStack> resolved = ContainerResolution.asAgingItemList(be);
+        assertNotNull(resolved, "a BlockEntity with a public getItems() returning a List must resolve");
+        assertSame(be.backing, resolved, "the resolved list must be the entity's own backing list");
+    }
+
+    @Test
+    void getItemsConventionIsIndependentOfTheContainerConventions() {
+        // A class with getItems() but no getContainer() and not a Container: the Container
+        // resolution must answer null while the list resolution answers the list.
+        ItemListBe be = new ItemListBe();
+        assertNull(ContainerResolution.asAgingContainer(be),
+                "the getItems() shape must not resolve through the Container conventions");
+        assertNotNull(ContainerResolution.asAgingItemList(be));
+    }
+
+    @Test
+    void noAccessorBeHasNoItemListEither() {
+        assertNull(ContainerResolution.asAgingItemList(new NoAccessorBe()),
+                "a BlockEntity with no getItems() must answer null");
     }
 }
