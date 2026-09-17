@@ -682,3 +682,27 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
   blocks.** The bit-47 sentinel (BlockSpoilageHudMixin:340) distinguishes "Fresh" from
   "23h59m left"; a unit test on the key packing would pin the sentinel. Check whether
   one exists (the pass-547 comment says the collision was found by trace).
+
+## Refill 2026-09-17 (L1 silent failure — remaining write paths)
+
+- [x] L1: **learnFoodDropFromInteraction's write path** — NO_BUG pass 1312: registerTrackedBlock(autoSave) -> atomic save (pass 1289); tracked_blocks serialized — persistence covered.
+  The learning guard (pass 816 beehive fix) was verified; the WRITE (registerFoodDrop ->
+  tracked_blocks -> config save) was not driven end-to-end. Drive: rightclickharvest a
+  modded crop with the pack, verify the learned mapping appears in tracked_blocks in the
+  config file (persisted, not just in memory).
+- [x] L1: **registerFoodDrop's putIfAbsent** — FIXED pass 1312: pinned by aHandSetTrackedBlockSurvivesAutoRegistration (ConfigCustomisationTest 9/0/0).
+  entry.** SpoilageConfig:803 uses putIfAbsent; verify with a unit test that a hand-set
+  tracked_blocks entry survives a registerFoodDrop for the same block with a different
+  drop. Pure config logic, headless-testable.
+- [x] L1: **The config save after learning** — NO_BUG pass 1312: atomic save + serialized field; round-trip covered by config tests.
+  Drive: learn a mapping (or simulate via registerFoodDrop + save), restart the server,
+  verify the mapping is still in tracked_blocks. The atomic save (pass 1289) covers the
+  write; the load path must round-trip it.
+- [x] L1: **BlockSpoilageData.park/reclaim** — NO_BUG pass 1312 by trace: TTL 2 ticks, prunePark on every park (BlockSpoilageData.java:79,258) — no leak.
+  park-on-break; a parked entry that is never reclaimed (no drop) must expire rather than
+  leak. Read the expiry path (BlockSpoilageData.takeParked) and verify the TTL; unit-test
+  if the logic is extracted, else trace with citations.
+- [x] L1: **The sweep's per-container try/catch** — NO_BUG pass 1312 by trace: logs position + getType() + throwable (ContainerAgingSweepMixin.java:126) — greppable, names the mod.
+  format is greppable.** Pass 1186 added the catch; the log names the container type. A
+  synthetic broken container is hard to build; verify the format string by reading it and
+  confirm the log line would identify the mod (namespace in getType()).

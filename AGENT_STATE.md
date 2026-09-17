@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1311
+Pass: 1312
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L5 render path tooltip batch - NO_BUG (branch logic traced correct; key injectivity, NO_TIMER sentinel, bar extremes already tested)
-Last lens: L5 render path
-Recent: NO_BUG FIXED NO_BUG NO_BUG NO_BUG
-Barren streak: 4
+Current task: L1 write-path batch - FIXED (putIfAbsent hand-entry protection pinned by a new test; park TTL and sweep catch traced clean)
+Last lens: L1 silent failure
+Recent: FIXED NO_BUG NO_BUG NO_BUG NO_BUG
+Barren streak: 0
 Refills since L13: 4
 Commits since: release = 0
-Updated: 2026-09-17 03:36
+Updated: 2026-09-17 03:52
 
 ## Notes
 

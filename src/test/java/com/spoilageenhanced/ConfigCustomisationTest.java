@@ -194,6 +194,24 @@ class ConfigCustomisationTest {
         String sentinel = "spoilage_enhanced:unresolved:com.example.FakeItem";
         assertTrue(sentinel.startsWith("spoilage_enhanced:unresolved:"));
     }
+    @Test
+    void aHandSetTrackedBlockSurvivesAutoRegistration() throws Exception {
+        // Pass 1312: registerTrackedBlock uses putIfAbsent (SpoilageConfig.java:803) —
+        // a hand-set mapping must never be overwritten by a learned one. The README
+        // promises "anything you write here is never overwritten".
+        SpoilageConfig cfg = new SpoilageConfig();
+        assertTrue(cfg.registerTrackedBlock("testmod:custom_crop", "testmod:custom_food", false),
+                "first registration of a new block must succeed");
+
+        // A later registration for the SAME block with a DIFFERENT drop must be refused
+        // and the original mapping must survive.
+        assertFalse(cfg.registerTrackedBlock("testmod:custom_crop", "minecraft:apple", false),
+                "a second registration for the same block must not overwrite the first");
+        assertEquals("testmod:custom_food", cfg.getTrackedBlockDropItem("testmod:custom_crop"),
+                "the hand-set mapping must survive the refused registration");
+    }
+
 }
+
 
 
