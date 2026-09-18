@@ -99,8 +99,12 @@ public class AutoFoodDetector {
         // candle_cake has no item form (asItem() returns Items.AIR) — it is eaten only via the
         // block-eating path, so it is covered by CakeEatMixin (which injects CakeBlock.eat, the
         // method CandleCakeBlock.useWithoutItem calls). It is NOT listed here.
+        // betterend bucket items (bucket_end_fish, bucket_cubozoa) are MobBucketItem subclasses
+        // like vanilla fish buckets, but the mod doesn't add the FOOD component to them.
+        // They contain edible fish and should spoil like milk_bucket does.
         return id.equals("minecraft:egg") || id.equals("minecraft:blue_egg") || id.equals("minecraft:brown_egg")
-                || id.equals("minecraft:milk_bucket") || id.equals("minecraft:cake");
+                || id.equals("minecraft:milk_bucket") || id.equals("minecraft:cake")
+                || id.equals("betterend:bucket_end_fish") || id.equals("betterend:bucket_cubozoa");
     }
 
 
