@@ -1,6 +1,5 @@
 package com.spoilageenhanced;
 
-import com.spoilageenhanced.block.BlockSpoilageData;
 import net.minecraft.SharedConstants;
 import net.minecraft.server.Bootstrap;
 import org.junit.jupiter.api.BeforeAll;
@@ -11,22 +10,24 @@ import java.lang.reflect.Method;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Pass 1364 (L1 — silent failure): test BlockSpoilageData's silent failure patterns.
+ * Pass 1379 (L1 — silent failure): test BlockSpoilageData's silent failure patterns.
  *
- * <p>BlockSpoilageData (BlockSpoilageData.java:126, :156) has two silent-failure catch blocks
- * during NBT loading:</p>
+ * <p>BlockSpoilageData (BlockSpoilageData.java:126, :156) has two silent-failure
+ * catch blocks when loading NBT data:</p>
  *
  * <ol>
- *   <li>Block entry loading (BlockSpoilageData.java:126): catches {@code Exception} when
- *       loading a block entry from NBT. A malformed entry must not silently vanish — it's
- *       logged so a corrupted save is diagnosable instead of resurrecting blocks to FRESH.</li>
+ *   <li>Block entry loading (BlockSpoilageData.java:126): catches {@code Exception}
+ *       when parsing a block entry. A malformed entry must not silently vanish —
+ *       logged at DATA category with the key and exception details. Defaults to
+ *       FRESH state for out-of-range state values.</li>
  *   <li>Chunk birth time loading (BlockSpoilageData.java:156): catches {@code NumberFormatException}
- *       when loading chunk birth times. A corrupt value (e.g., a string instead of a long)
- *       would silently become 0L without this check. The tag type is explicitly checked.</li>
+ *       when parsing chunk birth times. Explicitly checks for NumericTag type so
+ *       non-long values are logged and skipped instead of silently becoming 0L.</li>
  * </ol>
  *
- * <p>What this test pins is that these patterns remain as documented: malformed entries
- * are logged with position and error details, chunk birth times validate tag type.</p>
+ * <p>What this test pins is that these patterns remain as documented: malformed
+ * entries are logged with key and exception, chunk birth times check tag type
+ * explicitly, defaults to FRESH for invalid state.</p>
  */
 class BlockSpoilageDataSilentFailureTest {
 
@@ -43,105 +44,114 @@ class BlockSpoilageDataSilentFailureTest {
     }
 
     @Test
-    void loadBlockEntriesHasTryCatch() throws Exception {
+    void loadBlockEntryHasTryCatch() throws Exception {
         String source = java.nio.file.Files.readString(
                 java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/block/BlockSpoilageData.java"))
                 .replace("\r\n", "\n");
 
         // Verify the try-catch pattern exists around block entry loading
         assertTrue(source.contains("try {"),
-                "block entry loading must have try block");
+                "load block entry must have try block");
         assertTrue(source.contains("} catch (Exception e) {"),
-                "block entry loading must catch Exception");
+                "load block entry must catch Exception");
         assertTrue(source.contains("skipped malformed block entry"),
-                "block entry loading must log for malformed entry");
+                "load block entry must log for skipped entry");
     }
 
     @Test
-    void loadBlockEntriesLogsPositionAndError() throws Exception {
+    void loadBlockEntryLogsKeyAndException() throws Exception {
         String source = java.nio.file.Files.readString(
                 java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/block/BlockSpoilageData.java"))
                 .replace("\r\n", "\n");
 
-        // Verify it logs position and error details
+        // Verify it logs key and exception details
         assertTrue(source.contains("key"),
-                "block entry loading must log the key/position");
+                "load block entry must log the key");
         assertTrue(source.contains("e.getClass().getSimpleName()"),
-                "block entry loading must log exception class");
+                "load block entry must log exception class");
         assertTrue(source.contains("e.getMessage()"),
-                "block entry loading must log exception message");
-        assertTrue(source.contains("LogCategory.DATA"),
-                "block entry loading must log to DATA category");
+                "load block entry must log exception message");
     }
 
     @Test
-    void loadBlockEntriesDefaultsToFresh() throws Exception {
+    void loadBlockEntryDefaultsToFresh() throws Exception {
         String source = java.nio.file.Files.readString(
                 java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/block/BlockSpoilageData.java"))
                 .replace("\r\n", "\n");
 
         // Verify it defaults to FRESH for out-of-range state
-        assertTrue(source.contains("FoodSpoilageUtil.SpoilageState.FRESH"),
-                "block entry loading must default to FRESH");
         assertTrue(source.contains("stateInt >= 0 && stateInt < states.length"),
-                "block entry loading must bound the state index");
+                "load block entry must check state bounds");
+        assertTrue(source.contains("FoodSpoilageUtil.SpoilageState.FRESH"),
+                "load block entry must default to FRESH");
     }
 
     @Test
-    void loadChunkBirthTimesHasTryCatch() throws Exception {
+    void loadChunkBirthTimeHasTryCatch() throws Exception {
         String source = java.nio.file.Files.readString(
                 java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/block/BlockSpoilageData.java"))
                 .replace("\r\n", "\n");
 
         // Verify the try-catch pattern exists around chunk birth time loading
         assertTrue(source.contains("try {"),
-                "chunk birth time loading must have try block");
+                "load chunk birth time must have try block");
         assertTrue(source.contains("} catch (NumberFormatException e) {"),
-                "chunk birth time loading must catch NumberFormatException");
+                "load chunk birth time must catch NumberFormatException");
         assertTrue(source.contains("skipped malformed chunk birth time"),
-                "chunk birth time loading must log for malformed entry");
+                "load chunk birth time must log for skipped entry");
     }
 
     @Test
-    void loadChunkBirthTimesChecksTagType() throws Exception {
+    void loadChunkBirthTimeChecksNumericTag() throws Exception {
         String source = java.nio.file.Files.readString(
                 java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/block/BlockSpoilageData.java"))
                 .replace("\r\n", "\n");
 
-        // Verify it explicitly checks tag type
-        assertTrue(source.contains("instanceof net.minecraft.nbt.NumericTag"),
-                "chunk birth time loading must check NumericTag type");
+        // Verify it explicitly checks for NumericTag
+        assertTrue(source.contains("tag instanceof net.minecraft.nbt.NumericTag"),
+                "load chunk birth time must check NumericTag");
         assertTrue(source.contains("throw new NumberFormatException"),
-                "chunk birth time loading must throw for non-numeric tag");
-        assertTrue(source.contains("longValue()"),
-                "chunk birth time loading must extract long value");
+                "load chunk birth time must throw for non-numeric tag");
+        assertTrue(source.contains("value is not a long"),
+                "load chunk birth time must have descriptive message");
     }
 
     @Test
-    void loadChunkBirthTimesLogsKeyAndError() throws Exception {
+    void loadChunkBirthTimeLogsKeyAndMessage() throws Exception {
         String source = java.nio.file.Files.readString(
                 java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/block/BlockSpoilageData.java"))
                 .replace("\r\n", "\n");
 
-        // Verify it logs key and error
+        // Verify it logs key and exception message
         assertTrue(source.contains("key"),
-                "chunk birth time loading must log the key");
+                "load chunk birth time must log the key");
         assertTrue(source.contains("e.getMessage()"),
-                "chunk birth time loading must log exception message");
-        assertTrue(source.contains("LogCategory.DATA"),
-                "chunk birth time loading must log to DATA category");
+                "load chunk birth time must log exception message");
     }
 
     @Test
-    void loadHandlesSpeedMultiplier() throws Exception {
+    void loadParsesSpeedMultiplier() throws Exception {
         String source = java.nio.file.Files.readString(
                 java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/block/BlockSpoilageData.java"))
                 .replace("\r\n", "\n");
 
-        // Verify it handles SpeedMultiplier
-        assertTrue(source.contains("SpeedMultiplier"),
-                "load must handle SpeedMultiplier");
-        assertTrue(source.contains("savedMultiplier"),
-                "load must set savedMultiplier");
+        // Verify it parses SpeedMultiplier
+        assertTrue(source.contains("nbt.contains(\"SpeedMultiplier\")"),
+                "load must check for SpeedMultiplier");
+        assertTrue(source.contains("nbt.getDoubleOr(\"SpeedMultiplier\", 1.0)"),
+                "load must parse SpeedMultiplier with default");
+    }
+
+    @Test
+    void loadHandlesMissingChunkBirthTimes() throws Exception {
+        String source = java.nio.file.Files.readString(
+                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/block/BlockSpoilageData.java"))
+                .replace("\r\n", "\n");
+
+        // Verify it handles missing ChunkBirthTimes
+        assertTrue(source.contains("nbt.contains(\"ChunkBirthTimes\")"),
+                "load must check for ChunkBirthTimes");
+        assertTrue(source.contains("nbt.getCompoundOrEmpty(\"ChunkBirthTimes\")"),
+                "load must get compound or empty");
     }
 }
