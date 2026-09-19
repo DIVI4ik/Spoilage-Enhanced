@@ -11,24 +11,23 @@ import java.lang.reflect.Method;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Pass 1357 (L1 — silent failure): test ContainerAgingSweepMixin's silent failure patterns.
+ * Pass 1366 (L1 — silent failure): test ContainerAgingSweepMixin's silent failure patterns.
  *
- * <p>ContainerAgingSweepMixin has two silent-failure catch blocks during the container
- * aging sweep (ContainerAgingSweepMixin.java:126, :137):</p>
+ * <p>ContainerAgingSweepMixin (ContainerAgingSweepMixin.java:126, :137) catches {@code Throwable}
+ * when aging containers during the server tick sweep. Two catch blocks:</p>
  *
  * <ol>
- *   <li>Container aging (ContainerAgingSweepMixin.java:126): catches {@code Throwable}
- *       when aging a container via {@code ageContainer}. A modded container whose
- *       {@code getItem()} throws would otherwise crash the server tick every second.
- *       The catch logs the failure and continues to the next container.</li>
+ *   <li>Container aging (ContainerAgingSweepMixin.java:126): catches {@code Throwable} when
+ *       calling ageContainer. One bad container must not kill the server tick — the sweep is
+ *       the FIRST code that ever touches many of these containers (vanilla never ticks a
+ *       chest), so a modded container whose getItem() throws would otherwise crash through
+ *       this loop every second. Logged with position and block entity type.</li>
  *   <li>List-backed container aging (ContainerAgingSweepMixin.java:137): catches {@code Throwable}
- *       when aging a list-backed container via {@code ageItemList}. Same rationale —
- *       one bad container must not kill the server tick.</li>
+ *       when calling ageItemList for list-backed containers. Same rationale — log and move on.</li>
  * </ol>
  *
- * <p>What this test pins is that these patterns remain as documented: container aging
- * errors are caught per-container, logged with position and block entity type, and
- * the sweep continues.</p>
+ * <p>What this test pins is that these patterns remain as documented: container aging errors
+ * are caught and logged with position and block entity type, sweep continues.</p>
  */
 class ContainerAgingSweepMixinSilentFailureTest {
 
@@ -45,82 +44,106 @@ class ContainerAgingSweepMixinSilentFailureTest {
     }
 
     @Test
-    void containerAgingHasTryCatch() throws Exception {
+    void ageContainerHasTryCatch() throws Exception {
         String source = java.nio.file.Files.readString(
                 java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/mixin/ContainerAgingSweepMixin.java"))
                 .replace("\r\n", "\n");
 
-        // Verify the try-catch pattern exists around container aging
+        // Verify the try-catch pattern exists around ageContainer
         assertTrue(source.contains("try {"),
-                "container aging must have try block");
+                "ageContainer must have try block");
         assertTrue(source.contains("} catch (Throwable t) {"),
-                "container aging must catch Throwable");
-        assertTrue(source.contains("ContainerAgingSweep: skipped container at"),
-                "container aging must log skipped container");
+                "ageContainer must catch Throwable");
+        assertTrue(source.contains("skipped container at"),
+                "ageContainer must log for skipped container");
     }
 
     @Test
-    void containerAgingLogsPositionAndType() throws Exception {
+    void ageContainerLogsPositionAndType() throws Exception {
         String source = java.nio.file.Files.readString(
                 java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/mixin/ContainerAgingSweepMixin.java"))
                 .replace("\r\n", "\n");
 
         // Verify it logs position and block entity type
         assertTrue(source.contains("entry.getKey()"),
-                "container aging must log position");
+                "ageContainer must log the position key");
         assertTrue(source.contains("blockEntity.getType()"),
-                "container aging must log block entity type");
+                "ageContainer must log the block entity type");
+        assertTrue(source.contains("t"),
+                "ageContainer must log the throwable");
     }
 
     @Test
-    void containerAgingContinuesAfterError() throws Exception {
+    void ageContainerCallsAgeContainerMethod() throws Exception {
         String source = java.nio.file.Files.readString(
                 java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/mixin/ContainerAgingSweepMixin.java"))
                 .replace("\r\n", "\n");
 
-        // Verify it continues to next container
+        // Verify it calls ageContainer
+        assertTrue(source.contains("ageContainer(container, level)"),
+                "ageContainer must call ageContainer method");
+    }
+
+    @Test
+    void ageItemListHasTryCatch() throws Exception {
+        String source = java.nio.file.Files.readString(
+                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/mixin/ContainerAgingSweepMixin.java"))
+                .replace("\r\n", "\n");
+
+        // Verify the try-catch pattern exists around ageItemList
+        assertTrue(source.contains("try {"),
+                "ageItemList must have try block");
+        assertTrue(source.contains("} catch (Throwable t) {"),
+                "ageItemList must catch Throwable");
+        assertTrue(source.contains("skipped list-backed container at"),
+                "ageItemList must log for skipped list-backed container");
+    }
+
+    @Test
+    void ageItemListLogsPositionAndType() throws Exception {
+        String source = java.nio.file.Files.readString(
+                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/mixin/ContainerAgingSweepMixin.java"))
+                .replace("\r\n", "\n");
+
+        // Verify it logs position and block entity type
+        assertTrue(source.contains("entry.getKey()"),
+                "ageItemList must log the position key");
+        assertTrue(source.contains("blockEntity.getType()"),
+                "ageItemList must log the block entity type");
+        assertTrue(source.contains("t"),
+                "ageItemList must log the throwable");
+    }
+
+    @Test
+    void ageItemListCallsAgeItemListMethod() throws Exception {
+        String source = java.nio.file.Files.readString(
+                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/mixin/ContainerAgingSweepMixin.java"))
+                .replace("\r\n", "\n");
+
+        // Verify it calls ageItemList
+        assertTrue(source.contains("ageItemList(itemList, level)"),
+                "ageItemList must call ageItemList method");
+    }
+
+    @Test
+    void ageItemListUsesContainerResolution() throws Exception {
+        String source = java.nio.file.Files.readString(
+                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/mixin/ContainerAgingSweepMixin.java"))
+                .replace("\r\n", "\n");
+
+        // Verify it uses ContainerResolution.asAgingItemList
+        assertTrue(source.contains("ContainerResolution.asAgingItemList(blockEntity)"),
+                "ageItemList must use ContainerResolution.asAgingItemList");
+    }
+
+    @Test
+    void sweepContinuesAfterError() throws Exception {
+        String source = java.nio.file.Files.readString(
+                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/mixin/ContainerAgingSweepMixin.java"))
+                .replace("\r\n", "\n");
+
+        // Verify it continues after error
         assertTrue(source.contains("continue;"),
-                "container aging must continue after error");
-    }
-
-    @Test
-    void listBackedContainerAgingHasTryCatch() throws Exception {
-        String source = java.nio.file.Files.readString(
-                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/mixin/ContainerAgingSweepMixin.java"))
-                .replace("\r\n", "\n");
-
-        // Verify the try-catch pattern exists around list-backed container aging
-        assertTrue(source.contains("try {"),
-                "list-backed container aging must have try block");
-        assertTrue(source.contains("} catch (Throwable t) {"),
-                "list-backed container aging must catch Throwable");
-        assertTrue(source.contains("ContainerAgingSweep: skipped list-backed container at"),
-                "list-backed container aging must log skipped container");
-    }
-
-    @Test
-    void listBackedContainerAgingLogsPositionAndType() throws Exception {
-        String source = java.nio.file.Files.readString(
-                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/mixin/ContainerAgingSweepMixin.java"))
-                .replace("\r\n", "\n");
-
-        // Verify it logs position and block entity type
-        assertTrue(source.contains("entry.getKey()"),
-                "list-backed container aging must log position");
-        assertTrue(source.contains("blockEntity.getType()"),
-                "list-backed container aging must log block entity type");
-    }
-
-    @Test
-    void usesContainerResolution() throws Exception {
-        String source = java.nio.file.Files.readString(
-                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/mixin/ContainerAgingSweepMixin.java"))
-                .replace("\r\n", "\n");
-
-        // Verify it uses ContainerResolution utility
-        assertTrue(source.contains("ContainerResolution.asAgingItemList"),
-                "must use ContainerResolution.asAgingItemList");
-        assertTrue(source.contains("ContainerResolution.asAgingContainer"),
-                "must use ContainerResolution.asAgingContainer");
+                "sweep must continue after container error");
     }
 }
