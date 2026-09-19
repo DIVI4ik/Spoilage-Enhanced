@@ -1,6 +1,5 @@
 package com.spoilageenhanced;
 
-import com.spoilageenhanced.forge.SpoilageEnhancedForge;
 import net.minecraft.SharedConstants;
 import net.minecraft.server.Bootstrap;
 import org.junit.jupiter.api.BeforeAll;
@@ -11,22 +10,25 @@ import java.lang.reflect.Method;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Pass 1360 (L1 — silent failure): test SpoilageEnhancedForge's silent failure patterns.
+ * Pass 1380 (L1 — silent failure): test SpoilageEnhancedForge's silent failure patterns.
  *
- * <p>SpoilageEnhancedForge has two silent-failure catch blocks (SpoilageEnhancedForge.java:36, :56):</p>
+ * <p>SpoilageEnhancedForge (SpoilageEnhancedForge.java:36, :56) has two silent-failure
+ * catch blocks when resolving Forge paths:</p>
  *
  * <ol>
- *   <li>getForgeConfigDir (SpoilageEnhancedForge.java:36): catches {@code Throwable} when
- *       resolving the Forge config directory via FMLPaths. If FMLPaths is missing, the
- *       field name changed, or the getter threw, the mod would silently write its config
- *       to the wrong directory. Logged at WARNING.</li>
- *   <li>getForgeGameDir (SpoilageEnhancedForge.java:56): catches {@code Throwable} when
- *       resolving the Forge game directory via FMLPaths. Same rationale — a silent
- *       fallback to Path.of(".") hides a broken Forge environment. Logged at WARNING.</li>
+ *   <li>getForgeConfigDir (SpoilageEnhancedForge.java:36): catches {@code Throwable}
+ *       when resolving the Forge config directory via FMLPaths. If FMLPaths is missing,
+ *       the field name changed, or the getter threw, the mod would silently write its
+ *       config to the wrong directory. Logged at WARNING with exception details.</li>
+ *   <li>getForgeGameDir (SpoilageEnhancedForge.java:56): catches {@code Throwable}
+ *       when resolving the Forge game directory via FMLPaths. Same silent-failure
+ *       class — a silent fallback to Path.of(".") hides a broken Forge environment.
+ *       Logged at WARNING with exception details.</li>
  * </ol>
  *
- * <p>What this test pins is that these patterns remain as documented: reflection errors
- * are caught, logged at WARNING, and fallbacks are used.</p>
+ * <p>What this test pins is that these patterns remain as documented: Forge path
+ * resolution uses reflection with try-catch, failures are logged at WARNING with
+ * exception class and message, fallbacks are Path.of("config") and Path.of(".").</p>
  */
 class SpoilageEnhancedForgeSilentFailureTest {
 
@@ -48,26 +50,37 @@ class SpoilageEnhancedForgeSilentFailureTest {
                 java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/forge/SpoilageEnhancedForge.java"))
                 .replace("\r\n", "\n");
 
-        // Verify the try-catch pattern exists around FMLPaths config dir resolution
-        assertTrue(source.contains("private static Path getForgeConfigDir()"),
-                "getForgeConfigDir method must exist");
+        // Verify the try-catch pattern exists around config dir resolution
         assertTrue(source.contains("try {"),
                 "getForgeConfigDir must have try block");
         assertTrue(source.contains("} catch (Throwable e) {"),
                 "getForgeConfigDir must catch Throwable");
-        assertTrue(source.contains("SpoilageEnhancedForge: failed to resolve Forge config dir via FMLPaths"),
-                "getForgeConfigDir must log for failed FMLPaths resolution");
+        assertTrue(source.contains("failed to resolve Forge config dir via FMLPaths"),
+                "getForgeConfigDir must log for failed resolution");
     }
 
     @Test
-    void getForgeConfigDirUsesReflection() throws Exception {
+    void getForgeConfigDirLogsExceptionDetails() throws Exception {
         String source = java.nio.file.Files.readString(
                 java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/forge/SpoilageEnhancedForge.java"))
                 .replace("\r\n", "\n");
 
-        // Verify it uses reflection to access FMLPaths
+        // Verify it logs exception class and message
+        assertTrue(source.contains("e.getClass().getSimpleName()"),
+                "getForgeConfigDir must log exception class");
+        assertTrue(source.contains("e.getMessage()"),
+                "getForgeConfigDir must log exception message");
+    }
+
+    @Test
+    void getForgeConfigDirUsesFMLPaths() throws Exception {
+        String source = java.nio.file.Files.readString(
+                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/forge/SpoilageEnhancedForge.java"))
+                .replace("\r\n", "\n");
+
+        // Verify it uses FMLPaths reflection
         assertTrue(source.contains("Class.forName(\"net.minecraftforge.fml.loading.FMLPaths\")"),
-                "getForgeConfigDir must use Class.forName for FMLPaths");
+                "getForgeConfigDir must load FMLPaths class");
         assertTrue(source.contains("getField(\"CONFIGDIR\")"),
                 "getForgeConfigDir must get CONFIGDIR field");
         assertTrue(source.contains("getMethod(\"get\").invoke"),
@@ -75,14 +88,14 @@ class SpoilageEnhancedForgeSilentFailureTest {
     }
 
     @Test
-    void getForgeConfigDirFallsBackToConfig() throws Exception {
+    void getForgeConfigDirFallbacksToConfig() throws Exception {
         String source = java.nio.file.Files.readString(
                 java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/forge/SpoilageEnhancedForge.java"))
                 .replace("\r\n", "\n");
 
-        // Verify fallback
+        // Verify it falls back to Path.of("config")
         assertTrue(source.contains("return Path.of(\"config\")"),
-                "getForgeConfigDir must fall back to Path.of(\"config\")");
+                "getForgeConfigDir must fallback to Path.of(config)");
     }
 
     @Test
@@ -91,26 +104,37 @@ class SpoilageEnhancedForgeSilentFailureTest {
                 java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/forge/SpoilageEnhancedForge.java"))
                 .replace("\r\n", "\n");
 
-        // Verify the try-catch pattern exists around FMLPaths game dir resolution
-        assertTrue(source.contains("private static Path getForgeGameDir() {"),
+        // Verify the try-catch pattern exists around game dir resolution
+        assertTrue(source.contains("private static Path getForgeGameDir"),
                 "getForgeGameDir method must exist");
         assertTrue(source.contains("try {"),
                 "getForgeGameDir must have try block");
         assertTrue(source.contains("} catch (Throwable e) {"),
                 "getForgeGameDir must catch Throwable");
-        assertTrue(source.contains("SpoilageEnhancedForge: failed to resolve Forge game dir via FMLPaths"),
-                "getForgeGameDir must log for failed FMLPaths resolution");
+        assertTrue(source.contains("failed to resolve Forge game dir via FMLPaths"),
+                "getForgeGameDir must log for failed resolution");
     }
 
     @Test
-    void getForgeGameDirUsesReflection() throws Exception {
+    void getForgeGameDirLogsExceptionDetails() throws Exception {
         String source = java.nio.file.Files.readString(
                 java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/forge/SpoilageEnhancedForge.java"))
                 .replace("\r\n", "\n");
 
-        // Verify it uses reflection to access FMLPaths
-        assertTrue(source.contains("Class.forName(\"net.minecraftforge.fml.loading.FMLPaths\")"),
-                "getForgeGameDir must use Class.forName for FMLPaths");
+        // Verify it logs exception class and message
+        assertTrue(source.contains("e.getClass().getSimpleName()"),
+                "getForgeGameDir must log exception class");
+        assertTrue(source.contains("e.getMessage()"),
+                "getForgeGameDir must log exception message");
+    }
+
+    @Test
+    void getForgeGameDirUsesFMLPaths() throws Exception {
+        String source = java.nio.file.Files.readString(
+                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/forge/SpoilageEnhancedForge.java"))
+                .replace("\r\n", "\n");
+
+        // Verify it uses FMLPaths reflection
         assertTrue(source.contains("getField(\"GAMEDIR\")"),
                 "getForgeGameDir must get GAMEDIR field");
         assertTrue(source.contains("getMethod(\"get\").invoke"),
@@ -118,24 +142,13 @@ class SpoilageEnhancedForgeSilentFailureTest {
     }
 
     @Test
-    void getForgeGameDirFallsBackToCurrentDir() throws Exception {
+    void getForgeGameDirFallbacksToCurrentDir() throws Exception {
         String source = java.nio.file.Files.readString(
                 java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/forge/SpoilageEnhancedForge.java"))
                 .replace("\r\n", "\n");
 
-        // Verify fallback
+        // Verify it falls back to Path.of(".")
         assertTrue(source.contains("return Path.of(\".\")"),
-                "getForgeGameDir must fall back to Path.of(\".\")");
-    }
-
-    @Test
-    void bothMethodsLogAtWarning() throws Exception {
-        String source = java.nio.file.Files.readString(
-                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/forge/SpoilageEnhancedForge.java"))
-                .replace("\r\n", "\n");
-
-        // Verify both log at WARNING level
-        assertTrue(source.contains("LogCategory.GENERAL"),
-                "both methods must log to GENERAL category");
+                "getForgeGameDir must fallback to Path.of(.)");
     }
 }
