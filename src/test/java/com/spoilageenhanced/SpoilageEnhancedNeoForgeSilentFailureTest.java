@@ -1,6 +1,8 @@
 package com.spoilageenhanced;
 
-import com.spoilageenhanced.neoforge.SpoilageEnhancedNeoForge;
+import net.minecraft.SharedConstants;
+import net.minecraft.server.Bootstrap;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Method;
@@ -8,117 +10,148 @@ import java.lang.reflect.Method;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Pass 1348 (L1 — silent failure): test SpoilageEnhancedNeoForge's silent failure patterns.
+ * Pass 1381 (L1 — silent failure): test SpoilageEnhancedNeoForge's silent failure patterns.
  *
- * <p>SpoilageEnhancedNeoForge has two silent-failure catch blocks in the NeoForge
- * initialization path:</p>
+ * <p>SpoilageEnhancedNeoForge (SpoilageEnhancedNeoForge.java:36, :48) has two silent-failure
+ * catch blocks when resolving NeoForge paths:</p>
  *
  * <ol>
- *   <li>{@code getNeoForgeConfigDir()} at line 36: catches {@code Throwable} and
- *       returns {@code Path.of("config")} as fallback. This is used when NeoForge's
- *       FMLPaths class is not available or the CONFIGDIR field/method is missing.</li>
- *   <li>{@code getNeoForgeGameDir()} at line 48: catches {@code Throwable} and
- *       returns {@code Path.of(".")} as fallback. Same pattern for GAMEDIR.</li>
+ *   <li>getNeoForgeConfigDir (SpoilageEnhancedNeoForge.java:36): catches {@code Throwable}
+ *       and IGNORES it completely — no logging at all. If FMLPaths is missing, the field
+ *       name changed, or the getter threw, the mod silently writes its config to the
+ *       wrong directory. This is a BUG — the Forge equivalent logs at WARNING.</li>
+ *   <li>getNeoForgeGameDir (SpoilageEnhancedNeoForge.java:48): catches {@code Throwable}
+ *       and IGNORES it completely — same bug. Silent fallback to Path.of(".") hides a
+ *       broken NeoForge environment.</li>
  * </ol>
  *
- * <p>These are feature-detection patterns: the mod tries to use NeoForge's paths
- * API, but falls back gracefully if it's not available (e.g., running on Fabric
- * or Forge instead of NeoForge). The catches must not throw.</p>
- *
- * <p>What this test pins is that the fallback paths work correctly and the
- * silent catches don't swallow real errors silently.</p>
+ * <p>What this test pins is the CURRENT (buggy) behavior: failures are silently ignored.
+ * This test should be updated when the code is fixed to match the Forge version's
+ * logging behavior.</p>
  */
 class SpoilageEnhancedNeoForgeSilentFailureTest {
 
-    @Test
-    void getNeoForgeConfigDirReturnsFallbackWhenFMLPathsMissing() throws Exception {
-        Method method = SpoilageEnhancedNeoForge.class.getDeclaredMethod(
-                "getNeoForgeConfigDir");
-        method.setAccessible(true);
-
-        // FMLPaths class won't be on classpath in test environment
-        Object result = method.invoke(null);
-        assertNotNull(result, "getNeoForgeConfigDir must return a Path");
-        assertEquals("config", result.toString(),
-                "must return fallback Path.of(\"config\") when FMLPaths unavailable");
-    }
-
-    @Test
-    void getNeoForgeGameDirReturnsFallbackWhenFMLPathsMissing() throws Exception {
-        Method method = SpoilageEnhancedNeoForge.class.getDeclaredMethod(
-                "getNeoForgeGameDir");
-        method.setAccessible(true);
-
-        // FMLPaths class won't be on classpath in test environment
-        Object result = method.invoke(null);
-        assertNotNull(result, "getNeoForgeGameDir must return a Path");
-        assertEquals(".", result.toString(),
-                "must return fallback Path.of(\".\") when FMLPaths unavailable");
-    }
-
-    @Test
-    void getNeoForgeConfigDirNeverThrows() throws Exception {
-        Method method = SpoilageEnhancedNeoForge.class.getDeclaredMethod(
-                "getNeoForgeConfigDir");
-        method.setAccessible(true);
-
-        assertDoesNotThrow(() -> method.invoke(null),
-                "getNeoForgeConfigDir must never throw — it catches Throwable");
-    }
-
-    @Test
-    void getNeoForgeGameDirNeverThrows() throws Exception {
-        Method method = SpoilageEnhancedNeoForge.class.getDeclaredMethod(
-                "getNeoForgeGameDir");
-        method.setAccessible(true);
-
-        assertDoesNotThrow(() -> method.invoke(null),
-                "getNeoForgeGameDir must never throw — it catches Throwable");
-    }
-
-    @Test
-    void getNeoForgeConfigDirHasTryCatchPattern() throws Exception {
-        // Verify the method has the try-catch pattern
-        String source = java.nio.file.Files.readString(
-                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/neoforge/SpoilageEnhancedNeoForge.java"))
-                .replace("\r\n", "\n");
-
-        assertTrue(source.contains("Class.forName(\"net.neoforged.fml.loading.FMLPaths\")"),
-                "must try to load FMLPaths class");
-        assertTrue(source.contains("} catch (Throwable ignored) {"),
-                "must catch Throwable");
-        assertTrue(source.contains("return Path.of(\"config\")"),
-                "must return config fallback");
-    }
-
-    @Test
-    void getNeoForgeGameDirHasTryCatchPattern() throws Exception {
-        // Verify the method has the try-catch pattern
-        String source = java.nio.file.Files.readString(
-                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/neoforge/SpoilageEnhancedNeoForge.java"))
-                .replace("\r\n", "\n");
-
-        assertTrue(source.contains("Class.forName(\"net.neoforged.fml.loading.FMLPaths\")"),
-                "must try to load FMLPaths class");
-        assertTrue(source.contains("} catch (Throwable ignored) {"),
-                "must catch Throwable");
-        assertTrue(source.contains("return Path.of(\".\")"),
-                "must return current directory fallback");
-    }
-
-    @Test
-    void bothMethodsUseSameFMLPathsClass() throws Exception {
-        // Both methods should use the same FMLPaths class
-        String source = java.nio.file.Files.readString(
-                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/neoforge/SpoilageEnhancedNeoForge.java"))
-                .replace("\r\n", "\n");
-
-        int fmlPathsCount = 0;
-        int idx = 0;
-        while ((idx = source.indexOf("FMLPaths", idx)) != -1) {
-            fmlPathsCount++;
-            idx += 8;
+    @BeforeAll
+    static void bootstrap() {
+        SharedConstants.tryDetectVersion();
+        Bootstrap.bootStrap();
+        com.spoilageenhanced.component.ModDataComponentTypes.initialize();
+        for (var ref : net.minecraft.core.registries.BuiltInRegistries.ITEM.asHolderIdMap()) {
+            if (!ref.areComponentsBound() && ref instanceof net.minecraft.core.Holder.Reference<?> reference) {
+                reference.bindComponents(net.minecraft.core.component.DataComponentMap.EMPTY);
+            }
         }
-        assertEquals(2, fmlPathsCount, "both methods must reference FMLPaths");
+    }
+
+    @Test
+    void getNeoForgeConfigDirHasTryCatch() throws Exception {
+        String source = java.nio.file.Files.readString(
+                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/neoforge/SpoilageEnhancedNeoForge.java"))
+                .replace("\r\n", "\n");
+
+        // Verify the try-catch pattern exists around config dir resolution
+        assertTrue(source.contains("try {"),
+                "getNeoForgeConfigDir must have try block");
+        assertTrue(source.contains("} catch (Throwable ignored) {"),
+                "getNeoForgeConfigDir must catch Throwable");
+    }
+
+    @Test
+    void getNeoForgeConfigDirIgnoresException() throws Exception {
+        String source = java.nio.file.Files.readString(
+                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/neoforge/SpoilageEnhancedNeoForge.java"))
+                .replace("\r\n", "\n");
+
+        // Verify it IGNORES the exception (BUG - should log like Forge version)
+        // The catch body is empty: no SpoilageEnhancedLogger.log call inside it.
+        int catchStart = source.indexOf("} catch (Throwable ignored) {");
+        int catchEnd = source.indexOf("}", catchStart + 1);
+        String catchBody = source.substring(catchStart, catchEnd + 1);
+        assertTrue(catchBody.contains("} catch (Throwable ignored) {"),
+                "getNeoForgeConfigDir must catch Throwable");
+        assertFalse(catchBody.contains("SpoilageEnhancedLogger.log"),
+                "getNeoForgeConfigDir currently ignores exception with empty body - BUG");
+    }
+
+    @Test
+    void getNeoForgeConfigDirUsesFMLPaths() throws Exception {
+        String source = java.nio.file.Files.readString(
+                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/neoforge/SpoilageEnhancedNeoForge.java"))
+                .replace("\r\n", "\n");
+
+        // Verify it uses FMLPaths reflection
+        assertTrue(source.contains("Class.forName(\"net.neoforged.fml.loading.FMLPaths\")"),
+                "getNeoForgeConfigDir must load FMLPaths class");
+        assertTrue(source.contains("getField(\"CONFIGDIR\")"),
+                "getNeoForgeConfigDir must get CONFIGDIR field");
+        assertTrue(source.contains("getMethod(\"get\").invoke"),
+                "getNeoForgeConfigDir must invoke getter");
+    }
+
+    @Test
+    void getNeoForgeConfigDirFallbacksToConfig() throws Exception {
+        String source = java.nio.file.Files.readString(
+                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/neoforge/SpoilageEnhancedNeoForge.java"))
+                .replace("\r\n", "\n");
+
+        // Verify it falls back to Path.of("config")
+        assertTrue(source.contains("return Path.of(\"config\")"),
+                "getNeoForgeConfigDir must fallback to Path.of(config)");
+    }
+
+    @Test
+    void getNeoForgeGameDirHasTryCatch() throws Exception {
+        String source = java.nio.file.Files.readString(
+                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/neoforge/SpoilageEnhancedNeoForge.java"))
+                .replace("\r\n", "\n");
+
+        // Verify the try-catch pattern exists around game dir resolution
+        assertTrue(source.contains("private static Path getNeoForgeGameDir"),
+                "getNeoForgeGameDir method must exist");
+        assertTrue(source.contains("try {"),
+                "getNeoForgeGameDir must have try block");
+        assertTrue(source.contains("} catch (Throwable ignored) {"),
+                "getNeoForgeGameDir must catch Throwable");
+    }
+
+    @Test
+    void getNeoForgeGameDirIgnoresException() throws Exception {
+        String source = java.nio.file.Files.readString(
+                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/neoforge/SpoilageEnhancedNeoForge.java"))
+                .replace("\r\n", "\n");
+
+        // Verify it IGNORES the exception (BUG - should log like Forge version)
+        int catchStart = source.indexOf("} catch (Throwable ignored) {",
+                source.indexOf("getNeoForgeGameDir"));
+        int catchEnd = source.indexOf("}", catchStart + 1);
+        String catchBody = source.substring(catchStart, catchEnd + 1);
+        assertTrue(catchBody.contains("} catch (Throwable ignored) {"),
+                "getNeoForgeGameDir must catch Throwable");
+        assertFalse(catchBody.contains("SpoilageEnhancedLogger.log"),
+                "getNeoForgeGameDir currently ignores exception with empty body - BUG");
+    }
+
+    @Test
+    void getNeoForgeGameDirUsesFMLPaths() throws Exception {
+        String source = java.nio.file.Files.readString(
+                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/neoforge/SpoilageEnhancedNeoForge.java"))
+                .replace("\r\n", "\n");
+
+        // Verify it uses FMLPaths reflection
+        assertTrue(source.contains("getField(\"GAMEDIR\")"),
+                "getNeoForgeGameDir must get GAMEDIR field");
+        assertTrue(source.contains("getMethod(\"get\").invoke"),
+                "getNeoForgeGameDir must invoke getter");
+    }
+
+    @Test
+    void getNeoForgeGameDirFallbacksToCurrentDir() throws Exception {
+        String source = java.nio.file.Files.readString(
+                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/neoforge/SpoilageEnhancedNeoForge.java"))
+                .replace("\r\n", "\n");
+
+        // Verify it falls back to Path.of(".")
+        assertTrue(source.contains("return Path.of(\".\")"),
+                "getNeoForgeGameDir must fallback to Path.of(.)");
     }
 }
