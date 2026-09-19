@@ -1,6 +1,5 @@
 package com.spoilageenhanced;
 
-import com.spoilageenhanced.mixin.client.SimpleTextureMixin;
 import net.minecraft.SharedConstants;
 import net.minecraft.server.Bootstrap;
 import org.junit.jupiter.api.BeforeAll;
@@ -11,14 +10,20 @@ import java.lang.reflect.Method;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Pass 1361 (L1 — silent failure): test SimpleTextureMixin's silent failure pattern.
+ * Pass 1376 (L1 — silent failure): test SimpleTextureMixin's silent failure pattern.
  *
- * <p>SimpleTextureMixin (SimpleTextureMixin.java:39, :45) catches {@code IOException} when
- * loading fallback textures. If the texture stream fails to read, it logs the failure.
- * The stream close also catches and ignores IOException.</p>
+ * <p>SimpleTextureMixin (SimpleTextureMixin.java:39, :45) has two silent-failure catch
+ * blocks when loading fallback textures:</p>
+ *
+ * <ol>
+ *   <li>NativeImage.read (SimpleTextureMixin.java:39): catches {@code IOException} when
+ *       reading the texture stream. Logs the failure with the texture path.</li>
+ *   <li>stream.close() (SimpleTextureMixin.java:45): catches {@code IOException} and
+ *       ignores it in the finally block.</li>
+ * </ol>
  *
  * <p>What this test pins is that these patterns remain as documented: texture loading
- * errors are caught and logged, stream close errors are ignored.</p>
+ * failure is logged with path, stream is closed in finally with ignored exception.</p>
  */
 class SimpleTextureMixinSilentFailureTest {
 
@@ -35,47 +40,67 @@ class SimpleTextureMixinSilentFailureTest {
     }
 
     @Test
-    void textureLoadingHasTryCatch() throws Exception {
+    void loadFallbackTextureHasTryCatch() throws Exception {
         String source = java.nio.file.Files.readString(
                 java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/mixin/client/SimpleTextureMixin.java"))
                 .replace("\r\n", "\n");
 
         // Verify the try-catch pattern exists around texture loading
         assertTrue(source.contains("try {"),
-                "texture loading must have try block");
+                "loadFallbackTexture must have try block");
         assertTrue(source.contains("} catch (IOException e) {"),
-                "texture loading must catch IOException");
+                "loadFallbackTexture must catch IOException");
         assertTrue(source.contains("Failed to load fallback texture"),
-                "texture loading must log for failed texture load");
+                "loadFallbackTexture must log for failed load");
     }
 
     @Test
-    void textureLoadingUsesNativeImage() throws Exception {
+    void loadFallbackTextureLogsPath() throws Exception {
+        String source = java.nio.file.Files.readString(
+                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/mixin/client/SimpleTextureMixin.java"))
+                .replace("\r\n", "\n");
+
+        // Verify it logs the texture path
+        assertTrue(source.contains("path"),
+                "loadFallbackTexture must log the texture path");
+        assertTrue(source.contains("e.getMessage()"),
+                "loadFallbackTexture must log exception message");
+    }
+
+    @Test
+    void loadFallbackTextureUsesNativeImage() throws Exception {
         String source = java.nio.file.Files.readString(
                 java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/mixin/client/SimpleTextureMixin.java"))
                 .replace("\r\n", "\n");
 
         // Verify it uses NativeImage.read
         assertTrue(source.contains("NativeImage.read(stream)"),
-                "texture loading must use NativeImage.read");
-        assertTrue(source.contains("TextureContents"),
-                "texture loading must create TextureContents");
+                "loadFallbackTexture must use NativeImage.read");
+        assertTrue(source.contains("TextureContents(image, null)"),
+                "loadFallbackTexture must create TextureContents");
     }
 
     @Test
-    void streamCloseHasTryCatch() throws Exception {
+    void loadFallbackTextureHasFinally() throws Exception {
         String source = java.nio.file.Files.readString(
                 java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/mixin/client/SimpleTextureMixin.java"))
                 .replace("\r\n", "\n");
 
-        // Verify stream close has try-catch
+        // Verify it has finally block
         assertTrue(source.contains("finally {"),
-                "texture loading must have finally block");
-        assertTrue(source.contains("try {"),
-                "stream close must have try block");
-        assertTrue(source.contains("} catch (IOException ignored) {"),
-                "stream close must catch and ignore IOException");
+                "loadFallbackTexture must have finally block");
         assertTrue(source.contains("stream.close()"),
-                "stream close must call close");
+                "loadFallbackTexture must close stream in finally");
+    }
+
+    @Test
+    void loadFallbackTextureIgnoresCloseException() throws Exception {
+        String source = java.nio.file.Files.readString(
+                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/mixin/client/SimpleTextureMixin.java"))
+                .replace("\r\n", "\n");
+
+        // Verify it ignores close exception
+        assertTrue(source.contains("} catch (IOException ignored) {}"),
+                "loadFallbackTexture must ignore close exception");
     }
 }
