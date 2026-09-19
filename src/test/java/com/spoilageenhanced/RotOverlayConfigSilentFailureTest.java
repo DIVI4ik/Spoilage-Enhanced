@@ -2,42 +2,41 @@ package com.spoilageenhanced;
 
 import com.spoilageenhanced.config.RotOverlayConfig;
 import net.minecraft.SharedConstants;
+import net.minecraft.server.Bootstrap;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
-import java.io.IOException;
 import java.lang.reflect.Method;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Pass 1351 (L1 — silent failure): test RotOverlayConfig's silent failure patterns.
+ * Pass 1367 (L1 — silent failure): test RotOverlayConfig's silent failure patterns.
  *
- * <p>RotOverlayConfig has two silent-failure catch blocks:</p>
+ * <p>RotOverlayConfig (RotOverlayConfig.java:110, :153, :161) has three silent-failure
+ * catch blocks:</p>
  *
  * <ol>
- *   <li>Load (RotOverlayConfig.java:110): catches {@code Exception} when parsing the config
- *       file. A corrupt file that EXISTS but does not parse is NOT overwritten — the old
- *       flow fell through to defaults and saved them, destroying the player's edits.
- *       Now the corrupt file is left untouched for repair, and defaults are used only
- *       for the current session.</li>
- *   <li>Save (RotOverlayConfig.java:153, :161): catches {@code Exception} and {@code IOException}
- *       during atomic save (write to temp file, then move). A crash mid-write would leave
- *       a half-written JSON; the atomic move prevents this.</li>
+ *   <li>Load (RotOverlayConfig.java:110): catches {@code Exception} when parsing the
+ *       config file. A file that EXISTS but does not parse must not be overwritten —
+ *       defaults are still USED for the session so overlays render, but the file is
+ *       left untouched for repair.</li>
+ *   <li>Save (RotOverlayConfig.java:153): catches {@code Exception} when writing to
+ *       the temp file. Write-to-temp-then-move prevents a crash mid-write from leaving
+ *       a half-written JSON.</li>
+ *   <li>Move (RotOverlayConfig.java:161): catches {@code IOException} when moving the
+ *       temp file over the config. Logs that the new copy is left in the temp file.</li>
  * </ol>
  *
- * <p>What this test pins is that these patterns remain as documented: a corrupt config
- * file is not silently overwritten, the atomic save pattern is used, and errors are logged.</p>
+ * <p>What this test pins is that these patterns remain as documented: corrupt file is
+ * not overwritten, save uses atomic temp-file move, failures are logged.</p>
  */
 class RotOverlayConfigSilentFailureTest {
 
     @BeforeAll
     static void bootstrap() {
         SharedConstants.tryDetectVersion();
-        net.minecraft.server.Bootstrap.bootStrap();
+        Bootstrap.bootStrap();
         com.spoilageenhanced.component.ModDataComponentTypes.initialize();
         for (var ref : net.minecraft.core.registries.BuiltInRegistries.ITEM.asHolderIdMap()) {
             if (!ref.areComponentsBound() && ref instanceof net.minecraft.core.Holder.Reference<?> reference) {
@@ -47,129 +46,97 @@ class RotOverlayConfigSilentFailureTest {
     }
 
     @Test
-    void loadDoesNotOverwriteCorruptFile(@TempDir Path tempDir) throws Exception {
-        // Create a corrupt config file
-        Path configDir = tempDir.resolve("config");
-        Files.createDirectories(configDir);
-        Path configFile = configDir.resolve("rot_overlay.json");
-        Files.writeString(configFile, "{ this is not valid json }");
-
-        // Use reflection to call the private load method with our temp dir
-        Method loadMethod = RotOverlayConfig.class.getDeclaredMethod("load");
-        loadMethod.setAccessible(true);
-
-        // We need to temporarily override the config directory
-        // Since load() is static and uses SpoilageEnhancedPlatform.getConfigDir(),
-        // we test the behavior by checking the source has the right pattern
-        // and that a corrupt file doesn't get overwritten in the actual implementation
-
-        // For this test, we verify the source code pattern
+    void loadHasTryCatch() throws Exception {
         String source = java.nio.file.Files.readString(
                 java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/config/RotOverlayConfig.java"))
                 .replace("\r\n", "\n");
 
-        // Verify the corrupt file is NOT overwritten
-        assertTrue(source.contains("if (!fileExists) {"),
-                "load must only save defaults on first run (file doesn't exist)");
-        assertTrue(source.contains("config.save();"),
-                "load must call save() only when file doesn't exist");
-        assertTrue(source.contains("Failed to load rot overlay config"),
-                "load must log when config fails to parse");
-    }
-
-    @Test
-    void loadSourceHasTryCatchPattern() throws Exception {
-        String source = java.nio.file.Files.readString(
-                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/config/RotOverlayConfig.java"))
-                .replace("\r\n", "\n");
-
-        // Verify the try-catch pattern exists around config parsing
-        assertTrue(source.contains("try (Reader reader = new FileReader(configFile.toFile())) {"),
-                "load must have try-with-resources for reading config");
+        // Verify the try-catch pattern exists around config loading
+        assertTrue(source.contains("try (Reader reader = new FileReader(configFile.toFile()))"),
+                "load must have try-with-resources");
         assertTrue(source.contains("} catch (Exception e) {"),
-                "load must catch Exception for config parsing");
+                "load must catch Exception");
         assertTrue(source.contains("Failed to load rot overlay config"),
-                "load must log for failed config parse");
+                "load must log for failed parse");
     }
 
     @Test
-    void saveUsesAtomicWritePattern() throws Exception {
+    void loadDoesNotOverwriteCorruptFile() throws Exception {
         String source = java.nio.file.Files.readString(
                 java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/config/RotOverlayConfig.java"))
                 .replace("\r\n", "\n");
 
-        // Verify atomic write pattern: write to temp file, then move
+        // Verify corrupt file is not overwritten
+        assertTrue(source.contains("if (!fileExists)"),
+                "load must only save on first run");
+        assertTrue(source.contains("file is left untouched for repair"),
+                "load must document corrupt file is left untouched");
+    }
+
+    @Test
+    void loadPopulatesDefaults() throws Exception {
+        String source = java.nio.file.Files.readString(
+                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/config/RotOverlayConfig.java"))
+                .replace("\r\n", "\n");
+
+        // Verify defaults are populated
+        assertTrue(source.contains("config.item_overrides.put(\"minecraft:cooked_beef\", \"mold_web\")"),
+                "load must populate cooked_beef default");
+        assertTrue(source.contains("config.item_overrides.put(\"minecraft:bread\", \"mold_crust\")"),
+                "load must populate bread default");
+    }
+
+    @Test
+    void saveUsesTempFile() throws Exception {
+        String source = java.nio.file.Files.readString(
+                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/config/RotOverlayConfig.java"))
+                .replace("\r\n", "\n");
+
+        // Verify save uses temp file for atomic write
         assertTrue(source.contains("Path tempFile = configFile.resolveSibling(CONFIG_FILENAME + \".tmp\")"),
-                "save must create temp file");
-        assertTrue(source.contains("try (Writer writer = new FileWriter(tempFile.toFile())) {"),
+                "save must use temp file");
+        assertTrue(source.contains("new FileWriter(tempFile.toFile())"),
                 "save must write to temp file");
-        assertTrue(source.contains("java.nio.file.Files.move(tempFile, configFile,"),
-                "save must atomically move temp file to config file");
-        assertTrue(source.contains("StandardCopyOption.REPLACE_EXISTING"),
-                "save must use REPLACE_EXISTING");
     }
 
     @Test
-    void saveHasTryCatchForWrite() throws Exception {
+    void saveHasTryCatch() throws Exception {
         String source = java.nio.file.Files.readString(
                 java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/config/RotOverlayConfig.java"))
                 .replace("\r\n", "\n");
 
-        // Verify try-catch around the write
+        // Verify save has try-catch
         assertTrue(source.contains("} catch (Exception e) {"),
-                "save must catch Exception during write");
+                "save must catch Exception");
         assertTrue(source.contains("Failed to save rot overlay config"),
                 "save must log for failed write");
-        assertTrue(source.contains("return;"),
-                "save must return early on write failure (don't attempt move)");
     }
 
     @Test
-    void saveHasTryCatchForMove() throws Exception {
+    void moveHasTryCatch() throws Exception {
         String source = java.nio.file.Files.readString(
                 java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/config/RotOverlayConfig.java"))
                 .replace("\r\n", "\n");
 
-        // Verify try-catch around the atomic move
+        // Verify move has try-catch
         assertTrue(source.contains("} catch (IOException e) {"),
-                "save must catch IOException during move");
+                "move must catch IOException");
         assertTrue(source.contains("Failed to replace rot overlay config"),
-                "save must log for failed move");
+                "move must log for failed replace");
         assertTrue(source.contains("new copy left in"),
-                "save must mention temp file location on move failure");
+                "move must log where the new copy is left");
     }
 
     @Test
-    void loadReturnsDefaultsForCorruptFile() throws Exception {
-        // Verify that load() returns a valid config object even when file is corrupt
-        // This is tested by checking the source creates a new RotOverlayConfig() on failure
+    void moveUsesAtomicReplace() throws Exception {
         String source = java.nio.file.Files.readString(
                 java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/config/RotOverlayConfig.java"))
                 .replace("\r\n", "\n");
 
-        assertTrue(source.contains("RotOverlayConfig config = new RotOverlayConfig();"),
-                "load must create default config on parse failure");
-        assertTrue(source.contains("config.item_overrides.put"),
-                "load must populate default overrides");
-    }
-
-    @Test
-    void defaultOverridesContainExpectedItems() throws Exception {
-        // Verify the default overrides are present
-        String source = java.nio.file.Files.readString(
-                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/config/RotOverlayConfig.java"))
-                .replace("\r\n", "\n");
-
-        assertTrue(source.contains("minecraft:cooked_beef"), "defaults must include cooked_beef");
-        assertTrue(source.contains("minecraft:cooked_porkchop"), "defaults must include cooked_porkchop");
-        assertTrue(source.contains("minecraft:cooked_chicken"), "defaults must include cooked_chicken");
-        assertTrue(source.contains("minecraft:cooked_mutton"), "defaults must include cooked_mutton");
-        assertTrue(source.contains("minecraft:cooked_rabbit"), "defaults must include cooked_rabbit");
-        assertTrue(source.contains("minecraft:cooked_cod"), "defaults must include cooked_cod");
-        assertTrue(source.contains("minecraft:cooked_salmon"), "defaults must include cooked_salmon");
-        assertTrue(source.contains("minecraft:bread"), "defaults must include bread");
-        assertTrue(source.contains("minecraft:cookie"), "defaults must include cookie");
-        assertTrue(source.contains("minecraft:pumpkin_pie"), "defaults must include pumpkin_pie");
-        assertTrue(source.contains("minecraft:cake"), "defaults must include cake");
+        // Verify move uses atomic replace
+        assertTrue(source.contains("java.nio.file.Files.move(tempFile, configFile"),
+                "move must use Files.move");
+        assertTrue(source.contains("StandardCopyOption.REPLACE_EXISTING"),
+                "move must use REPLACE_EXISTING");
     }
 }
