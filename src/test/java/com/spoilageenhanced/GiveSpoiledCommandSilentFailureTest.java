@@ -1,6 +1,5 @@
 package com.spoilageenhanced;
 
-import com.spoilageenhanced.command.GiveSpoiledCommand;
 import net.minecraft.SharedConstants;
 import net.minecraft.server.Bootstrap;
 import org.junit.jupiter.api.BeforeAll;
@@ -11,15 +10,14 @@ import java.lang.reflect.Method;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Pass 1354 (L1 — silent failure): test GiveSpoiledCommand's silent failure pattern.
+ * Pass 1369 (L1 — silent failure): test GiveSpoiledCommand's silent failure pattern.
  *
- * <p>GiveSpoiledCommand.execute (GiveSpoiledCommand.java:160) catches {@code Throwable}
- * when executing the command. This is a top-level catch that logs the error, prints
- * the stack trace, and re-throws. The re-throw ensures the command framework sees
- * the failure and reports it to the player.</p>
+ * <p>GiveSpoiledCommand (GiveSpoiledCommand.java:160) catches {@code Throwable} at the
+ * end of the command execution. It logs the error, prints the stack trace, and then
+ * re-throws the exception so the command framework can handle it properly.</p>
  *
- * <p>What this test pins is that the try-catch pattern exists, logs appropriately,
- * and re-throws the exception.</p>
+ * <p>What this test pins is that the try-catch pattern exists, logs the error, prints
+ * stack trace, and re-throws.</p>
  */
 class GiveSpoiledCommandSilentFailureTest {
 
@@ -36,43 +34,65 @@ class GiveSpoiledCommandSilentFailureTest {
     }
 
     @Test
-    void executeSourceHasTryCatch() throws Exception {
+    void executeHasTryCatch() throws Exception {
         String source = java.nio.file.Files.readString(
                 java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/command/GiveSpoiledCommand.java"))
                 .replace("\r\n", "\n");
 
         // Verify the try-catch pattern exists around command execution
         assertTrue(source.contains("try {"),
-                "execute must have try block for command execution");
+                "execute must have try block");
         assertTrue(source.contains("} catch (Throwable t) {"),
-                "execute must catch Throwable for command execution");
+                "execute must catch Throwable");
         assertTrue(source.contains("Error in GiveSpoiledCommand"),
-                "execute must log for command error");
+                "execute must log the error");
     }
 
     @Test
-    void executeLogsAndReThrows() throws Exception {
+    void executeLogsAndPrintsStackTrace() throws Exception {
         String source = java.nio.file.Files.readString(
                 java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/command/GiveSpoiledCommand.java"))
                 .replace("\r\n", "\n");
 
-        // Verify it logs and re-throws
-        assertTrue(source.contains("SpoilageEnhancedLogger.log"),
-                "execute must log the error");
+        // Verify it logs and prints stack trace
+        assertTrue(source.contains("t.getMessage()"),
+                "execute must log exception message");
         assertTrue(source.contains("t.printStackTrace()"),
                 "execute must print stack trace");
+    }
+
+    @Test
+    void executeReThrows() throws Exception {
+        String source = java.nio.file.Files.readString(
+                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/command/GiveSpoiledCommand.java"))
+                .replace("\r\n", "\n");
+
+        // Verify it re-throws the exception
         assertTrue(source.contains("throw t;"),
                 "execute must re-throw the exception");
     }
 
     @Test
-    void executeUsesCorrectSecondsCalculation() throws Exception {
+    void executeCalculatesSecondsCorrectly() throws Exception {
         String source = java.nio.file.Files.readString(
                 java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/command/GiveSpoiledCommand.java"))
                 .replace("\r\n", "\n");
 
-        // Verify the seconds calculation fix (Pass 856)
+        // Verify it calculates seconds correctly
         assertTrue(source.contains("secondsRemaining > 0 ? secondsRemaining : ticksRemaining / 20L"),
-                "execute must use secondsRemaining when provided, otherwise derive from ticks");
+                "execute must calculate seconds from ticks when secondsRemaining not given");
+    }
+
+    @Test
+    void executeSendsSuccessMessage() throws Exception {
+        String source = java.nio.file.Files.readString(
+                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/command/GiveSpoiledCommand.java"))
+                .replace("\r\n", "\n");
+
+        // Verify it sends success message
+        assertTrue(source.contains("CMD_GIVESPOILED_SUCCESS"),
+                "execute must send success translation");
+        assertTrue(source.contains("item.getName(new ItemStack(item))"),
+                "execute must get item name");
     }
 }
