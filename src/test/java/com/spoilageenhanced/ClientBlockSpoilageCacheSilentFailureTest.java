@@ -1,9 +1,6 @@
 package com.spoilageenhanced;
 
-import com.spoilageenhanced.client.ClientBlockSpoilageCache;
 import net.minecraft.SharedConstants;
-import net.minecraft.core.BlockPos;
-import net.minecraft.network.Connection;
 import net.minecraft.server.Bootstrap;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -13,15 +10,14 @@ import java.lang.reflect.Method;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Pass 1353 (L1 — silent failure): test ClientBlockSpoilageCache's silent failure pattern.
+ * Pass 1370 (L1 — silent failure): test ClientBlockSpoilageCache's silent failure pattern.
  *
- * <p>ClientBlockSpoilageCache.requestBlockSpoilage (ClientBlockSpoilageCache.java:190)
- * catches {@code Throwable} when sending a block spoilage request packet to the server.
- * This is a network operation that can fail for many reasons (connection closed,
- * serialization error, etc.). The catch logs the failure and continues — the HUD
- * will show the "checking" placeholder until a response arrives or times out.</p>
+ * <p>ClientBlockSpoilageCache (ClientBlockSpoilageCache.java:190) catches {@code Throwable}
+ * when sending a block spoilage request packet. It logs the failure at NETWORK category
+ * but does not re-throw — the request simply fails silently from the player's perspective.</p>
  *
- * <p>What this test pins is that the try-catch pattern exists and logs appropriately.</p>
+ * <p>What this test pins is that the try-catch pattern exists, logs at NETWORK category,
+ * and uses the connection accessor pattern.</p>
  */
 class ClientBlockSpoilageCacheSilentFailureTest {
 
@@ -38,18 +34,29 @@ class ClientBlockSpoilageCacheSilentFailureTest {
     }
 
     @Test
-    void requestBlockSpoilageSourceHasTryCatch() throws Exception {
+    void requestBlockSpoilageHasTryCatch() throws Exception {
         String source = java.nio.file.Files.readString(
                 java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/client/ClientBlockSpoilageCache.java"))
                 .replace("\r\n", "\n");
 
         // Verify the try-catch pattern exists around packet sending
         assertTrue(source.contains("try {"),
-                "requestBlockSpoilage must have try block for packet sending");
+                "requestBlockSpoilage must have try block");
         assertTrue(source.contains("} catch (Throwable t) {"),
-                "requestBlockSpoilage must catch Throwable for packet sending");
+                "requestBlockSpoilage must catch Throwable");
         assertTrue(source.contains("Failed to send block spoilage request"),
-                "requestBlockSpoilage must log for failed packet send");
+                "requestBlockSpoilage must log for failed send");
+    }
+
+    @Test
+    void requestBlockSpoilageLogsAtNetworkCategory() throws Exception {
+        String source = java.nio.file.Files.readString(
+                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/client/ClientBlockSpoilageCache.java"))
+                .replace("\r\n", "\n");
+
+        // Verify it logs at NETWORK category
+        assertTrue(source.contains("LogCategory.NETWORK"),
+                "requestBlockSpoilage must log to NETWORK category");
     }
 
     @Test
@@ -63,27 +70,31 @@ class ClientBlockSpoilageCacheSilentFailureTest {
                 "requestBlockSpoilage must use ClientCommonPacketListenerImplAccessor");
         assertTrue(source.contains("spoilage_enhanced$getConnection()"),
                 "requestBlockSpoilage must use accessor method");
-    }
-
-    @Test
-    void requestBlockSpoilageLogsNetworkCategory() throws Exception {
-        String source = java.nio.file.Files.readString(
-                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/client/ClientBlockSpoilageCache.java"))
-                .replace("\r\n", "\n");
-
-        // Verify it logs to NETWORK category
-        assertTrue(source.contains("LogCategory.NETWORK"),
-                "requestBlockSpoilage must log to NETWORK category");
-    }
-
-    @Test
-    void requestBlockSpoilageHasFallbackSend() throws Exception {
-        String source = java.nio.file.Files.readString(
-                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/client/ClientBlockSpoilageCache.java"))
-                .replace("\r\n", "\n");
-
-        // Verify fallback to connection.send()
         assertTrue(source.contains("connection.send(packet)"),
-                "requestBlockSpoilage must have fallback send");
+                "requestBlockSpoilage must send packet via connection");
+    }
+
+    @Test
+    void requestBlockSpoilageCreatesCorrectPacket() throws Exception {
+        String source = java.nio.file.Files.readString(
+                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/client/ClientBlockSpoilageCache.java"))
+                .replace("\r\n", "\n");
+
+        // Verify it creates the correct packet
+        assertTrue(source.contains("ServerboundCustomPayloadPacket"),
+                "requestBlockSpoilage must create ServerboundCustomPayloadPacket");
+        assertTrue(source.contains("BlockSpoilageRequestPayload(pendingPos)"),
+                "requestBlockSpoilage must use BlockSpoilageRequestPayload with pendingPos");
+    }
+
+    @Test
+    void requestBlockSpoilageLogsSuccess() throws Exception {
+        String source = java.nio.file.Files.readString(
+                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/client/ClientBlockSpoilageCache.java"))
+                .replace("\r\n", "\n");
+
+        // Verify it logs success
+        assertTrue(source.contains("Requested block spoilage for"),
+                "requestBlockSpoilage must log successful request");
     }
 }
