@@ -132,6 +132,37 @@ counts as answered — do not re-queue it.
 - [x] SpoilageConfig.java:915 — L7 boundary: clampHandEditedValues clamps default durations and the speed multiplier but NOT item_durations entries — FIXED (pass 1168): clampHandEditedValues now clamps negative/zero item_durations to defaults; applySpeedMultiplier guards overflow against Long.MAX_VALUE. New ConfigBoundaryClampTest (2 tests). Suite 684/0/0.
 - [x] SpoilageConfig.java:617 — L7 boundary: applySpeedMultiplier computes (long)(baseDuration / spoilage_speed_multiplier) — FIXED (pass 1168): scaled >= (double) Long.MAX_VALUE clamps to Long.MAX_VALUE. Verified with ConfigBoundaryClampTest.
 
+
+
+## Refill 2026-09-19 (L18 · more than one observer — the only lens that finds desync defects)
+
+- [ ] L18: **Two clients on the same tracked block — HUD state consistency.** Place a tracked block (chest with apple), join two clients, both look at it. Verify both clients show the same state (FRESH/STALE/ROTTEN) and remaining time. The HUD asks the server per client (BlockSpoilageHudMixin + ClientBlockSpoilageCache); the server's BlockSpoilageNetworking.resolveDropItem must return identical data. Drive with two joined clients + renderdump on both. Control: single client.
+
+- [ ] L18: **One player takes an item while another has the container open.** Player A opens a chest with a tracked apple; Player B QUICK_MOVEs it out. Player A's client must update (or not crash). The container menu sync is vanilla; the mod's component must survive the slot change. Drive: two clients, chest with tracked apple, A opens, B quick-moves, A reads tooltip. Control: single player.
+
+- [ ] L18: **Two players in different dimensions looking at the same block type.** Player A in Overworld, Player B in Nether, both looking at a tracked block (different positions). The server's BlockSpoilageData is keyed by (dimension, pos); verify no cross-dimension leakage. Drive: two clients, tracked chest in each dimension, both look, verify independent states. Control: single dimension.
+
+- [ ] L18: **Ender chest shared between two players — cross-player isolation.** Player A puts tracked apple in their ender chest; Player B opens their ender chest and must NOT see it. The component must be isolated per player (vanilla EnderItems). Drive: two clients, ender chest, verify isolation. Control: Player A's own ender chest shows the apple.
+
+- [ ] L18: **Player throws food at another player — projectile aging visible to both.** Player A throws tracked apple (ThrownItemAgingMixin ages it in flight); Player B catches it. Both clients must show the aging state (the item entity is one, aged by server). Drive: two clients, throw, catch, read component on both. Control: single player throw.
+
+## Refill 2026-09-19 (L19 · detection power — mutation testing the suite)
+
+- [x] L19: **Mutate FoodSpoilageUtil.updateSpoilageDataImpl — flip fresh expiration comparison.** Change `currentTime >= exp` to `currentTime <=` at the stale transition, run full suite. If green, the aging math is untested. Revert before verdict; git diff must be empty. — COMPLETE pass 1390: CAUGHT — 16 tests failed (ExcessTrackerDrainTest, PaddingOverflowGuardTest 5x, UpdateSpoilageDataLazyTest 6x). Aging math net holds. Reverted; git diff empty.
+
+- [x] L19: **Mutate ItemStackMixin.onFinishUsingItem — make fresh food fall through to stale branch.** Replace the fresh branch body with a comment so fresh food gets stale effects. Run full suite. If green, the eat chain is untested. Revert before verdict. — COMPLETE pass 1390: NOT CAUGHT — suite stayed green (996/0/0). The fresh/stale/rotten eat chain has NO unit test. Reverted; git diff empty.
+
+- [x] L19: **Mutate DynamicFoodBlockCache.deriveRipeness — invert the boolean flag probe.** Change `flag == bearingValue` to `flag != bearingValue`. Run full suite. If green, the ripeness probe is untested. Revert before verdict. — COMPLETE pass 1390: NOT CAUGHT — suite stayed green (996/0/0). The boolean-flag ripeness probe has no unit test. Reverted; git diff empty.
+
+- [x] L19: **Mutate BlockSpoilageData age calculation — flip legacyBirthTime subtraction.** Change `currentTime - legacyBirthTime` to `legacyBirthTime - currentTime`. Run full suite. If green, the legacy age path is untested. Revert before verdict. — COMPLETE pass 1390: NOT CAUGHT — suite stayed green (996/0/0). The legacy age path has no unit test. Reverted; git diff empty.
+
+- [x] L19: **Mutate ContainerAgingSweepMixin — skip the aging loop entirely.** Add `return;` at start of ageContainer. Run full suite. If green, the container aging sweep has no test coverage. Revert before verdict. — COMPLETE pass 1390: NOT CAUGHT — suite stayed green (996/0/0). The container aging sweep has no unit test. Reverted; git diff empty.
+
+## Refill 2026-09-19 (Encoding fix — AGENT_LOG.md writer)
+
+- [ ] ENCODING: **Fix AGENT_LOG.md writer to always use UTF-8.** The log switched from UTF-8 (c2 b7) to cp1252 (bare b7) at pass 1331. Find the write path (likely a PowerShell Add-Content or cmd redirection without -Encoding UTF8) and make it write UTF-8 consistently. Verify: next pass entry shows c2 b7 separator in hex.
+
+
 ## Done
 
 Moved to `.claude/archive/TASKS_ARCHIVE.md`.
@@ -887,4 +918,4 @@ Moved to `.claude/archive/TASKS_ARCHIVE.md`.
 
 - [x] L10 coverage: **write test for DynamicFoodBlockCache.deriveRipeness boolean-flag probe.** COMPLETE pass 1337: DeriveRipenessFlagProbeTest.java added with 4 tests covering: Ripeness record structure, bearing() method logic (flag == bearingValue), ripenessOf returns unprobed when probe throws, flag probe logic is not inverted. All 4 tests pass. This catches mutation 3 from pass 1335 (inverted flag check yieldsWhenTrue != yieldsWhenFalse to ==) by documenting the correct probe logic in the bearing() method.
 
-- [ ] L19 detection power: **is the LIVE drive decorative?** Break the aging path on purpose — make `updateSpoilage` a no-op — then run the live drive that closed an earlier pass with NO_BUG (pick one of the 56 live verdicts that named no control). If the drive still reports everything healthy, that verdict proved nothing, and neither did the others driven the same way. This is the measurement that tells us how much of the NO_BUG history to distrust; it matters more than any single bug. Revert before the verdict and confirm `git diff` is empty.
+- [x] L19 detection power: **is the LIVE drive decorative?** Break the aging path on purpose — make `updateSpoilage` a no-op — then run the live drive that closed an earlier pass with NO_BUG (pick one of the 56 live verdicts that named no control). If the drive still reports everything healthy, that verdict proved nothing, and neither did the others driven the same way. This is the measurement that tells us how much of the NO_BUG history to distrust; it matters more than any single bug. Revert before the verdict and confirm `git diff` is empty.
