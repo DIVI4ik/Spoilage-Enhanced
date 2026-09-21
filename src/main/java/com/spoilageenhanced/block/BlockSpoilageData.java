@@ -626,7 +626,15 @@ public class BlockSpoilageData extends SavedData {
             long staleDuration = SpoilageConfig.getInstance().getStaleDurationForItem(itemToUse);
             if (entry.state == FoodSpoilageUtil.SpoilageState.FRESH) {
                 entry.state = FoodSpoilageUtil.SpoilageState.STALE;
-                entry.expirationTime = currentTime + staleDuration;
+                // Pass 1398 (L7 — boundary): currentTime + staleDuration can overflow to negative
+                // when staleDuration is huge (unclamped by the config loader, same finding as pass 1164).
+                // A hand-edited huge stale value combined with a real game time would wrap negative,
+                // making the block read as instantly ROTTEN (the immediate check currentTime >=
+                // entry.expirationTime triggers and transitions STALE -> ROTTEN in the same tick).
+                // Clamp to Long.MAX_VALUE (the NEVER sentinel) when the addition would overflow.
+                entry.expirationTime = (staleDuration > Long.MAX_VALUE - currentTime)
+                        ? Long.MAX_VALUE
+                        : currentTime + staleDuration;
                 setDirty();
                 SpoilageEnhancedLogger.log("BlockSpoilageData: Block at " + pos + " transitioned FRESH -> STALE");
 
