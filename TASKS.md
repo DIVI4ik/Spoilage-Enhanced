@@ -136,11 +136,11 @@ counts as answered — do not re-queue it.
 
 ## Refill 2026-09-19 (L18 · more than one observer — the only lens that finds desync defects)
 
-- [ ] L18: **Two clients on the same tracked block — HUD state consistency.** Place a tracked block (chest with apple), join two clients, both look at it. Verify both clients show the same state (FRESH/STALE/ROTTEN) and remaining time. The HUD asks the server per client (BlockSpoilageHudMixin + ClientBlockSpoilageCache); the server's BlockSpoilageNetworking.resolveDropItem must return identical data. Drive with two joined clients + renderdump on both. Control: single client.
+- [x] L18: **Two clients on the same tracked block — HUD state consistency.** Place a tracked block (chest with apple), join two clients, both look at it. Verify both clients show the same state (FRESH/STALE/ROTTEN) and remaining time. The HUD asks the server per client (BlockSpoilageHudMixin + ClientBlockSpoilageCache); the server's BlockSpoilageNetworking.resolveDropItem must return identical data. Drive with two joined clients + renderdump on both. Control: single client.
 
-- [ ] L18: **One player takes an item while another has the container open.** Player A opens a chest with a tracked apple; Player B QUICK_MOVEs it out. Player A's client must update (or not crash). The container menu sync is vanilla; the mod's component must survive the slot change. Drive: two clients, chest with tracked apple, A opens, B quick-moves, A reads tooltip. Control: single player.
+- [x] L18: **One player takes an item while another has the container open.** Player A opens a chest with a tracked apple; Player B QUICK_MOVEs it out. Player A's client must update (or not crash). The container menu sync is vanilla; the mod's component must survive the slot change. Drive: two clients, chest with tracked apple, A opens, B quick-moves, A reads tooltip. Control: single player.
 
-- [ ] L18: **Two players in different dimensions looking at the same block type.** Player A in Overworld, Player B in Nether, both looking at a tracked block (different positions). The server's BlockSpoilageData is keyed by (dimension, pos); verify no cross-dimension leakage. Drive: two clients, tracked chest in each dimension, both look, verify independent states. Control: single dimension.
+- [x] L18: **Two players in different dimensions looking at the same block type.** Player A in Overworld, Player B in Nether, both looking at a tracked block (different positions). The server's BlockSpoilageData is keyed by (dimension, pos); verify no cross-dimension leakage. Drive: two clients, tracked chest in each dimension, both look, verify independent states. Control: single dimension.
 
 - [ ] L18: **Ender chest shared between two players — cross-player isolation.** Player A puts tracked apple in their ender chest; Player B opens their ender chest and must NOT see it. The component must be isolated per player (vanilla EnderItems). Drive: two clients, ender chest, verify isolation. Control: Player A's own ender chest shows the apple.
 
@@ -160,7 +160,7 @@ counts as answered — do not re-queue it.
 
 ## Refill 2026-09-19 (Encoding fix — AGENT_LOG.md writer)
 
-- [ ] ENCODING: **Fix AGENT_LOG.md writer to always use UTF-8.** The log switched from UTF-8 (c2 b7) to cp1252 (bare b7) at pass 1331. Find the write path (likely a PowerShell Add-Content or cmd redirection without -Encoding UTF8) and make it write UTF-8 consistently. Verify: next pass entry shows c2 b7 separator in hex.
+- [x] ENCODING: **Fix AGENT_LOG.md writer to always use UTF-8.** The log switched from UTF-8 (c2 b7) to cp1252 (bare b7) at pass 1331. Find the write path (likely a PowerShell Add-Content or cmd redirection without -Encoding UTF8) and make it write UTF-8 consistently. Verify: next pass entry shows c2 b7 separator in hex.
 
 
 ## Done
