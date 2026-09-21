@@ -550,7 +550,14 @@ public class BlockSpoilageData extends SavedData {
             if (itemToUse == null) itemToUse = dropItem;
             long chunkBirthTime = getChunkBirthTime(serverWorld, ChunkPos.containing(pos));
             long freshDuration = SpoilageConfig.getInstance().getFreshDurationForItem(itemToUse);
-            long expireTime = chunkBirthTime + freshDuration;
+            // Pass 1396 (L7 — boundary): chunkBirthTime + freshDuration can overflow to negative
+            // when freshDuration is huge (unclamped by the config loader, same finding as pass 1164).
+            // A hand-edited huge fresh value combined with a real chunk birth time would wrap
+            // negative, making the block read as instantly expired on its first tick.
+            // Clamp to Long.MAX_VALUE (the NEVER sentinel) when the addition would overflow.
+            long expireTime = (freshDuration > Long.MAX_VALUE - chunkBirthTime)
+                    ? Long.MAX_VALUE
+                    : chunkBirthTime + freshDuration;
 
             setSpoilageState(pos, FoodSpoilageUtil.SpoilageState.FRESH, expireTime);
             entry = entries.get(pos.asLong());
