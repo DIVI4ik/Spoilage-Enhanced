@@ -380,7 +380,14 @@ public class FoodSpoilageUtil {
     public static void makeStale(ItemStack stack, Level world) {
         if (stack.isEmpty() || !SpoilageConfig.getInstance().isSpoilable(stack.getItem())) return;
         long staleDuration = SpoilageConfig.getInstance().getStaleDurationForItem(stack.getItem());
-        long expire = world.getGameTime() + staleDuration;
+        // Pass 1397 (L7 — boundary): world.getGameTime() + staleDuration can overflow to negative
+        // when staleDuration is huge (unclamped by the config loader, same finding as pass 1164).
+        // A hand-edited huge stale value combined with a real game time would wrap negative,
+        // making the stack read as instantly rotten (expiration in the past).
+        // Clamp to Long.MAX_VALUE (the NEVER sentinel) when the addition would overflow.
+        long expire = (staleDuration > Long.MAX_VALUE - world.getGameTime())
+                ? Long.MAX_VALUE
+                : world.getGameTime() + staleDuration;
 
         List<Long> staleList = new ArrayList<>();
         for (int i = 0; i < stack.getCount(); i++) staleList.add(expire);
