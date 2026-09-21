@@ -169,7 +169,15 @@ public abstract class ItemClientMixin {
             }
 
             if (minTime == Long.MAX_VALUE && f > 0) {
-                minTime = currentTime + freshDuration;
+                // Pass 1399 (L7 — boundary): currentTime + freshDuration can overflow to negative
+                // when freshDuration is huge (unclamped by the config loader, same finding as pass 1164).
+                // A hand-edited huge fresh value combined with a real game time would wrap negative,
+                // making minTime negative and the subsequent Math.max(0, minTime - currentTime)
+                // compute a huge positive diff (absurd tooltip time). Clamp to Long.MAX_VALUE
+                // (the NEVER sentinel) when the addition would overflow.
+                minTime = (freshDuration > Long.MAX_VALUE - currentTime)
+                        ? Long.MAX_VALUE
+                        : currentTime + freshDuration;
             }
 
             if (minTime != Long.MAX_VALUE) {
