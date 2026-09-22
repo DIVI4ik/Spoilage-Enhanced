@@ -106,8 +106,17 @@ public class BlockStateChangeMixin {
             if (newFood != null && !wasBearing && isBearing) {
                 Item ripeItem = BuiltInRegistries.ITEM.getValue(Identifier.parse(newFood));
                 long freshDuration = SpoilageConfig.getInstance().getFreshDurationForItem(ripeItem);
-                data.setSpoilageState(pos, FoodSpoilageUtil.SpoilageState.FRESH,
-                        serverWorld.getGameTime() + freshDuration);
+                // Pass 1401 (L7 — boundary): serverWorld.getGameTime() + freshDuration can overflow
+                // to negative when freshDuration is huge (unclamped by the config loader, same
+                // finding as pass 1164). A hand-edited huge fresh value combined with a real game
+                // time would wrap negative, making the block read as instantly expired on its
+                // first tick. Clamp to Long.MAX_VALUE (the NEVER sentinel) when the addition
+                // would overflow, matching BlockSpoilageData.getSpoilageState initial entry
+                // (pass 1396).
+                long expireTime = (freshDuration > Long.MAX_VALUE - serverWorld.getGameTime())
+                        ? Long.MAX_VALUE
+                        : serverWorld.getGameTime() + freshDuration;
+                data.setSpoilageState(pos, FoodSpoilageUtil.SpoilageState.FRESH, expireTime);
                 com.spoilageenhanced.util.SpoilageEnhancedLogger.log("BlockStateChange: " + pos
                         + " finished growing (" + newFood + "); freshness starts now.");
                 return;
@@ -127,7 +136,17 @@ public class BlockStateChangeMixin {
             if (newFood != null && oldFood == null) {
                 Item dropItem = BuiltInRegistries.ITEM.getValue(Identifier.parse(newFood));
                 long freshDuration = SpoilageConfig.getInstance().getFreshDurationForItem(dropItem);
-                data.setSpoilageState(pos, FoodSpoilageUtil.SpoilageState.FRESH, serverWorld.getGameTime() + freshDuration);
+                // Pass 1401 (L7 — boundary): serverWorld.getGameTime() + freshDuration can overflow
+                // to negative when freshDuration is huge (unclamped by the config loader, same
+                // finding as pass 1164). A hand-edited huge fresh value combined with a real game
+                // time would wrap negative, making the block read as instantly expired on its
+                // first tick. Clamp to Long.MAX_VALUE (the NEVER sentinel) when the addition
+                // would overflow, matching BlockSpoilageData.getSpoilageState initial entry
+                // (pass 1396).
+                long expireTime = (freshDuration > Long.MAX_VALUE - serverWorld.getGameTime())
+                        ? Long.MAX_VALUE
+                        : serverWorld.getGameTime() + freshDuration;
+                data.setSpoilageState(pos, FoodSpoilageUtil.SpoilageState.FRESH, expireTime);
                 com.spoilageenhanced.util.SpoilageEnhancedLogger.log("BlockStateChange: " + pos + " grew " + newFood + " (state: " + state.toString() + "). Birth time reset.");
             }
         }
