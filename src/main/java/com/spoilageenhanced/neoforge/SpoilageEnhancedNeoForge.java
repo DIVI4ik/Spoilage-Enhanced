@@ -33,7 +33,15 @@ public class SpoilageEnhancedNeoForge {
             if (configDirObj != null) {
                 return (Path) configDirObj.getClass().getMethod("get").invoke(configDirObj);
             }
-        } catch (Throwable ignored) {
+        } catch (Throwable e) {
+            // Pass 1414 (L1 — silent failure): same fix as SpoilageEnhancedForge (pass 1117) —
+            // the old catch swallowed every exception, falling back to Path.of("config") with
+            // no signal. If FMLPaths is missing, the field name changed, or the getter threw,
+            // the mod would silently write its config to the wrong directory. Log at WARNING so
+            // a broken NeoForge install is diagnosable instead of silently misbehaving.
+            SpoilageEnhancedLogger.log(SpoilageEnhancedLogger.LogCategory.GENERAL,
+                    "SpoilageEnhancedNeoForge: failed to resolve NeoForge config dir via FMLPaths: "
+                    + e.getClass().getSimpleName() + ": " + e.getMessage());
         }
         return Path.of("config");
     }
@@ -45,7 +53,12 @@ public class SpoilageEnhancedNeoForge {
             if (gameDirObj != null) {
                 return (Path) gameDirObj.getClass().getMethod("get").invoke(gameDirObj);
             }
-        } catch (Throwable ignored) {
+        } catch (Throwable e) {
+            // Pass 1414 (L1 — silent failure): same as getNeoForgeConfigDir — a silent
+            // fallback to Path.of(".") hides a broken NeoForge environment. Log it.
+            SpoilageEnhancedLogger.log(SpoilageEnhancedLogger.LogCategory.GENERAL,
+                    "SpoilageEnhancedNeoForge: failed to resolve NeoForge game dir via FMLPaths: "
+                    + e.getClass().getSimpleName() + ": " + e.getMessage());
         }
         return Path.of(".");
     }

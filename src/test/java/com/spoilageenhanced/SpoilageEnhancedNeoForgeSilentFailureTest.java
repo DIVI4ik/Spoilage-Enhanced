@@ -12,22 +12,22 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Pass 1381 (L1 — silent failure): test SpoilageEnhancedNeoForge's silent failure patterns.
  *
- * <p>SpoilageEnhancedNeoForge (SpoilageEnhancedNeoForge.java:36, :48) has two silent-failure
+ * <p>SpoilageEnhancedNeoForge (SpoilageEnhancedNeoForge.java:36, :48) had two silent-failure
  * catch blocks when resolving NeoForge paths:</p>
  *
  * <ol>
- *   <li>getNeoForgeConfigDir (SpoilageEnhancedNeoForge.java:36): catches {@code Throwable}
- *       and IGNORES it completely — no logging at all. If FMLPaths is missing, the field
- *       name changed, or the getter threw, the mod silently writes its config to the
- *       wrong directory. This is a BUG — the Forge equivalent logs at WARNING.</li>
- *   <li>getNeoForgeGameDir (SpoilageEnhancedNeoForge.java:48): catches {@code Throwable}
- *       and IGNORES it completely — same bug. Silent fallback to Path.of(".") hides a
- *       broken NeoForge environment.</li>
+ *   <li>getNeoForgeConfigDir: caught {@code Throwable} and IGNORED it completely — no logging
+ *       at all. If FMLPaths is missing, the field name changed, or the getter threw, the mod
+ *       silently wrote its config to the wrong directory. This was a BUG — the Forge equivalent
+ *       logs at WARNING.</li>
+ *   <li>getNeoForgeGameDir: caught {@code Throwable} and IGNORED it completely — same bug.
+ *       Silent fallback to Path.of(".") hid a broken NeoForge environment.</li>
  * </ol>
  *
- * <p>What this test pins is the CURRENT (buggy) behavior: failures are silently ignored.
- * This test should be updated when the code is fixed to match the Forge version's
- * logging behavior.</p>
+ * <p>Pass 1414 (L1 — silent failure): fixed to match Forge version's logging behavior.
+ * Both methods now log at WARNING with the exception class and message before falling back.</p>
+ *
+ * <p>What this test pins: the FIXED behavior — failures are logged, not silently ignored.</p>
  */
 class SpoilageEnhancedNeoForgeSilentFailureTest {
 
@@ -52,25 +52,28 @@ class SpoilageEnhancedNeoForgeSilentFailureTest {
         // Verify the try-catch pattern exists around config dir resolution
         assertTrue(source.contains("try {"),
                 "getNeoForgeConfigDir must have try block");
-        assertTrue(source.contains("} catch (Throwable ignored) {"),
-                "getNeoForgeConfigDir must catch Throwable");
+        assertTrue(source.contains("} catch (Throwable e) {"),
+                "getNeoForgeConfigDir must catch Throwable as 'e'");
     }
 
     @Test
-    void getNeoForgeConfigDirIgnoresException() throws Exception {
+    void getNeoForgeConfigDirLogsException() throws Exception {
         String source = java.nio.file.Files.readString(
                 java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/neoforge/SpoilageEnhancedNeoForge.java"))
                 .replace("\r\n", "\n");
 
-        // Verify it IGNORES the exception (BUG - should log like Forge version)
-        // The catch body is empty: no SpoilageEnhancedLogger.log call inside it.
-        int catchStart = source.indexOf("} catch (Throwable ignored) {");
+        // Verify it LOGS the exception (FIXED - matches Forge version)
+        int catchStart = source.indexOf("} catch (Throwable e) {");
         int catchEnd = source.indexOf("}", catchStart + 1);
         String catchBody = source.substring(catchStart, catchEnd + 1);
-        assertTrue(catchBody.contains("} catch (Throwable ignored) {"),
-                "getNeoForgeConfigDir must catch Throwable");
-        assertFalse(catchBody.contains("SpoilageEnhancedLogger.log"),
-                "getNeoForgeConfigDir currently ignores exception with empty body - BUG");
+        assertTrue(catchBody.contains("SpoilageEnhancedLogger.log"),
+                "getNeoForgeConfigDir must log exception");
+        assertTrue(catchBody.contains("SpoilageEnhancedLogger.LogCategory.GENERAL"),
+                "getNeoForgeConfigDir must log at GENERAL category");
+        assertTrue(catchBody.contains("e.getClass().getSimpleName()"),
+                "getNeoForgeConfigDir must log exception class");
+        assertTrue(catchBody.contains("e.getMessage()"),
+                "getNeoForgeConfigDir must log exception message");
     }
 
     @Test
@@ -110,25 +113,29 @@ class SpoilageEnhancedNeoForgeSilentFailureTest {
                 "getNeoForgeGameDir method must exist");
         assertTrue(source.contains("try {"),
                 "getNeoForgeGameDir must have try block");
-        assertTrue(source.contains("} catch (Throwable ignored) {"),
-                "getNeoForgeGameDir must catch Throwable");
+        assertTrue(source.contains("} catch (Throwable e) {"),
+                "getNeoForgeGameDir must catch Throwable as 'e'");
     }
 
     @Test
-    void getNeoForgeGameDirIgnoresException() throws Exception {
+    void getNeoForgeGameDirLogsException() throws Exception {
         String source = java.nio.file.Files.readString(
                 java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/neoforge/SpoilageEnhancedNeoForge.java"))
                 .replace("\r\n", "\n");
 
-        // Verify it IGNORES the exception (BUG - should log like Forge version)
-        int catchStart = source.indexOf("} catch (Throwable ignored) {",
+        // Verify it LOGS the exception (FIXED - matches Forge version)
+        int catchStart = source.indexOf("} catch (Throwable e) {",
                 source.indexOf("getNeoForgeGameDir"));
         int catchEnd = source.indexOf("}", catchStart + 1);
         String catchBody = source.substring(catchStart, catchEnd + 1);
-        assertTrue(catchBody.contains("} catch (Throwable ignored) {"),
-                "getNeoForgeGameDir must catch Throwable");
-        assertFalse(catchBody.contains("SpoilageEnhancedLogger.log"),
-                "getNeoForgeGameDir currently ignores exception with empty body - BUG");
+        assertTrue(catchBody.contains("SpoilageEnhancedLogger.log"),
+                "getNeoForgeGameDir must log exception");
+        assertTrue(catchBody.contains("SpoilageEnhancedLogger.LogCategory.GENERAL"),
+                "getNeoForgeGameDir must log at GENERAL category");
+        assertTrue(catchBody.contains("e.getClass().getSimpleName()"),
+                "getNeoForgeGameDir must log exception class");
+        assertTrue(catchBody.contains("e.getMessage()"),
+                "getNeoForgeGameDir must log exception message");
     }
 
     @Test
