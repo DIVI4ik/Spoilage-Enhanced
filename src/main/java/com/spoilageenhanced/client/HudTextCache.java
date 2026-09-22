@@ -13,12 +13,19 @@ import net.minecraft.network.chat.Component;
  * after a language change — but the cached WIDTH was measured in the old language and
  * goes stale, mis-centering the HUD line. {@link #clear()} must be called on every
  * language (re)load alongside {@code SpoilageEnhancedTranslations.clearFormatTimeCache()}.</p>
+ *
+ * <p>Pass 1405 (L5 — render path): added a stable cache key for the "checking" placeholder
+ * text that appears while waiting for the server answer. This text never changes, so it
+ * can be cached with a single fixed key, eliminating per-frame allocation and font measurement.</p>
  */
 public final class HudTextCache {
 
     public record CachedHudText(Component text, int width, int color) {}
 
     private static final int MAX_ENTRIES = 64;
+
+    /** Stable cache key for the "checking freshness" placeholder text. */
+    private static final long CHECKING_KEY = 0x7FFFFFFFFFFFFFFFL;
 
     private HudTextCache() {}
 
@@ -45,5 +52,10 @@ public final class HudTextCache {
 
     public static void clear() {
         CACHE.clear();
+    }
+
+    /** Returns the stable cache key for the "checking" placeholder text. */
+    public static long checkingKey() {
+        return CHECKING_KEY;
     }
 }

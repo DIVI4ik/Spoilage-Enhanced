@@ -280,13 +280,21 @@ public abstract class BlockSpoilageHudMixin {
             // including the verdict that there is nothing to show.
             if (!com.spoilageenhanced.client.ClientBlockSpoilageCache.hasAnswerFor(pos)
                     && spoilage_enhanced$isSpoilableBlock(client, pos)) {
-                Component checking = Component.translatable(SpoilageEnhancedTranslations.HUD_CHECKING);
-                Font font0 = client.font;
-                int w0 = font0.width(checking);
-                int x0 = (graphics.guiWidth() - w0) / 2;
+                // Pass 1405 (L5 — render path): cache the "checking" placeholder text.
+                // The text never changes, so allocate/measure once and reuse every frame.
+                long checkingKey = com.spoilageenhanced.client.HudTextCache.checkingKey();
+                com.spoilageenhanced.client.HudTextCache.CachedHudText cachedChecking =
+                        com.spoilageenhanced.client.HudTextCache.get(checkingKey);
+                if (cachedChecking == null) {
+                    Component checking = Component.translatable(SpoilageEnhancedTranslations.HUD_CHECKING);
+                    int w0 = client.font.width(checking);
+                    cachedChecking = new com.spoilageenhanced.client.HudTextCache.CachedHudText(checking, w0, 0xFFAAAAAA);
+                    com.spoilageenhanced.client.HudTextCache.put(checkingKey, cachedChecking);
+                }
+                int x0 = (graphics.guiWidth() - cachedChecking.width()) / 2;
                 int y0 = graphics.guiHeight() / 2 - 25;
-                graphics.fill(x0 - 4, y0 - 2, x0 + w0 + 4, y0 + 12, 0x80000000);
-                graphics.text(font0, checking, x0, y0, 0xFFAAAAAA, true);
+                graphics.fill(x0 - 4, y0 - 2, x0 + cachedChecking.width() + 4, y0 + 12, 0x80000000);
+                graphics.text(client.font, cachedChecking.text(), x0, y0, cachedChecking.color(), true);
             }
             return;
         }
