@@ -1,5 +1,6 @@
 package com.spoilageenhanced.mixin.client;
 
+import com.spoilageenhanced.client.BarCountsCache;
 import com.spoilageenhanced.component.ModDataComponentTypes;
 import com.spoilageenhanced.component.SpoilageData;
 import com.spoilageenhanced.config.SpoilageConfig;
@@ -14,8 +15,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @Mixin(GuiGraphicsExtractor.class)
@@ -67,42 +66,57 @@ public abstract class GuiGraphicsExtractorMixin {
             staleCount = 0;
             rottenCount = 0;
         } else {
-            // Pass 196 (L5 — render-path): staleDuration is only needed when data exists
-            // (the virtual fresh path doesn't use it). Move the call inside the else branch
-            // to avoid the CHM get + multiplication for the common fresh-item case.
-            long staleDuration = SpoilageConfig.getInstance().getStaleDurationForItem(stack.getItem());
-            List<Long> freshList = data.freshExpirations();
-            List<Long> staleList = data.staleExpirations();
-            rottenCount = data.rottenCount();
+            // Pass 1403 (L5 — render path): cache the bar counts per (stack identity, day bucket,
+            // data version) to avoid per-frame iteration through freshExpirations/staleExpirations
+            // and the staleDuration CHM lookup. The counts only change when the server sends
+            // new spoilage data (on ticks), not every frame.
+            long identityHash = System.identityHashCode(stack);
+            long cacheKey = BarCountsCache.key(identityHash, currentTime, data);
+            BarCountsCache.CachedCounts cached = BarCountsCache.get(cacheKey);
+            if (cached != null) {
+                freshCount = cached.freshCount();
+                staleCount = cached.staleCount();
+                rottenCount = cached.rottenCount();
+            } else {
+                // Pass 196 (L5 — render-path): staleDuration is only needed when data exists
+                // (the virtual fresh path doesn't use it). Move the call inside the else branch
+                // to avoid the CHM get + multiplication for the common fresh-item case.
+                long staleDuration = SpoilageConfig.getInstance().getStaleDurationForItem(stack.getItem());
+                List<Long> freshList = data.freshExpirations();
+                List<Long> staleList = data.staleExpirations();
+                rottenCount = data.rottenCount();
 
-            freshCount = 0;
-            staleCount = 0;
+                freshCount = 0;
+                staleCount = 0;
 
-            for (long exp : freshList) {
-                // Pass 1165 (L7 — boundary): same overflow guard as ItemClientMixin /
-                // FoodSpoilageUtil.classifyFreshExpiration. exp + staleDuration can wrap
-                // negative when staleDuration is huge (unclamped by the config loader,
-                // same finding as pass 1164), which would make currentTime < (negative)
-                // false and count the item as ROTTEN in the inventory bar though its
-                // stale window never ended. When the addition would overflow the item
-                // stays STALE forever.
-                if (currentTime < exp) {
-                    freshCount++;
-                } else if (staleDuration > Long.MAX_VALUE - exp) {
-                    staleCount++;
-                } else if (currentTime < exp + staleDuration) {
-                    staleCount++;
-                } else {
-                    rottenCount++;
+                for (long exp : freshList) {
+                    // Pass 1165 (L7 — boundary): same overflow guard as ItemClientMixin /
+                    // FoodSpoilageUtil.classifyFreshExpiration. exp + staleDuration can wrap
+                    // negative when staleDuration is huge (unclamped by the config loader,
+                    // same finding as pass 1164), which would make currentTime < (negative)
+                    // false and count the item as ROTTEN in the inventory bar though its
+                    // stale window never ended. When the addition would overflow the item
+                    // stays STALE forever.
+                    if (currentTime < exp) {
+                        freshCount++;
+                    } else if (staleDuration > Long.MAX_VALUE - exp) {
+                        staleCount++;
+                    } else if (currentTime < exp + staleDuration) {
+                        staleCount++;
+                    } else {
+                        rottenCount++;
+                    }
                 }
-            }
 
-            for (long exp : staleList) {
-                if (currentTime < exp) {
-                    staleCount++;
-                } else {
-                    rottenCount++;
+                for (long exp : staleList) {
+                    if (currentTime < exp) {
+                        staleCount++;
+                    } else {
+                        rottenCount++;
+                    }
                 }
+
+                BarCountsCache.put(cacheKey, new BarCountsCache.CachedCounts(freshCount, staleCount, rottenCount));
             }
         }
 
