@@ -93,7 +93,17 @@ public abstract class GourdBlockMixin {
                 BlockSpoilageData.get(serverWorld).setSpoilageState(pos, worstState, expirationTime);
             } else {
                 long freshDuration = com.spoilageenhanced.config.SpoilageConfig.getInstance().getFreshDurationForItem(itemStack.getItem());
-                BlockSpoilageData.get(serverWorld).setSpoilageState(pos, com.spoilageenhanced.util.FoodSpoilageUtil.SpoilageState.FRESH, world.getGameTime() + freshDuration);
+                // Pass 1402 (L7 — boundary): world.getGameTime() + freshDuration can overflow
+                // to negative when freshDuration is huge (unclamped by the config loader, same
+                // finding as pass 1164). A hand-edited huge fresh value combined with a real game
+                // time would wrap negative, making the block read as instantly expired on its
+                // first tick. Clamp to Long.MAX_VALUE (the NEVER sentinel) when the addition
+                // would overflow, matching BlockSpoilageData.getSpoilageState initial entry
+                // (pass 1396) and BlockStateChangeMixin (pass 1401).
+                long expireTime = (freshDuration > Long.MAX_VALUE - world.getGameTime())
+                        ? Long.MAX_VALUE
+                        : world.getGameTime() + freshDuration;
+                BlockSpoilageData.get(serverWorld).setSpoilageState(pos, com.spoilageenhanced.util.FoodSpoilageUtil.SpoilageState.FRESH, expireTime);
             }
 
             // Take the placed item's entry OUT of the stack. Without this the block copied the
