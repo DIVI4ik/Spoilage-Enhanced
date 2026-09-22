@@ -35,48 +35,60 @@ class TooltipTextCacheTest {
     @Test
     void keyPackingIsInjective() {
         // Different inputs must produce different keys
+        // With quantization: 500 and 501 ticks are in the same minute bucket (0d 0h 30m)
+        // So they produce the SAME key now. But 500 and 517 are different (517 -> 31m)
         long k1 = TooltipTextCache.key(100, 500, 1, false);
         long k2 = TooltipTextCache.key(100, 500, 1, true);  // shift differs
         long k3 = TooltipTextCache.key(100, 500, 2, false); // count differs
-        long k4 = TooltipTextCache.key(100, 501, 1, false); // diff differs
+        long k4 = TooltipTextCache.key(100, 517, 1, false); // diff differs (different minute bucket)
         long k5 = TooltipTextCache.key(101, 500, 1, false); // identity differs
 
         assertNotEquals(k1, k2, "shift flag must change key");
         assertNotEquals(k1, k3, "stack count must change key");
-        assertNotEquals(k1, k4, "displayed diff must change key");
+        assertNotEquals(k1, k4, "displayed diff (different minute bucket) must change key");
         assertNotEquals(k1, k5, "identity hash must change key");
+
+        // Same minute bucket should produce same key
+        long k6 = TooltipTextCache.key(100, 501, 1, false);
+        assertEquals(k1, k6, "500 and 501 ticks are in same minute bucket (quantized)");
     }
 
     @Test
     void keyPackingBitLayout() {
-        // Verify the bit layout matches the documented spec:
+        // Verify the bit layout matches the documented spec (Pass 1404 — quantized):
         // bits 63..32: identity hash
-        // bits 31..8:  displayedDiff (22 bits)
+        // bits 31..8:  quantized time key (days<<11 | hours<<6 | minutes), 22 bits
         // bits 7..1:   stackCount (7 bits)
         // bit 0:       shiftHeld
         long identityHash = 0x12345678L;
-        long displayedDiff = 0x3FFFFFL; // max 22 bits
+        // 1000 ticks = 0d 1h 0m -> timeKey = (0<<11) | (1<<6) | 0 = 64
+        long displayedDiff = 1000L;
         int stackCount = 0x7F; // max 7 bits
         boolean shiftHeld = true;
 
         long key = TooltipTextCache.key(identityHash, displayedDiff, stackCount, shiftHeld);
 
         assertEquals(identityHash, key >>> 32, "identity hash in upper 32 bits");
-        assertEquals(displayedDiff, (key >>> 8) & 0x3FFFFFL, "displayedDiff in bits 31..8");
+        // The time key is 64 (0d 1h 0m)
+        long timeKey = (key >>> 8) & 0x3FFFFFL;
+        assertEquals(64L, timeKey, "quantized time key in bits 31..8");
         assertEquals(stackCount, (key >>> 1) & 0x7FL, "stackCount in bits 7..1");
         assertEquals(1L, key & 1L, "shiftHeld in bit 0");
     }
 
     @Test
     void keyPackingNoOverlap() {
-        // The low 30 bits must be injective: diff (22 bits at 8), count (7 bits at 1), shift (bit 0)
+        // The low 30 bits must be injective: quantized time key (22 bits at 8), count (7 bits at 1), shift (bit 0)
         // No overlap between these fields
-        long k1 = TooltipTextCache.key(0, 0x3FFFFFL, 0, false); // max diff
-        long k2 = TooltipTextCache.key(0, 0, 0x7F, false);      // max count
-        long k3 = TooltipTextCache.key(0, 0, 0, true);          // shift
+        // Use displayedDiff = 1000 ticks = 0d 1h 0m -> timeKey = (0<<11) | (1<<6) | 0 = 64
+        long displayedDiff = 1000L; // 0d 1h 0m
+        long timeKey = (0L << 11) | (1L << 6) | 0L; // 64
+        long k1 = TooltipTextCache.key(0, displayedDiff, 0, false); // time key
+        long k2 = TooltipTextCache.key(0, 0, 0x7F, false);          // max count
+        long k3 = TooltipTextCache.key(0, 0, 0, true);              // shift
 
         // Each should only affect its own bits
-        assertEquals(0x3FFFFFL << 8, k1 & (0x3FFFFFL << 8), "diff only in bits 31..8");
+        assertEquals(timeKey << 8, k1 & (0x3FFFFFL << 8), "time key only in bits 31..8");
         assertEquals(0x7F << 1, k2 & 0xFE, "count only in bits 7..1");
         assertEquals(1L, k3 & 1L, "shift only in bit 0");
     }

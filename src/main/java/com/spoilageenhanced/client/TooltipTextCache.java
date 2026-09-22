@@ -20,19 +20,26 @@ public final class TooltipTextCache {
     private TooltipTextCache() {}
 
     /**
-     * Bit layout of the cache key (Pass 487 — the inline packing was not injective):
+     * Bit layout of the cache key (Pass 487 — the inline packing was not injective;
+     * Pass 1404 — quantized to match formatTime):
      *
      * <pre>
      *   bits 63..32  identity hash of the stack
-     *   bits 31..8   displayedDiff, masked to 22 bits (0..4,194,303 ticks ≈ 48 days)
+     *   bits 31..8   quantized time key (days<<11 | hours<<6 | minutes), 22 bits
      *   bits  7..1   stack count, 7 bits (0..127)
      *   bit   0      shift held
      * </pre>
      *
-     * <p>The low 30 bits are injective: the diff occupies 22 bits starting at bit 8, the
-     * count 7 bits starting at bit 1, and the shift flag bit 0, with no overlap. The
-     * caller passes the raw values rather than pre-shifted pieces, so a change to the
-     * layout is one edit in one place.</p>
+     * <p>The low 30 bits are injective: the quantized time key occupies 22 bits starting
+     * at bit 8, the count 7 bits starting at bit 1, and the shift flag bit 0, with no
+     * overlap. The caller passes the raw values rather than pre-shifted pieces, so a
+     * change to the layout is one edit in one place.</p>
+     *
+     * <p>Pass 1404 (L5 — render path): the key now uses the same quantization as
+     * {@link SpoilageEnhancedTranslations#formatTime} — (days, hours, minutes) — instead
+     * of raw displayedDiff. The tooltip text only changes when the quantized triple
+     * changes, so the hit rate increases from ~1/tick to ~1/minute for the minutes
+     * bucket, ~1/hour for the hours bucket, etc.</p>
      *
      * @param identityHash  {@link System#identityHashCode} of the stack
      * @param displayedDiff remaining ticks until the next stage, as rendered
@@ -40,8 +47,20 @@ public final class TooltipTextCache {
      * @param shiftHeld     whether Shift is held for the details view
      */
     public static long key(long identityHash, long displayedDiff, int stackCount, boolean shiftHeld) {
+        // Quantize displayedDiff to (days, hours, minutes) — same as formatTime
+        long timeKey;
+        if (displayedDiff <= 0) {
+            timeKey = 0L; // "less than a minute" bucket
+        } else {
+            long days = displayedDiff / 24000L;
+            long remainingAfterDays = displayedDiff % 24000L;
+            long hours = remainingAfterDays / 1000L;
+            long remainingAfterHours = remainingAfterDays % 1000L;
+            long minutes = (remainingAfterHours * 60L) / 1000L;
+            timeKey = (days << 11) | (hours << 6) | minutes;
+        }
         return (identityHash << 32)
-                | ((displayedDiff & 0x3FFFFFL) << 8)
+                | ((timeKey & 0x3FFFFFL) << 8)
                 | ((stackCount & 0x7FL) << 1)
                 | (shiftHeld ? 1L : 0L);
     }

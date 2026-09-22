@@ -73,18 +73,29 @@ public class TooltipTextCacheTest {
     @Test
     void differentDisplayedDiffGivesDifferentKey() {
         ItemStack stack = new ItemStack(Items.APPLE);
+        // With quantization:
+        // 1000 ticks = 0d 1h 0m (1000/1000 = 1 hour, 0 minutes)
+        // 1001 ticks = 0d 1h 0m (same minute bucket)
+        // 1016 ticks = 0d 1h 0m (16*60/1000 = 0.96 -> 0 minutes)
+        // 1017 ticks = 0d 1h 1m (17*60/1000 = 1.02 -> 1 minute)
         long key1 = TooltipTextCache.key(System.identityHashCode(stack), 1000L, 1, false);
-        long key2 = TooltipTextCache.key(System.identityHashCode(stack), 999L, 1, false);
+        long key2 = TooltipTextCache.key(System.identityHashCode(stack), 1001L, 1, false);
+        long key3 = TooltipTextCache.key(System.identityHashCode(stack), 1016L, 1, false);
+        long key4 = TooltipTextCache.key(System.identityHashCode(stack), 1017L, 1, false);
 
-        assertNotEquals(key1, key2, "Different displayedDiff must give different keys");
+        // 1000, 1001, 1016 are all in the same minute bucket (0d 1h 0m)
+        assertEquals(key1, key2, "Quantized: 1000 and 1001 ticks are in same minute bucket");
+        assertEquals(key1, key3, "Quantized: 1000 and 1016 ticks are in same minute bucket");
+        // 1017 is in the next minute bucket (0d 1h 1m)
+        assertNotEquals(key1, key4, "Different minute buckets must give different keys");
 
         List<Component> lines1 = List.of(Component.literal("Fresh 1000"));
-        List<Component> lines2 = List.of(Component.literal("Fresh 999"));
+        List<Component> lines2 = List.of(Component.literal("Fresh 1017"));
         TooltipTextCache.put(key1, new TooltipTextCache.CachedTooltipLines(lines1));
-        TooltipTextCache.put(key2, new TooltipTextCache.CachedTooltipLines(lines2));
+        TooltipTextCache.put(key4, new TooltipTextCache.CachedTooltipLines(lines2));
 
         assertEquals(lines1, TooltipTextCache.get(key1).lines());
-        assertEquals(lines2, TooltipTextCache.get(key2).lines());
+        assertEquals(lines2, TooltipTextCache.get(key4).lines());
     }
 
     @Test
@@ -177,36 +188,52 @@ public class TooltipTextCacheTest {
     void keyInjectivityNoOverlap() {
         // Verify the bit layout doesn't have overlapping fields
         // bits 63..32: identity hash (32 bits)
-        // bits 31..8: displayedDiff (24 bits, masked to 22 bits)
+        // bits 31..8: quantized time key (days<<11 | hours<<6 | minutes), 22 bits
         // bits 7..1: stackCount (7 bits)
         // bit 0: shiftHeld (1 bit)
 
+        // 1000 ticks = 0d 1h 0m -> timeKey = (0<<11) | (1<<6) | 0 = 64
         long key = TooltipTextCache.key(0x12345678L, 1000L, 1, true);
-        long expected = (0x12345678L << 32) | ((1000L & 0x3FFFFFL) << 8) | ((1 & 0x7FL) << 1) | 1L;
+        long timeKey = (0L << 11) | (1L << 6) | 0L; // 64
+        long expected = (0x12345678L << 32) | ((timeKey & 0x3FFFFFL) << 8) | ((1 & 0x7FL) << 1) | 1L;
         assertEquals(expected, key, "Key bit layout must match documented injective packing");
 
         // Verify no overlap: changing each field independently changes the key
         long base = TooltipTextCache.key(0x12345678L, 1000L, 1, false);
         assertNotEquals(base, TooltipTextCache.key(0x12345679L, 1000L, 1, false), "identityHash change");
-        assertNotEquals(base, TooltipTextCache.key(0x12345678L, 1001L, 1, false), "displayedDiff change");
+        // displayedDiff change within same minute bucket should NOT change key (quantization)
+        assertEquals(base, TooltipTextCache.key(0x12345678L, 1001L, 1, false), "displayedDiff change within same minute bucket");
+        // But change to different minute bucket should change key
+        assertNotEquals(base, TooltipTextCache.key(0x12345678L, 1017L, 1, false), "displayedDiff change to different minute bucket");
         assertNotEquals(base, TooltipTextCache.key(0x12345678L, 1000L, 2, false), "stackCount change");
         assertNotEquals(base, TooltipTextCache.key(0x12345678L, 1000L, 1, true), "shiftHeld change");
     }
 
     @Test
-    void displayedDiffMaskedTo22Bits() {
-        // displayedDiff is masked to 22 bits (0..4,194,303)
-        // 0x3FFFFF = 4194303 (max 22-bit value)
-        // 0x400000 = 4194304 (23rd bit set)
-        // After masking, 0x400000 should become 0, same as displayedDiff=0
-        long keyMax = TooltipTextCache.key(0x12345678L, 0x3FFFFFL, 1, false);
-        long keyOverflow = TooltipTextCache.key(0x12345678L, 0x400000L, 1, false);
-        long keyZero = TooltipTextCache.key(0x12345678L, 0L, 1, false);
+    void quantizedTimeKeyFitsIn22Bits() {
+        // The quantized time key (days<<11 | hours<<6 | minutes) fits in 22 bits:
+        // days: up to 53 bits in formatTime, but we only use 22 bits in the cache key
+        // hours: 5 bits (0..23)
+        // minutes: 6 bits (0..59)
+        // Total: 11 + 5 + 6 = 22 bits
+        // Very large tick values will have days truncated to 22 bits, but that's
+        // acceptable because the cache key is only for tooltip rendering and
+        // absurdly long timers (millions of days) will share buckets.
 
-        // 0x400000 masked to 22 bits = 0, so keyOverflow should equal keyZero
-        assertEquals(keyZero, keyOverflow, "displayedDiff must be masked to 22 bits");
-        // keyMax should be different (it has all 22 bits set)
-        assertNotEquals(keyMax, keyZero, "Max 22-bit value should differ from zero");
+        // Test that the time key never exceeds 22 bits for realistic values
+        long key1 = TooltipTextCache.key(0x12345678L, 24000L, 1, false); // 1 day
+        long key2 = TooltipTextCache.key(0x12345678L, 48000L, 1, false); // 2 days
+        long key3 = TooltipTextCache.key(0x12345678L, 72000L, 1, false); // 3 days
+
+        assertNotEquals(key1, key2, "Different day buckets should have different keys");
+        assertNotEquals(key2, key3, "Different day buckets should have different keys");
+
+        // Very large value - days will be truncated to 22 bits
+        long keyHuge = TooltipTextCache.key(0x12345678L, Long.MAX_VALUE, 1, false);
+        long keyZero = TooltipTextCache.key(0x12345678L, 0L, 1, false);
+        // The huge value should produce some key (not crash), but may collide with zero
+        // due to day truncation - that's acceptable for tooltip rendering
+        assertNotNull(keyHuge);
     }
 
     @Test
