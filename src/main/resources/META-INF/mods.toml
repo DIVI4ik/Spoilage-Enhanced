@@ -6,7 +6,26 @@ license="MIT"
 modId="spoilage_enhanced"
 version="${version}"
 displayName="Spoilage Enhanced"
-description='''Dynamic, realistic food and block spoilage with stages, overlays, and deep integrations.'''
+# Resolved from the JAR ROOT, not from assets/ - src/main/resources/icon.png lands there.
+# Until 2026-09-22 there was no logoFile at all, so the mod showed a blank tile in the Forge
+# and NeoForge mod lists while Fabric had an icon; two thirds of the supported loaders.
+logoFile="icon.png"
+description='''Food in Minecraft never goes off. This mod makes it.
+
+Every edible item carries a freshness timer and moves through three stages: fresh, stale and
+rotten. A stack is not one timer - ten apples can be five fresh and five rotten, and the worst
+one is always handed over first.
+
+Food ages in storage too: chests, barrels, shulker boxes, your ender chest, hoppers, storage
+minecarts, villager and trader inventories, llama and donkey chests, and bundles - including a
+bundle inside a shulker box inside a chest.
+
+Stale food feeds you less and may bring nausea; rotten food poisons you, but makes the best
+compost in the game. You cannot plant rotten seeds, and a growing crop has no clock at all -
+it starts when the plant is ripe.
+
+Food is detected automatically, including from other mods. Configure anything in
+config/spoilage_enhanced.json and apply it with /spoilage config reload.'''
 authors="DIVI4ik"
 
 [[mixins]]

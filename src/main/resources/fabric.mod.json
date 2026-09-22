@@ -3,7 +3,7 @@
   "id": "spoilage_enhanced",
   "version": "${version}",
   "name": "Spoilage Enhanced",
-  "description": "Dynamic, realistic food and block spoilage with stages, overlays, and deep integrations.",
+  "description": "Food rots. Every edible carries a freshness timer through fresh, stale and rotten - in your inventory and in storage.",
   "authors": [
     "DIVI4ik"
   ],
