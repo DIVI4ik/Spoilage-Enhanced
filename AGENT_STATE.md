@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1390
+Pass: 1410
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L19 detection power: mutation testing complete — 4 of 5 mutations NOT CAUGHT. Next: L18 (multiplayer desync) or L5/L7 (render/boundary).
-Last lens: L19 detection power
-Recent: FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED NO_BUG
-Barren streak: 16
-Refills since L13: 16
-Commits since: release = 0
-Updated: 2026-09-19 22:20
+Current task: Player reports 1-3 — all three already fixed in shipped code (passes 221, 223, 224)
+Last lens: L7 boundary
+Recent: FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED NO_BUG FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED
+Barren streak: 0
+Refills since L13: 23
+Commits since: release = 2
+Updated: 2026-09-22 10:12
 
 ## Notes
 
@@ -19,7 +19,7 @@ actually playing the mod. Take them first, in order, before any lens-generated t
 `PLAYER_REPORTS.md` in the project root carries the traced cause and the reasoning for each
 — read it once when you start the first of them, not every pass. All three are runtime
 behaviour (a HUD packet answer, a container click path, and block-eating path); the unit suite
-cannot see any of them, so Step 5 needs a real launch and a line from the fresh log.
+cannot see any of them, so Step 5 needs a real launch with a line from the fresh log.
 
 Migration note: passes 1–119 were run under the previous rule set. The counter continues
 from 119, so the next pass is 120. Older pass entries are in
@@ -31,6 +31,11 @@ wins — finish and commit that before starting anything new.
 
 L1 silent failure is mined out: passes 1375-1389 added 15 test files pinning every
 catch(Throwable|Exception) block in src/main, all green at 996/0/0, but none changed
-shipped code. Barren streak is 16. L19 detection power (pass 1390) found 4 of 5 mutations NOT CAUGHT. Per 03_ANTI_STALL.md the L1 lens is exhausted — next
+shipped code. Barren streak is 23. L19 detection power (pass 1390) found 4 of 5 mutations NOT CAUGHT. Per 03_ANTI_STALL.md the L1 lens is exhausted — next
 refill must come from the yield table, not L1. L5 render path and L7 boundary are
-under-used and pay; L4 hot path sits at 8.9%. Do NOT re-queue L1 subjects.
+under-used and pay; L4 hot path sits at 3.6%. Do NOT re-queue L1 subjects.
+
+Player reports 1-3 are already fixed in shipped code:
+- Report 1 (frozen HUD timer): Fixed pass 221 (commit 12dcbb2) — BlockSpoilageNetworking routes untracked blocks through getSpoilageState which registers them lazily and ages from chunk birth time.
+- Report 2 (right-click rotten insert): Fixed pass 223 (commit 7f96ae1) — ScreenHandlerMixin uses worstSliceContainsRotten helper.
+- Report 3 (placed cake loses spoilage): Fixed pass 224 (commit 9975181) — GourdBlockMixin places rotten cake, CakeEatMixin reads tracked state on eat.
