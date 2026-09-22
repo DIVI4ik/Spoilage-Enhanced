@@ -52,3 +52,26 @@ counts as answered — do not re-queue it.
 
 - [x] L14: **TPS with the pack loaded — and fix the baseline first.** A reading was taken by
   hand on 2026-09-10 with the pack deployed on a freshly started world: **0.1 ms average,
+
+- [x] L1: **Six log files appear in every player's game directory, five of them always empty.**
+  `enable_logging` and `enableTraceLogging` both default to `true`, and the logger opens
+  `general.log`, `trace.log`, `hud.log`, `network.log`, `data.log` and `events.log` on start.
+  Measured on 2026-09-22 from the dev runs: `general.log` holds 258 bytes on the client and
+  1009 on the server, all of it startup lines (component registration, recipe scan, mixins),
+  and the other five are **0 bytes**. So this is not a performance problem — writing is async
+  on a bounded queue and nothing logs per tick — it is clutter shipped to users: a folder of
+  empty files in `.minecraft`. Open each writer lazily, on the first line actually written to
+  that category. Prove it by deleting `spoilage_enhanced_logs/` in a run directory, starting
+  the game, and showing which files exist afterwards; the positive control is that
+  `general.log` must still be created and still contain the startup lines.
+
+- [ ] L1: verify lazy log creation in run/fabric with a real launch — delete run/fabric/spoilage_enhanced_logs/, start the client, list the folder; general.log must exist with the startup lines and the other five must not.
+- [ ] L1: **Drive the Forge and NeoForge servers and record what they say.** On 2026-09-22 the
+  mod was published announcing three loaders while only Fabric had ever been started, and a real
+  Forge client died at `MixinInitialisationError: ... compatibility level JAVA_25 which is not
+  recognised`. `options.release` and the mixin config are both pinned at 21 now, and
+  `loadercheck.py` gates publishing on it — but the static check compares two numbers and
+  cannot say the game starts. Run `loader_launch.ps1 -Loader forge` and `-Loader neoforge`
+  (AGENT_ENV.md, "Verifying the mod loads on Forge and NeoForge"), and put the verdict and one
+  copied line from each server log in the entry. If either says anything other than STARTED,
+  that is the next task and it outranks everything in this queue.

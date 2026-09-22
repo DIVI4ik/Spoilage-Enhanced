@@ -7,6 +7,7 @@ import net.minecraft.world.level.Level;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.EnumMap;
@@ -79,7 +80,8 @@ public class SpoilageEnhancedLogger {
         }
 
         try {
-            logDir = new File(SpoilageEnhancedPlatform.getGameDir().toFile(), "spoilage_enhanced_logs");
+            Path gameDir = SpoilageEnhancedPlatform.getGameDir();
+            logDir = new File(gameDir.toFile(), "spoilage_enhanced_logs");
             if (logDir.exists()) {
                 File[] files = logDir.listFiles();
                 if (files != null) {
@@ -93,10 +95,20 @@ public class SpoilageEnhancedLogger {
                 logDir.mkdirs();
             }
 
-            for (LogCategory cat : LogCategory.values()) {
-                File logFile = new File(logDir, cat.filename);
-                writers.put(cat, new PrintWriter(new FileWriter(logFile, false), true));
-            }
+            // Pass 1417 (L13 behaviour — player clutter): open writers LAZILY, only when the
+            // first message for a category is actually written. The old loop opened all 7
+            // files here — general.log, hud.log, data.log, events.log, chunks.log,
+            // network.log, trace.log — and five of them stayed 0 bytes for the whole session:
+            // nothing in the mod logs to hud/data/events/chunks/network, and trace is gated
+            // behind enableTraceLogging which is on by default but nothing traces. The files
+            // were shipped to the user's .minecraft anyway. Measured 2026-09-22 from the dev
+            // runs: general.log held 258 bytes (client) / 1009 (server), all startup lines;
+            // the other five were 0 bytes. Opening a writer is not free (a FileWriter +
+            // PrintWriter + buffer per category), so this also saves ~5 file handles on every
+            // launch. general.log is still created at startup because the "--- Logging Session
+            // Started ---" line is written before any lazy-open call, so the positive control
+            // in the task holds: deleting spoilage_enhanced_logs/ and starting the game must
+            // still produce general.log with the startup lines.
             initialized = true;
             refreshConfigCache(); // Pass 94: populate the static flag cache
 
@@ -135,26 +147,46 @@ public class SpoilageEnhancedLogger {
                     LogEntry entry = logQueue.poll(100, java.util.concurrent.TimeUnit.MILLISECONDS);
                     if (entry != null) {
                         PrintWriter writer = writers.get(entry.category());
-                        if (writer != null) {
-                            String time = LocalDateTime.now().format(formatter);
-                            writer.println(time + " " + entry.message());
-                            // Pass 204 (Lens 1 — silent failure): PrintWriter NEVER throws on
-                            // an I/O failure — it swallows the IOException internally and sets
-                            // an error flag (its documented contract; see the PrintWriter
-                            // class javadoc: "methods in this class never throw I/O
-                            // exceptions"). The old catch below was therefore dead code for
-                            // the actual failure mode: a full disk or an invalidated file
-                            // handle dropped every log line with no indication anywhere.
-                            // checkError() is the only way to see it. Report the first
-                            // failure per session to System.err so the operator can see the
-                            // logs are degraded instead of trusting a file that silently
-                            // stopped growing.
-                            if (writer.checkError() && !writerFailureReported) {
-                                writerFailureReported = true;
-                                System.err.println("[Spoilage Enhanced] Log writer failed (logging is "
-                                        + "degraded, entries may be lost) — category "
-                                        + entry.category().filename);
+                        // Pass 1417 (L13 behaviour — player clutter): lazily open the writer
+                        // for this category on the first actual log entry. This avoids creating
+                        // 7 empty log files on startup — only categories that actually receive
+                        // messages get a file. The first entry for a category creates the file
+                        // and writes it immediately.
+                        if (writer == null) {
+                            synchronized (writers) {
+                                writer = writers.get(entry.category());
+                                if (writer == null) {
+                                    try {
+                                        File logFile = new File(logDir, entry.category().filename);
+                                        writer = new PrintWriter(new FileWriter(logFile, false), true);
+                                        writers.put(entry.category(), writer);
+                                    } catch (Exception e) {
+                                        // If we can't open the file, log to System.err and drop the message
+                                        System.err.println("[SpoilageEnhanced] Failed to open log file for "
+                                                + entry.category().filename + ": " + e);
+                                        continue; // skip this entry
+                                    }
+                                }
                             }
+                        }
+                        String time = LocalDateTime.now().format(formatter);
+                        writer.println(time + " " + entry.message());
+                        // Pass 204 (Lens 1 — silent failure): PrintWriter NEVER throws on
+                        // an I/O failure — it swallows the IOException internally and sets
+                        // an error flag (its documented contract; see the PrintWriter
+                        // class javadoc: "methods in this class never throw I/O
+                        // exceptions"). The old catch below was therefore dead code for
+                        // the actual failure mode: a full disk or an invalidated file
+                        // handle dropped every log line with no indication anywhere.
+                        // checkError() is the only way to see it. Report the first
+                        // failure per session to System.err so the operator can see the
+                        // logs are degraded instead of trusting a file that silently
+                        // stopped growing.
+                        if (writer.checkError() && !writerFailureReported) {
+                            writerFailureReported = true;
+                            System.err.println("[Spoilage Enhanced] Log writer failed (logging is "
+                                    + "degraded, entries may be lost) — category "
+                                    + entry.category().filename);
                         }
                     }
                 } catch (InterruptedException e) {
@@ -198,6 +230,32 @@ public class SpoilageEnhancedLogger {
                 closeFailures++;
                 System.err.println("[SpoilageEnhanced] Log writer interrupted during close: " + e.getMessage());
             }
+        }
+        // Pass 1417 (L13 behaviour — player clutter): flush remaining entries from the
+        // queue, lazily creating writers for any categories that never had a message
+        // processed by the writer thread (e.g. if closeWriters is called immediately after
+        // logging). This ensures all queued messages are written to their files.
+        LogEntry entry;
+        while ((entry = logQueue.poll()) != null) {
+            PrintWriter writer = writers.get(entry.category());
+            if (writer == null) {
+                synchronized (writers) {
+                    writer = writers.get(entry.category());
+                    if (writer == null) {
+                        try {
+                            File logFile = new File(logDir, entry.category().filename);
+                            writer = new PrintWriter(new FileWriter(logFile, false), true);
+                            writers.put(entry.category(), writer);
+                        } catch (Exception e) {
+                            System.err.println("[SpoilageEnhanced] Failed to open log file for "
+                                    + entry.category().filename + ": " + e);
+                            continue;
+                        }
+                    }
+                }
+            }
+            String time = LocalDateTime.now().format(formatter);
+            writer.println(time + " " + entry.message());
         }
         for (PrintWriter writer : writers.values()) {
             try {

@@ -1,12 +1,12 @@
-Pass: 1415
+Pass: 1417
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L4 hot-path TPS — fix minecart/allay phase-spreading gate
-Last lens: L4 hot-path TPS
-Recent: FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED NO_BUG FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED
+Current task: L1: verify lazy log creation in run/fabric with a real launch
+Last lens: L12 claim drift
+Recent: FIXED FIXED FIXED FIXED IMPROVED
 Barren streak: 0
 Refills since L13: 23
-Commits since: release = 0
-Updated: 2026-09-22 15:27
+Commits since: release = 1
+Updated: 2026-09-22 21:26
 
 ## Notes
 
