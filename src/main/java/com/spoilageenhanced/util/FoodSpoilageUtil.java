@@ -936,7 +936,14 @@ public class FoodSpoilageUtil {
     public static void makeFresh(ItemStack stack, Level world) {
         if (stack.isEmpty() || !SpoilageConfig.getInstance().isSpoilable(stack.getItem())) return;
         long freshDuration = SpoilageConfig.getInstance().getFreshDurationForItem(stack.getItem());
-        long expire = world.getGameTime() + freshDuration;
+        // Pass 1400 (L7 — boundary): world.getGameTime() + freshDuration can overflow to negative
+        // when freshDuration is huge (unclamped by the config loader, same finding as pass 1164).
+        // A hand-edited huge fresh value combined with a real game time would wrap negative,
+        // making the stack read as already expired (expiration in the past).
+        // Clamp to Long.MAX_VALUE (the NEVER sentinel) when the addition would overflow.
+        long expire = (freshDuration > Long.MAX_VALUE - world.getGameTime())
+                ? Long.MAX_VALUE
+                : world.getGameTime() + freshDuration;
 
         List<Long> freshList = new ArrayList<>();
         for (int i = 0; i < stack.getCount(); i++) freshList.add(expire);
