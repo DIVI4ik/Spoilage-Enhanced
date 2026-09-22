@@ -107,11 +107,11 @@ public final class CraftingSpoilageTransfer {
                 long spread = Math.max(1L, duration / 10);
                 for (int i = 0; i < count; i++) {
                     long offset = (long) ((i - count / 2) * (spread * 2.0 / count));
-                    long expiration = currentTime + Math.max(1L, baseRemaining + offset);
+                    long expiration = safeAdd(currentTime, Math.max(1L, baseRemaining + offset));
                     newStale.add(expiration);
                 }
             } else {
-                long expiration = currentTime + Math.max(1L, baseRemaining);
+                long expiration = safeAdd(currentTime, Math.max(1L, baseRemaining));
                 for (int i = 0; i < count; i++) newStale.add(expiration);
             }
         } else {
@@ -125,11 +125,11 @@ public final class CraftingSpoilageTransfer {
                 long spread = Math.max(1L, duration / 10);
                 for (int i = 0; i < count; i++) {
                     long offset = (long) ((i - count / 2) * (spread * 2.0 / count));
-                    long expiration = currentTime + Math.max(1L, baseRemaining + offset);
+                    long expiration = safeAdd(currentTime, Math.max(1L, baseRemaining + offset));
                     newFresh.add(expiration);
                 }
             } else {
-                long expiration = currentTime + Math.max(1L, baseRemaining);
+                long expiration = safeAdd(currentTime, Math.max(1L, baseRemaining));
                 for (int i = 0; i < count; i++) newFresh.add(expiration);
             }
         }
@@ -154,5 +154,14 @@ public final class CraftingSpoilageTransfer {
         }
         long remaining = worstExp - currentTime;
         return Math.max(0.0, Math.min(1.0, (double) remaining / fullDuration));
+    }
+
+    /**
+     * Pass 1406 (L7 — boundary): safe addition that clamps to Long.MAX_VALUE when the sum
+     * would overflow. Matches the pattern used in FoodSpoilageUtil.initializeItemSpoilage
+     * (pass 1164) and BlockSpoilageData (pass 1396).
+     */
+    private static long safeAdd(long a, long b) {
+        return (b > 0L && a > Long.MAX_VALUE - b) ? Long.MAX_VALUE : a + b;
     }
 }
