@@ -42,7 +42,7 @@ public abstract class AllayMixin {
     @Inject(method = "tick", at = @At("RETURN"))
     private void spoilage_enhanced$ageInventoryContents(CallbackInfo ci) {
         Allay self = (Allay) (Object) this;
-        if (self.level().isClientSide() || self.tickCount % 20 != 0) {
+        if (self.level().isClientSide() || (self.getId() + self.tickCount) % 20 != 0) {
             return;
         }
 

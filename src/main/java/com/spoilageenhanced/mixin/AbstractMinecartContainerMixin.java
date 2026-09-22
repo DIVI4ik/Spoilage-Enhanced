@@ -36,7 +36,7 @@ public abstract class AbstractMinecartContainerMixin {
         if (!(self instanceof AbstractMinecartContainer container)) {
             return;
         }
-        if (self.level().isClientSide() || self.tickCount % 20 != 0) {
+        if (self.level().isClientSide() || (self.getId() + self.tickCount) % 20 != 0) {
             return;
         }
 

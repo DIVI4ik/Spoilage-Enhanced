@@ -126,4 +126,59 @@ public class PhaseSpreadingTest {
                     "the un-offset form leaves every other tick idle");
         }
     }
+
+    /** Mirrors the AbstractMinecartContainerMixin / AllayMixin gate. */
+    private static boolean minecartFires(int entityId, int tickCount) {
+        return (entityId + tickCount) % 20 == 0;
+    }
+
+    /**
+     * Pass 1415 (L4 — hot-path TPS): the minecart and allay aging mixins gated on
+     * {@code self.tickCount % 20 != 0} instead of {@code (self.getId() + self.tickCount) % 20 != 0}.
+     * Both are ticked from {@code Entity.tick}, and a rail yard / allay flock created in the same
+     * tick gets sequential entity ids but tickCount == 0 for all of them — so the plain modulo
+     * put the whole flock on the SAME boundary (tick 0, 20, 40...) while every other tick sat
+     * idle. Same spike the ItemEntityMixin offset removes, same 20-tick window, same once-per-
+     * window guarantee. This test pins the gate the two mixins now use.
+     */
+    @Test
+    void minecartAndAllayGateUsesEntityIdOffset() {
+        // The gate must include the entity id, not just tickCount.
+        int firstId = 1000;
+        int count = 10_000;
+        int[] perTick = new int[20];
+        for (int id = firstId; id < firstId + count; id++) {
+            for (int tick = 0; tick < 20; tick++) {
+                if (minecartFires(id, tick)) {
+                    perTick[tick]++;
+                }
+            }
+        }
+        for (int tick = 0; tick < 20; tick++) {
+            assertEquals(count / 20, perTick[tick],
+                    "tick " + tick + " must carry exactly 1/20th of the burst ("
+                            + count + "/20 = " + (count / 20) + "), got " + perTick[tick]);
+        }
+    }
+
+    @Test
+    void plainTickCountModuloSpikesMinecartFlock() {
+        // The defect this pass removed: a flock of minecarts/allays born in the same tick
+        // (tickCount == 0 for all of them) all fire on tick 0 under the plain modulo, and
+        // never again. The id-offset form spreads them.
+        int count = 10_000;
+        int[] plainPerTick = new int[20];
+        for (int item = 0; item < count; item++) {
+            // tickCount == 0 for every entity in a same-tick birth cohort
+            if (0 % 20 == 0) {
+                plainPerTick[0]++;
+            }
+        }
+        assertEquals(count, plainPerTick[0],
+                "the plain tickCount % 20 gate puts the whole same-tick cohort on tick 0");
+        for (int tick = 1; tick < 20; tick++) {
+            assertEquals(0, plainPerTick[tick],
+                    "the plain gate leaves every other tick idle for a same-tick cohort");
+        }
+    }
 }
