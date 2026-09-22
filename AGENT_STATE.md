@@ -1,12 +1,11 @@
-Pass: 1419
+Pass: 1420
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L1: Drive the Forge and NeoForge servers and record what they say
-Last lens: L12 claim drift
+Current task: L5: ClientBlockSpoilageCache.touch() does two map lookups (containsKey + get) — replace with single get()
+Last lens: L5 render path
 Recent: FIXED FIXED IMPROVED FIXED FIXED
 Barren streak: 0
-Refills since L13: 23
 Commits since: release = 1
-Updated: 2026-09-22 21:55
+Updated: 2026-09-22 23:44
 
 ## Notes
 

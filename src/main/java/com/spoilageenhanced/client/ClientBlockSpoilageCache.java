@@ -386,10 +386,10 @@ public final class ClientBlockSpoilageCache {
 
     /** Moves {@code pos} to the MRU end. O(1) via the access-ordered map. */
     private static void touch(BlockPos pos) {
-        // containsKey does not reorder; get() does. Only touch entries that exist.
-        if (CACHE.containsKey(pos)) {
-            CACHE.get(pos);
-        }
+        // get() on an access-ordered LinkedHashMap reorders the entry to MRU.
+        // A single get() replaces the old containsKey()+get() pair (two lookups).
+        // If the entry doesn't exist, get() returns null and does nothing.
+        CACHE.get(pos);
     }
 
     private static String currentDimension() {
