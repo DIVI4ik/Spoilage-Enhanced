@@ -65,7 +65,7 @@ counts as answered — do not re-queue it.
   the game, and showing which files exist afterwards; the positive control is that
   `general.log` must still be created and still contain the startup lines.
 
-- [ ] L1: verify lazy log creation in run/fabric with a real launch — delete run/fabric/spoilage_enhanced_logs/, start the client, list the folder; general.log must exist with the startup lines and the other five must not.
+- [x] L1: verify lazy log creation in run/fabric with a real launch — delete run/fabric/spoilage_enhanced_logs/, start the client, list the folder; general.log must exist with the startup lines and the other five must not.
 - [ ] L1: **Drive the Forge and NeoForge servers and record what they say.** On 2026-09-22 the
   mod was published announcing three loaders while only Fabric had ever been started, and a real
   Forge client died at `MixinInitialisationError: ... compatibility level JAVA_25 which is not

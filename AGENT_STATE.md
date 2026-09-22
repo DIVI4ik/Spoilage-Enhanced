@@ -1,12 +1,12 @@
-Pass: 1417
+Pass: 1418
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L1: verify lazy log creation in run/fabric with a real launch
+Current task: L1: Drive the Forge and NeoForge servers and record what they say
 Last lens: L12 claim drift
-Recent: FIXED FIXED FIXED FIXED IMPROVED
+Recent: FIXED FIXED FIXED IMPROVED FIXED
 Barren streak: 0
 Refills since L13: 23
 Commits since: release = 1
-Updated: 2026-09-22 21:26
+Updated: 2026-09-22 21:36
 
 ## Notes
 
