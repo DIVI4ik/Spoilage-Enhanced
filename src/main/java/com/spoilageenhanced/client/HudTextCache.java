@@ -1,5 +1,7 @@
 package com.spoilageenhanced.client;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.chat.Component;
 
 /**
@@ -17,6 +19,12 @@ import net.minecraft.network.chat.Component;
  * <p>Pass 1405 (L5 — render path): added a stable cache key for the "checking" placeholder
  * text that appears while waiting for the server answer. This text never changes, so it
  * can be cached with a single fixed key, eliminating per-frame allocation and font measurement.</p>
+ *
+ * <p>Pass 1412 (L5 — render path): connection fingerprinting added. A recycled identity
+ * hash on the same time bucket would otherwise serve the previous world's cached HUD text
+ * for a stack in the new world. The fingerprint is checked on every {@link #get} and
+ * {@link #put} call so a server switch clears the cache immediately without a disconnect
+ * event hook.</p>
  */
 public final class HudTextCache {
 
@@ -33,11 +41,36 @@ public final class HudTextCache {
     private static final java.util.Map<Long, CachedHudText> CACHE =
             new java.util.concurrent.ConcurrentHashMap<>();
 
+    /**
+     * Pass 1412 (L5 — render path): connection fingerprint. A new connection always has a
+     * different identity hash (the old object is GC-eligible), so a connection switch forces
+     * the cache to clear even when the time bucket happens to match.
+     * Checked inside {@link #get} and {@link #put} so no disconnect event hook is needed.
+     */
+    private static int cachedConnectionHash;
+
+    private static int currentConnectionHash() {
+        Minecraft client = Minecraft.getInstance();
+        if (client == null) return 0;
+        ClientPacketListener conn = client.getConnection();
+        return conn == null ? 0 : System.identityHashCode(conn);
+    }
+
+    private static void checkConnection() {
+        int connHash = currentConnectionHash();
+        if (connHash != cachedConnectionHash) {
+            CACHE.clear();
+            cachedConnectionHash = connHash;
+        }
+    }
+
     public static CachedHudText get(long key) {
+        checkConnection();
         return CACHE.get(key);
     }
 
     public static void put(long key, CachedHudText value) {
+        checkConnection();
         if (CACHE.size() >= MAX_ENTRIES && !CACHE.containsKey(key)) {
             // Pass 604 (L3/L4 — cache correctness): the cap was declared but never enforced.
             // Once full, new entries were silently dropped. Evict one arbitrary entry to
@@ -52,6 +85,7 @@ public final class HudTextCache {
 
     public static void clear() {
         CACHE.clear();
+        cachedConnectionHash = 0;
     }
 
     /** Returns the stable cache key for the "checking" placeholder text. */

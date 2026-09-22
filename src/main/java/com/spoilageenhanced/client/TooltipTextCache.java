@@ -1,5 +1,7 @@
 package com.spoilageenhanced.client;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.chat.Component;
 
 /**
@@ -10,6 +12,12 @@ import net.minecraft.network.chat.Component;
  * of pre-built tooltip lines. The text only changes when displayedDiff changes (every tick)
  * or shift state changes. The cache is tiny (max 64 entries) and cleared on language change
  * alongside the HUD cache.</p>
+ *
+ * <p>Pass 1412 (L5 — render path): connection fingerprinting added. A recycled identity
+ * hash on the same quantized time bucket with matching count/shift would otherwise serve
+ * the previous world's cached tooltip lines for a stack in the new world. The fingerprint
+ * is checked on every {@link #get} and {@link #put} call so a server switch clears the
+ * cache immediately without a disconnect event hook.</p>
  */
 public final class TooltipTextCache {
 
@@ -69,7 +77,31 @@ public final class TooltipTextCache {
     private static final java.util.Map<Long, CachedTooltipLines> CACHE =
             new java.util.concurrent.ConcurrentHashMap<>();
 
+    /**
+     * Pass 1412 (L5 — render path): connection fingerprint. A new connection always has a
+     * different identity hash (the old object is GC-eligible), so a connection switch forces
+     * the cache to clear even when the quantized time bucket, count and shift happen to match.
+     * Checked inside {@link #get} and {@link #put} so no disconnect event hook is needed.
+     */
+    private static int cachedConnectionHash;
+
+    private static int currentConnectionHash() {
+        Minecraft client = Minecraft.getInstance();
+        if (client == null) return 0;
+        ClientPacketListener conn = client.getConnection();
+        return conn == null ? 0 : System.identityHashCode(conn);
+    }
+
+    private static void checkConnection() {
+        int connHash = currentConnectionHash();
+        if (connHash != cachedConnectionHash) {
+            CACHE.clear();
+            cachedConnectionHash = connHash;
+        }
+    }
+
     public static CachedTooltipLines get(long key) {
+        checkConnection();
         return CACHE.get(key);
     }
 
@@ -79,6 +111,7 @@ public final class TooltipTextCache {
     }
 
     public static void put(long key, CachedTooltipLines value) {
+        checkConnection();
         if (CACHE.size() >= MAX_ENTRIES && !CACHE.containsKey(key)) {
             // Pass 604 (L3/L4 — cache correctness) fixed this for HudTextCache; TooltipTextCache
             // was left dropping new entries silently once full. A creative inventory with many
@@ -97,5 +130,6 @@ public final class TooltipTextCache {
 
     public static void clear() {
         CACHE.clear();
+        cachedConnectionHash = 0;
     }
 }

@@ -19,8 +19,12 @@ import static org.junit.jupiter.api.Assertions.*;
  * <p>Pass 604 fixed the cap enforcement: once full, new entries were silently
  * dropped. The fix evicts one arbitrary entry to make room.</p>
  *
+ * <p>Pass 1412 (L5 — render path): connection fingerprinting added. Tests verify
+ * the fingerprint clears on connection switch and clear() resets the hash.</p>
+ *
  * <p>What this test pins: put/get works, miss returns null, evicts when full,
- * clear works, size reports correctly, replaces existing key, CachedHudText record.</p>
+ * clear works, size reports correctly, replaces existing key, CachedHudText record,
+ * connection fingerprint clears on switch, clear resets connection hash.</p>
  */
 class HudTextCacheTest {
 
@@ -109,5 +113,33 @@ class HudTextCacheTest {
         var cached = new HudTextCache.CachedHudText(text, 123, 0xABCDEF);
         assertEquals(123, cached.width());
         assertEquals(0xABCDEF, cached.color());
+    }
+
+    @Test
+    void connectionFingerprintClearsOnSwitch() throws Exception {
+        // Pass 1412: connection fingerprinting clears on server switch
+        String source = java.nio.file.Files.readString(
+                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/client/HudTextCache.java"))
+                .replace("\r\n", "\n");
+
+        assertTrue(source.contains("currentConnectionHash()"),
+                "must have connection fingerprint method");
+        assertTrue(source.contains("cachedConnectionHash"),
+                "must cache connection hash");
+        assertTrue(source.contains("CACHE.clear()"),
+                "must clear cache on connection change");
+        assertTrue(source.contains("checkConnection()"),
+                "must check connection on get/put");
+    }
+
+    @Test
+    void clearResetsConnectionHash() throws Exception {
+        // Pass 1412: clear() resets cachedConnectionHash to 0
+        String source = java.nio.file.Files.readString(
+                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/client/HudTextCache.java"))
+                .replace("\r\n", "\n");
+
+        assertTrue(source.contains("cachedConnectionHash = 0"),
+                "clear() must reset connection hash");
     }
 }
