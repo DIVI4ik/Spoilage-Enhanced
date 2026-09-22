@@ -36,6 +36,10 @@ public abstract class ClientLanguageMixin {
         com.spoilageenhanced.client.HudTextCache.clear();
         // Pass 187 (Lens 5): also invalidate the tooltip text cache.
         com.spoilageenhanced.client.TooltipTextCache.clear();
+        // Pass 1411 (L5 — render path): also invalidate the bar counts cache — the cached
+        // counts are language-independent but the language reload is a safe point to clear
+        // any stale render-path caches.
+        com.spoilageenhanced.client.BarCountsCache.clear();
         ClientLanguage original = cir.getReturnValue();
         if (original != null) {
             Map<String, String> combined = new HashMap<>(((ClientLanguageMixin) (Object) original).storage);

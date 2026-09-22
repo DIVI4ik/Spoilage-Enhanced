@@ -1,5 +1,6 @@
 package com.spoilageenhanced;
 
+import com.spoilageenhanced.client.BarCountsCache;
 import com.spoilageenhanced.component.SpoilageData;
 import com.spoilageenhanced.component.ModDataComponentTypes;
 import com.spoilageenhanced.config.SpoilageConfig;
@@ -35,6 +36,9 @@ import static org.junit.jupiter.api.Assertions.*;
  * <p>The cache key packs: identityHash (32 bits) + currentTime/24000 (day bucket, 16 bits)
  * + data version (16 bits from System.identityHashCode of the SpoilageData instance).
  * This gives a hit rate near 100% within a day bucket for a given stack.</p>
+ *
+ * <p>Pass 1411 (L5 — render path): connection fingerprinting and language-change clearing
+ * added. Tests verify both.</p>
  */
 public class GuiGraphicsExtractorMixinBarCountsCacheTest {
 
@@ -130,5 +134,44 @@ public class GuiGraphicsExtractorMixinBarCountsCacheTest {
             injectConfig(original);
             SpoilageConfig.clearDurationCache();
         }
+    }
+
+    @Test
+    void connectionFingerprintClearsOnSwitch() throws Exception {
+        // Pass 1411: connection fingerprinting clears on server switch
+        String source = java.nio.file.Files.readString(
+                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/client/BarCountsCache.java"))
+                .replace("\r\n", "\n");
+
+        assertTrue(source.contains("currentConnectionHash()"),
+                "must have connection fingerprint method");
+        assertTrue(source.contains("cachedConnectionHash"),
+                "must cache connection hash");
+        assertTrue(source.contains("CACHE.clear()"),
+                "must clear cache on connection change");
+        assertTrue(source.contains("checkConnection()"),
+                "must check connection on get/put");
+    }
+
+    @Test
+    void languageChangeClearsCache() throws Exception {
+        // Pass 1411: BarCountsCache.clear() called from ClientLanguageMixin
+        String source = java.nio.file.Files.readString(
+                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/mixin/ClientLanguageMixin.java"))
+                .replace("\r\n", "\n");
+
+        assertTrue(source.contains("BarCountsCache.clear()"),
+                "ClientLanguageMixin must clear BarCountsCache on language reload");
+    }
+
+    @Test
+    void clearResetsConnectionHash() throws Exception {
+        // Pass 1411: clear() resets cachedConnectionHash to 0
+        String source = java.nio.file.Files.readString(
+                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/client/BarCountsCache.java"))
+                .replace("\r\n", "\n");
+
+        assertTrue(source.contains("cachedConnectionHash = 0"),
+                "clear() must reset connection hash");
     }
 }

@@ -1,6 +1,8 @@
 package com.spoilageenhanced.client;
 
 import com.spoilageenhanced.component.SpoilageData;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientPacketListener;
 
 /**
  * Pass 1403 (L5 — render path): cache for GuiGraphicsExtractorMixin bar counts.
@@ -16,6 +18,12 @@ import com.spoilageenhanced.component.SpoilageData;
  * <p>The cache key packs: identityHash (32 bits) + currentTime/24000 (day bucket, 16 bits)
  * + data version (16 bits from System.identityHashCode of the SpoilageData instance).
  * This gives a hit rate near 100% within a day bucket for a given stack.</p>
+ *
+ * <p>Pass 1411 (L5 — render path): connection fingerprinting added. A recycled identity
+ * hash on the same day bucket with a matching 16-bit data version would otherwise serve
+ * the previous world's bar counts for a stack in the new world. The fingerprint is checked
+ * on every {@link #get} and {@link #put} call (the hot path) so a server switch clears the
+ * cache immediately without a disconnect event hook.</p>
  */
 public final class BarCountsCache {
 
@@ -28,6 +36,14 @@ public final class BarCountsCache {
     // ConcurrentHashMap so the render thread and the language-load thread do not race.
     private static final java.util.Map<Long, CachedCounts> CACHE =
             new java.util.concurrent.ConcurrentHashMap<>();
+
+    /**
+     * Pass 1411 (L5 — render path): connection fingerprint. A new connection always has a
+     * different identity hash (the old object is GC-eligible), so a connection switch forces
+     * the cache to clear even when the day bucket and data version happen to match.
+     * Checked inside {@link #get} and {@link #put} so no disconnect event hook is needed.
+     */
+    private static int cachedConnectionHash;
 
     /**
      * Packs the cache key:
@@ -43,11 +59,28 @@ public final class BarCountsCache {
                 | (dataVersion & 0xFFFFL);
     }
 
+    private static int currentConnectionHash() {
+        Minecraft client = Minecraft.getInstance();
+        if (client == null) return 0;
+        ClientPacketListener conn = client.getConnection();
+        return conn == null ? 0 : System.identityHashCode(conn);
+    }
+
+    private static void checkConnection() {
+        int connHash = currentConnectionHash();
+        if (connHash != cachedConnectionHash) {
+            CACHE.clear();
+            cachedConnectionHash = connHash;
+        }
+    }
+
     public static CachedCounts get(long key) {
+        checkConnection();
         return CACHE.get(key);
     }
 
     public static void put(long key, CachedCounts value) {
+        checkConnection();
         if (CACHE.size() >= MAX_ENTRIES && !CACHE.containsKey(key)) {
             var first = CACHE.keySet().iterator();
             if (first.hasNext()) {
@@ -59,5 +92,6 @@ public final class BarCountsCache {
 
     public static void clear() {
         CACHE.clear();
+        cachedConnectionHash = 0;
     }
 }

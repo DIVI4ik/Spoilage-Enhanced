@@ -1,14 +1,14 @@
 # Agent State
 
-Pass: 1410
+Pass: 1411
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: Player reports 1-3 — all three already fixed in shipped code (passes 221, 223, 224)
-Last lens: L7 boundary
-Recent: FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED NO_BUG FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED
+Current task: BarCountsCache connection fingerprint + language-change clear (L5 render path)
+Last lens: L5 render path
+Recent: FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED NO_BUG FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED
 Barren streak: 0
 Refills since L13: 23
 Commits since: release = 2
-Updated: 2026-09-22 10:12
+Updated: 2026-09-22 11:54
 
 ## Notes
 
@@ -38,4 +38,4 @@ under-used and pay; L4 hot path sits at 3.6%. Do NOT re-queue L1 subjects.
 Player reports 1-3 are already fixed in shipped code:
 - Report 1 (frozen HUD timer): Fixed pass 221 (commit 12dcbb2) — BlockSpoilageNetworking routes untracked blocks through getSpoilageState which registers them lazily and ages from chunk birth time.
 - Report 2 (right-click rotten insert): Fixed pass 223 (commit 7f96ae1) — ScreenHandlerMixin uses worstSliceContainsRotten helper.
-- Report 3 (placed cake loses spoilage): Fixed pass 224 (commit 9975181) — GourdBlockMixin places rotten cake, CakeEatMixin reads tracked state on eat.
+- Report 3 (placed cake loses spoilage): Fixed pass 224 (commit 9975181) — GourdBlockMixin places rotten cake (sets state ROTTEN with -1 expiration), CakeEatMixin reads tracked state on eat.
