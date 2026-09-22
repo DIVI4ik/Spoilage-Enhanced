@@ -281,10 +281,10 @@ public class FoodSpoilageUtil {
         long currentTime = world != null ? world.getGameTime() : 0L;
         // Pass 1164 (L7 — boundary): same guard as the padding branch in
         // updateSpoilageDataImpl (line ~521, pass 233). item_durations entries are
-        // unclamped by the config loader (clampHandEditedValues touches only the
-        // defaults and the speed multiplier), so a hand-edited huge fresh value
-        // reaches this addition; overflowing it to negative would make the stack
-        // read as already expired on its first tick.
+        // clamped by clampHandEditedValues (pass 1168) for fresh/stale <= 0, but
+        // values near Long.MAX_VALUE are not clamped there — they pass through.
+        // A hand-edited huge fresh value reaches this addition; overflowing it
+        // to negative would make the stack read as already expired on its first tick.
         long expirationTime = (freshDuration > Long.MAX_VALUE - currentTime)
                 ? Long.MAX_VALUE
                 : currentTime + freshDuration;

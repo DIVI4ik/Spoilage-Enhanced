@@ -22,8 +22,9 @@ import static org.junit.jupiter.api.Assertions.*;
  *
  * <p>When a block transitions from FRESH to STALE, the code computes
  * {@code entry.expirationTime = currentTime + staleDuration} (line 629). staleDuration
- * is unclamped by the config loader (clampHandEditedValues touches only defaults and
- * speed multiplier; computeBaseDurations accepts any stale > 0 up to Long.MAX_VALUE).
+ * is clamped by clampHandEditedValues (pass 1168) for stale <= 0, but values near
+ * Long.MAX_VALUE pass through unclamped (computeBaseDurations accepts any stale > 0
+ * up to Long.MAX_VALUE).
  * A hand-edited huge staleDuration combined with a real game time can overflow the
  * addition to negative, making the block read as instantly ROTTEN (since the new
  * expiration is in the past, the immediate check {@code currentTime >= entry.expirationTime}

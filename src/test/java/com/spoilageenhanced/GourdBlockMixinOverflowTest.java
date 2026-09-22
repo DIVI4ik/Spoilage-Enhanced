@@ -21,11 +21,12 @@ import static org.junit.jupiter.api.Assertions.*;
  * in GourdBlockMixin (and other mixins calling setSpoilageState with freshDuration).
  *
  * <p>GourdBlockMixin computes {@code world.getGameTime() + freshDuration} when a
- * gourd/pumpkin/melon block is placed. freshDuration is unclamped by the config loader
- * (clampHandEditedValues touches only defaults and speed multiplier; computeBaseDurations
- * accepts any fresh > 0 up to Long.MAX_VALUE). A hand-edited huge freshDuration combined
- * with a real game time can overflow the addition to negative, making the block read as
- * instantly expired on its first tick.</p>
+ * gourd/pumpkin/melon block is placed. freshDuration is clamped by
+ * clampHandEditedValues (pass 1168) for fresh <= 0, but values near Long.MAX_VALUE
+ * pass through unclamped (computeBaseDurations accepts any fresh > 0 up to
+ * Long.MAX_VALUE). A hand-edited huge freshDuration combined with a real game time can
+ * overflow the addition to negative, making the block read as instantly expired on its
+ * first tick.</p>
  *
  * <p>The fix clamps to Long.MAX_VALUE (the NEVER sentinel) when the addition would
  * overflow, matching the guard in BlockSpoilageData.getSpoilageState initial entry

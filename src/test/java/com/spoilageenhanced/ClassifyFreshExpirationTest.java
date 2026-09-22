@@ -11,9 +11,9 @@ import static org.junit.jupiter.api.Assertions.*;
  *
  * <p>ItemClientMixin's tooltip counting loop classifies each fresh-list expiration as
  * FRESH / STALE / ROTTEN. The ROTTEN test was {@code currentTime >= exp + staleDuration}
- * with no overflow guard: staleDuration is unclamped by the config loader (same finding
- * as pass 1164 — clampHandEditedValues touches only the defaults and the speed
- * multiplier), so a hand-edited huge stale value made the addition wrap negative and the
+ * with no overflow guard: staleDuration is clamped by clampHandEditedValues (pass 1168)
+ * for stale <= 0, but values near Long.MAX_VALUE pass through unclamped (same finding
+ * as pass 1164), so a hand-edited huge stale value made the addition wrap negative and the
  * comparison read true, counting a fresh-expired item as ROTTEN in the tooltip though its
  * stale window never ended.</p>
  *

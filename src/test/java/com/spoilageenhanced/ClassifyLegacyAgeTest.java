@@ -12,8 +12,8 @@ import static org.junit.jupiter.api.Assertions.*;
  * <p>BlockSpoilageData's two legacy-entry call sites (getSpoilageState and
  * getTicksUntilNextStage) compare the block's age against
  * {@code freshDuration + staleDuration}. The stale window test had no overflow guard:
- * staleDuration is unclamped by the config loader (same finding as pass 1164 —
- * clampHandEditedValues touches only the defaults and the speed multiplier), so a
+ * staleDuration is clamped by clampHandEditedValues (pass 1168) for stale <= 0, but values near Long.MAX_VALUE pass through unclamped (same finding as pass 1164 —
+ * clampHandEditedValues), so a
  * hand-edited huge stale value made the sum wrap negative and {@code age < (negative)}
  * read false, answering ROTTEN (and 0 remaining ticks) for a block still inside its
  * stale window.</p>

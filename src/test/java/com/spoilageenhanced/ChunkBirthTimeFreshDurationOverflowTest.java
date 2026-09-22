@@ -24,8 +24,9 @@ import static org.junit.jupiter.api.Assertions.*;
  * {@code expireTime = chunkBirthTime + freshDuration} (line 553). Both values can be
  * large: chunkBirthTime comes from {@code world.getGameTime() - inhabitedTime} (which
  * can be up to the world's age, ~1.4M ticks in a long-running world), and freshDuration
- * is unclamped by the config loader (clampHandEditedValues touches only defaults and
- * speed multiplier; computeBaseDurations accepts any fresh > 0 up to Long.MAX_VALUE).
+ * clamped by clampHandEditedValues (pass 1168) for fresh <= 0, but values near
+ * Long.MAX_VALUE pass through unclamped (computeBaseDurations accepts any fresh > 0
+ * up to Long.MAX_VALUE).
  * A hand-edited huge freshDuration combined with a real chunkBirthTime can overflow
  * the addition to negative, making the block read as instantly expired (STALE/ROTTEN)
  * on its very first tick.</p>

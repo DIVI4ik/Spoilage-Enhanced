@@ -25,10 +25,10 @@ import static org.junit.jupiter.api.Assertions.*;
  * stack. The identical padding computation in updateSpoilageDataImpl got an overflow
  * guard in pass 233 ("a future config with a huge base duration"), but this path did
  * not — and it runs FIRST, on the stack's very first tick. item_durations entries are
- * unclamped by the config loader (clampHandEditedValues touches only the defaults and
- * the speed multiplier; computeBaseDurations accepts any fresh &gt; 0 up to
- * Long.MAX_VALUE), so a hand-edited huge value reaches this addition. Overflowing it
- * to negative made the stack read as already expired on its first tick.</p>
+ * clamped by clampHandEditedValues (pass 1168) for fresh &lt;= 0, but values near
+ * Long.MAX_VALUE pass through unclamped (computeBaseDurations accepts any fresh &gt; 0
+ * up to Long.MAX_VALUE), so a hand-edited huge value reaches this addition. Overflowing
+ * it to negative made the stack read as already expired on its first tick.</p>
  *
  * <p>The fix clamps to Long.MAX_VALUE (the NEVER sentinel), matching the padding
  * branch.</p>
