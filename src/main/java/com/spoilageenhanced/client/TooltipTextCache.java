@@ -112,7 +112,11 @@ public final class TooltipTextCache {
 
     public static void put(long key, CachedTooltipLines value) {
         checkConnection();
-        if (CACHE.size() >= MAX_ENTRIES && !CACHE.containsKey(key)) {
+        // A single put() replaces the old containsKey()+put() pair (two lookups): it returns
+        // the previous value, null when the key was absent. Only on a genuine new key does
+        // the map grow, and only then do we check the cap — so a re-put of an existing key
+        // costs one lookup and never touches the eviction branch.
+        if (CACHE.put(key, value) == null && CACHE.size() > MAX_ENTRIES) {
             // Pass 604 (L3/L4 — cache correctness) fixed this for HudTextCache; TooltipTextCache
             // was left dropping new entries silently once full. A creative inventory with many
             // distinct stacks fills 64 entries in a few glances, and from then on every tooltip
@@ -125,7 +129,6 @@ public final class TooltipTextCache {
                 CACHE.remove(first.next());
             }
         }
-        CACHE.put(key, value);
     }
 
     public static void clear() {

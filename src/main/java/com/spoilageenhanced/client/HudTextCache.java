@@ -71,7 +71,11 @@ public final class HudTextCache {
 
     public static void put(long key, CachedHudText value) {
         checkConnection();
-        if (CACHE.size() >= MAX_ENTRIES && !CACHE.containsKey(key)) {
+        // A single put() replaces the old containsKey()+put() pair (two lookups): it returns
+        // the previous value, null when the key was absent. Only on a genuine new key does
+        // the map grow, and only then do we check the cap — so a re-put of an existing key
+        // costs one lookup and never touches the eviction branch.
+        if (CACHE.put(key, value) == null && CACHE.size() > MAX_ENTRIES) {
             // Pass 604 (L3/L4 — cache correctness): the cap was declared but never enforced.
             // Once full, new entries were silently dropped. Evict one arbitrary entry to
             // make room — the next put for the evicted key will re-add it.
@@ -80,7 +84,6 @@ public final class HudTextCache {
                 CACHE.remove(first.next());
             }
         }
-        CACHE.put(key, value);
     }
 
     public static void clear() {

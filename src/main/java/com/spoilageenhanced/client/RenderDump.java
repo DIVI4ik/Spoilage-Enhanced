@@ -116,7 +116,11 @@ public final class RenderDump {
         if (payload.equals(previous)) {
             return;
         }
-        if (LAST_LINE.size() >= MAX_KEYS && !LAST_LINE.containsKey(elementKey)) {
+        // A single put() replaces the old containsKey()+put() pair (two lookups): it returns
+        // the previous value, null when the key was absent. Only on a genuine new key does
+        // the map grow, and only then do we check the cap — so a re-put of an existing key
+        // costs one lookup and never touches the eviction branch.
+        if (LAST_LINE.put(elementKey, payload) == null && LAST_LINE.size() > MAX_KEYS) {
             // Map is full and this is a new key — evict one entry to make room. Pick the
             // first key returned by the iterator; ConcurrentHashMap iterators are weakly
             // consistent but the choice is arbitrary for a debug tool.
@@ -125,7 +129,6 @@ public final class RenderDump {
                 LAST_LINE.remove(first.next());
             }
         }
-        LAST_LINE.put(elementKey, payload);
         SpoilageEnhancedLogger.log("RENDERDUMP " + payload);
     }
 

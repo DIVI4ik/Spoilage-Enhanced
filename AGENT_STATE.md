@@ -1,15 +1,12 @@
-Pass: 1420
+Pass: 1422
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L5: ClientBlockSpoilageCache.touch() does two map lookups (containsKey + get) — replace with single get()
+Current task: L5: Four cache put() methods — replace containsKey+put with single put()
 Last lens: L5 render path
+Barren streak: 0
 Recent: FIXED FIXED IMPROVED FIXED FIXED
 Barren streak: 0
-Commits since: release = 1
-Updated: 2026-09-22 23:44
 
-## Notes
-
-Short-lived context only: what the current task depends on, what the next pass should know. Not a history — history lives in `AGENT_LOG.md`.
+Updated: 2026-09-23 01:04
 
 **The first three unchecked lines in `TASKS.md` are player-reported defects, found by
 actually playing the mod. Take them first, in order, before any lens-generated task.**

@@ -76,3 +76,4 @@ counts as answered — do not re-queue it.
   copied line from each server log in the entry. If either says anything other than STARTED,
   that is the next task and it outranks everything in this queue.
 # [x] src/main/java/com/spoilageenhanced/client/ClientBlockSpoilageCache.java:388 — touch() does two map lookups (containsKey + get) — replace with single get() that returns non-null
+# [x] src/main/java/com/spoilageenhanced/client/TooltipTextCache.java:115 — put() does two map lookups (containsKey + put) — replace with single put() that returns previous value

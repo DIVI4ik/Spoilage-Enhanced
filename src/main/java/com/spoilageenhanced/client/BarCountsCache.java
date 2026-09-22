@@ -81,13 +81,16 @@ public final class BarCountsCache {
 
     public static void put(long key, CachedCounts value) {
         checkConnection();
-        if (CACHE.size() >= MAX_ENTRIES && !CACHE.containsKey(key)) {
+        // A single put() replaces the old containsKey()+put() pair (two lookups): it returns
+        // the previous value, null when the key was absent. Only on a genuine new key does
+        // the map grow, and only then do we check the cap — so a re-put of an existing key
+        // costs one lookup and never touches the eviction branch.
+        if (CACHE.put(key, value) == null && CACHE.size() > MAX_ENTRIES) {
             var first = CACHE.keySet().iterator();
             if (first.hasNext()) {
                 CACHE.remove(first.next());
             }
         }
-        CACHE.put(key, value);
     }
 
     public static void clear() {
