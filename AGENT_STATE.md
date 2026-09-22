@@ -1,14 +1,12 @@
-# Agent State
-
-Pass: 1414
+Pass: 1415
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: NeoForge silent failure fix (L1 silent failure)
-Last lens: L1 silent failure
-Recent: FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED NO_BUG FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED
+Current task: L4 hot-path TPS — fix minecart/allay phase-spreading gate
+Last lens: L4 hot-path TPS
+Recent: FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED NO_BUG FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED FIXED
 Barren streak: 0
 Refills since L13: 23
-Commits since: release = 2
-Updated: 2026-09-22 13:45
+Commits since: release = 3
+Updated: 2026-09-22 15:06
 
 ## Notes
 
