@@ -1,6 +1,8 @@
 package com.spoilageenhanced.client;
 
 import com.spoilageenhanced.util.SpoilageEnhancedLogger;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientPacketListener;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,6 +26,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>Thread-safety: the render thread writes and the log-flusher thread reads the flag;
  * the last-line map is only touched from the render thread, but a ConcurrentHashMap keeps
  * a toggle-during-render from corrupting anything.</p>
+ *
+ * <p>Pass 1413 (L5 — render path): connection fingerprinting added. A recycled element key
+ * on a new connection would otherwise suppress RENDERDUMP lines that should be emitted
+ * (the old world's last line would match the new world's first line). The fingerprint is
+ * checked on every {@link #emit} call so a server switch clears the map immediately without
+ * a disconnect event hook.</p>
  */
 public final class RenderDump {
 
@@ -42,6 +50,14 @@ public final class RenderDump {
     /** Cap on distinct element keys, so a pathological scene cannot grow the map unbounded. */
     private static final int MAX_KEYS = 512;
 
+    /**
+     * Pass 1413 (L5 — render path): connection fingerprint. A new connection always has a
+     * different identity hash (the old object is GC-eligible), so a connection switch forces
+     * the map to clear even when element keys happen to match.
+     * Checked inside {@link #emit} so no disconnect event hook is needed.
+     */
+    private static int cachedConnectionHash;
+
     private RenderDump() {
     }
 
@@ -54,6 +70,21 @@ public final class RenderDump {
         if (value) {
             // A fresh enable must not compare against lines from a previous session.
             LAST_LINE.clear();
+        }
+    }
+
+    private static int currentConnectionHash() {
+        Minecraft client = Minecraft.getInstance();
+        if (client == null) return 0;
+        ClientPacketListener conn = client.getConnection();
+        return conn == null ? 0 : System.identityHashCode(conn);
+    }
+
+    private static void checkConnection() {
+        int connHash = currentConnectionHash();
+        if (connHash != cachedConnectionHash) {
+            LAST_LINE.clear();
+            cachedConnectionHash = connHash;
         }
     }
 
@@ -72,11 +103,15 @@ public final class RenderDump {
      * removed (ConcurrentHashMap does not guarantee insertion order, so "oldest" is
      * approximate — any key is fine to evict since the next emit() for it will re-add it
      * and the worst case is one extra log line).</p>
+     *
+     * <p>Pass 1413 (L5 — render path): connection fingerprint checked before comparing
+     * against the last line.</p>
      */
     public static void emit(String elementKey, String payload) {
         if (!enabled) {
             return;
         }
+        checkConnection();
         String previous = LAST_LINE.get(elementKey);
         if (payload.equals(previous)) {
             return;
@@ -108,5 +143,6 @@ public final class RenderDump {
     public static void resetForTest() {
         enabled = false;
         LAST_LINE.clear();
+        cachedConnectionHash = 0;
     }
 }
