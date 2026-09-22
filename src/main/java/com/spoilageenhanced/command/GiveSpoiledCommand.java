@@ -120,7 +120,11 @@ public class GiveSpoiledCommand {
 
             for (ServerPlayer player : targets) {
                 ItemStack stack = itemArgument.createItemStack(count);
-                long expire = currentTime + ticksRemaining;
+                // Pass 1409 (L7 boundary): currentTime + ticksRemaining can overflow
+                // when ticksRemaining is huge. Clamp to Long.MAX_VALUE (the NEVER sentinel).
+                long expire = (ticksRemaining > Long.MAX_VALUE - currentTime)
+                        ? Long.MAX_VALUE
+                        : currentTime + ticksRemaining;
 
                 SpoilageData data;
                 if (stage.equals("fresh")) {

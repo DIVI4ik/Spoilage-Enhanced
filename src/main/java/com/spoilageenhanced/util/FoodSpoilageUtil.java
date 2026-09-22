@@ -722,10 +722,18 @@ public class FoodSpoilageUtil {
             float roll = random.nextFloat();
             if (roll < freshThreshold) {
                 long offset = (long) (random.nextFloat() * freshDuration);
-                freshList.add(currentTime + offset);
+                // Pass 1409 (L7 boundary): currentTime + offset can overflow when
+                // currentTime is near Long.MAX_VALUE. Clamp to NEVER (Long.MAX_VALUE).
+                freshList.add((offset > Long.MAX_VALUE - currentTime)
+                        ? Long.MAX_VALUE
+                        : currentTime + offset);
             } else if (roll < staleThreshold) {
                 long offset = (long) (random.nextFloat() * staleDuration);
-                staleList.add(currentTime + offset);
+                // Pass 1409 (L7 boundary): currentTime + offset can overflow when
+                // currentTime is near Long.MAX_VALUE. Clamp to NEVER (Long.MAX_VALUE).
+                staleList.add((offset > Long.MAX_VALUE - currentTime)
+                        ? Long.MAX_VALUE
+                        : currentTime + offset);
             } else {
                 rottenCount++;
             }

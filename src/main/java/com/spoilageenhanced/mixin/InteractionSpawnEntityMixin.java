@@ -54,12 +54,16 @@ public class InteractionSpawnEntityMixin {
                     }
 
                     BlockSpoilageData data = BlockSpoilageData.get(world);
-                    
+
                     if (data.isTracked(dropPos)) {
                         FoodSpoilageUtil.SpoilageState spoilState = data.getSpoilageState(dropPos, world, item);
                         long remainingTicks = data.getTicksUntilNextStage(dropPos, world, item);
-                        
-                        long expire = world.getGameTime() + remainingTicks;
+
+                        // Pass 1409 (L7 boundary): world.getGameTime() + remainingTicks can overflow
+                        // when remainingTicks is huge. Clamp to Long.MAX_VALUE (the NEVER sentinel).
+                        long expire = (remainingTicks > Long.MAX_VALUE - world.getGameTime())
+                                ? Long.MAX_VALUE
+                                : world.getGameTime() + remainingTicks;
                         SpoilageData dropData;
                         if (spoilState == FoodSpoilageUtil.SpoilageState.ROTTEN) {
                             dropData = new SpoilageData(Collections.emptyList(), Collections.emptyList(), stack.getCount(), SpoilageConfig.getInstance().getSpoilageSpeedMultiplier());
@@ -104,7 +108,13 @@ public class InteractionSpawnEntityMixin {
                 BlockSpoilageData data = BlockSpoilageData.get(world);
                 if (!data.isTracked(blockPos)) {
                     long freshDuration = SpoilageConfig.getInstance().getFreshDurationForItem(item);
-                    data.setSpoilageState(blockPos, FoodSpoilageUtil.SpoilageState.FRESH, world.getGameTime() + freshDuration);
+                    // Pass 1409 (L7 boundary): world.getGameTime() + freshDuration can overflow
+                    // when freshDuration is huge (unclamped by the config loader, same finding as pass 1164).
+                    // Clamp to Long.MAX_VALUE (the NEVER sentinel) when the addition would overflow.
+                    long expireTime = (freshDuration > Long.MAX_VALUE - world.getGameTime())
+                            ? Long.MAX_VALUE
+                            : world.getGameTime() + freshDuration;
+                    data.setSpoilageState(blockPos, FoodSpoilageUtil.SpoilageState.FRESH, expireTime);
                 }
 
                 FoodSpoilageUtil.SpoilageState spoilState = data.getSpoilageState(blockPos, world, item);

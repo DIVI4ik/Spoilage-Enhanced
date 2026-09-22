@@ -87,7 +87,12 @@ public abstract class StemBlockGrowMixin {
                 if (!data.isTracked(targetPos)) {
                     Item dropItem = BuiltInRegistries.ITEM.getValue(Identifier.parse(dropItemId));
                     long freshDuration = SpoilageConfig.getInstance().getFreshDurationForItem(dropItem);
-                    long expirationTime = world.getGameTime() + freshDuration;
+                    // Pass 1409 (L7 boundary): world.getGameTime() + freshDuration can overflow
+                    // when freshDuration is huge (unclamped by the config loader, same finding as pass 1164).
+                    // Clamp to Long.MAX_VALUE (the NEVER sentinel) when the addition would overflow.
+                    long expirationTime = (freshDuration > Long.MAX_VALUE - world.getGameTime())
+                            ? Long.MAX_VALUE
+                            : world.getGameTime() + freshDuration;
                     data.setSpoilageState(targetPos, FoodSpoilageUtil.SpoilageState.FRESH, expirationTime);
                     SpoilageEnhancedLogger.log("StemBlockGrowMixin: Block at " + targetPos + " newly grown, registered fresh expiration: " + expirationTime);
                 }

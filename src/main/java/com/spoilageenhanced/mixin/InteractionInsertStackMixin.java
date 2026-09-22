@@ -77,7 +77,13 @@ public class InteractionInsertStackMixin {
                 BlockSpoilageData data = BlockSpoilageData.get(world);
                 if (!data.isTracked(blockPos)) {
                     long freshDuration = SpoilageConfig.getInstance().getFreshDurationForItem(item);
-                    data.setSpoilageState(blockPos, FoodSpoilageUtil.SpoilageState.FRESH, world.getGameTime() + freshDuration);
+                    // Pass 1409 (L7 boundary): world.getGameTime() + freshDuration can overflow
+                    // when freshDuration is huge (unclamped by the config loader, same finding as pass 1164).
+                    // Clamp to Long.MAX_VALUE (the NEVER sentinel) when the addition would overflow.
+                    long expireTime = (freshDuration > Long.MAX_VALUE - world.getGameTime())
+                            ? Long.MAX_VALUE
+                            : world.getGameTime() + freshDuration;
+                    data.setSpoilageState(blockPos, FoodSpoilageUtil.SpoilageState.FRESH, expireTime);
                 }
 
                 FoodSpoilageUtil.SpoilageState spoilState = data.getSpoilageState(blockPos, world, item);
