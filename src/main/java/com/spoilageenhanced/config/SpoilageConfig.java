@@ -886,8 +886,10 @@ public class SpoilageConfig {
             getAdditionalSet().add(itemId);
         }
 
-        if (!item_durations.containsKey(itemId)) {
-            item_durations.put(itemId, new ItemDuration(freshTicks, staleTicks));
+        // A single put() replaces the old containsKey()+put() pair (two lookups): it returns
+        // the previous value, null when the key was absent. Only on a genuine new key does
+        // the map grow, and only then do we clear caches and save.
+        if (item_durations.put(itemId, new ItemDuration(freshTicks, staleTicks)) == null) {
             spoilableCache.clear();
             clearDurationCache();
             if (autoSave) {

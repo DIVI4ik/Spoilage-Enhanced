@@ -207,10 +207,14 @@ public class BlockSpoilageData extends SavedData {
 
     public void setSpoilageState(BlockPos pos, FoodSpoilageUtil.SpoilageState state, long expirationTime) {
         // Evict if at capacity before adding new entry
-        if (entries.size() >= MAX_TRACKED_BLOCKS && !entries.containsKey(pos.asLong())) {
+        // A single put() replaces the old containsKey()+put() pair (two lookups): it returns
+        // the previous value, null when the key was absent. Only on a genuine new key does
+        // the map grow, and only then do we check the cap — so a re-put of an existing key
+        // costs one lookup and never touches the eviction branch.
+        if (entries.put(pos.asLong(), new BlockSpoilageEntry(state, expirationTime)) == null
+                && entries.size() > MAX_TRACKED_BLOCKS) {
             evictOldestRottenOrExpired();
         }
-        entries.put(pos.asLong(), new BlockSpoilageEntry(state, expirationTime));
         this.savedMultiplier = SpoilageConfig.getInstance().getSpoilageSpeedMultiplier();
         com.spoilageenhanced.util.SpoilageEnhancedLogger.log("BlockSpoilageData: Registered/Updated block at " + pos + " with state " + state + ", expires at: " + expirationTime);
         setDirty();
@@ -416,10 +420,14 @@ public class BlockSpoilageData extends SavedData {
     }
 
     public void setChunkBirthTime(ChunkPos pos, long birthTime) {
-        if (chunkBirthTimes.size() >= MAX_CHUNK_BIRTH_TIMES && !chunkBirthTimes.containsKey(pos.pack())) {
+        // A single put() replaces the old containsKey()+put() pair (two lookups): it returns
+        // the previous value, null when the key was absent. Only on a genuine new key does
+        // the map grow, and only then do we check the cap — so a re-put of an existing key
+        // costs one lookup and never touches the eviction branch.
+        if (chunkBirthTimes.put(pos.pack(), birthTime) == null
+                && chunkBirthTimes.size() > MAX_CHUNK_BIRTH_TIMES) {
             evictOldestChunkBirthTime();
         }
-        chunkBirthTimes.put(pos.pack(), birthTime);
         com.spoilageenhanced.util.SpoilageEnhancedLogger.log("BlockSpoilageData: Recorded birth time " + birthTime + " for chunk " + pos);
         setDirty();
     }
@@ -450,8 +458,9 @@ public class BlockSpoilageData extends SavedData {
 
     public long getChunkBirthTime(ServerLevel world, ChunkPos chunkPos) {
         long posLong = chunkPos.pack();
-        if (chunkBirthTimes.containsKey(posLong)) {
-            return chunkBirthTimes.get(posLong);
+        Long cached = chunkBirthTimes.get(posLong);
+        if (cached != null) {
+            return cached;
         }
 
         long adoptedBirthTime = -1;
@@ -461,11 +470,9 @@ public class BlockSpoilageData extends SavedData {
             for (int dz = -searchRadius; dz <= searchRadius; dz++) {
                 if (dx == 0 && dz == 0) continue;
                 long neighborPosLong = ChunkPos.pack(chunkPos.x() + dx, chunkPos.z() + dz);
-                if (chunkBirthTimes.containsKey(neighborPosLong)) {
-                    long nBirth = chunkBirthTimes.get(neighborPosLong);
-                    if (adoptedBirthTime == -1 || nBirth < adoptedBirthTime) {
-                        adoptedBirthTime = nBirth; // Adopt the oldest (minimum) birth time in the region
-                    }
+                Long nBirth = chunkBirthTimes.get(neighborPosLong);
+                if (nBirth != null && (adoptedBirthTime == -1 || nBirth < adoptedBirthTime)) {
+                    adoptedBirthTime = nBirth; // Adopt the oldest (minimum) birth time in the region
                 }
             }
         }
@@ -483,7 +490,14 @@ public class BlockSpoilageData extends SavedData {
                     "Chunk " + chunkPos + " initialized new birth time " + birthTime + " (inhabitedTime: " + inhabitedTime + ").");
         }
 
-        chunkBirthTimes.put(posLong, birthTime);
+        // A single put() replaces the old containsKey()+put() pair (two lookups): it returns
+        // the previous value, null when the key was absent. Only on a genuine new key does
+        // the map grow, and only then do we check the cap — so a re-put of an existing key
+        // costs one lookup and never touches the eviction branch.
+        if (chunkBirthTimes.put(posLong, birthTime) == null
+                && chunkBirthTimes.size() > MAX_CHUNK_BIRTH_TIMES) {
+            evictOldestChunkBirthTime();
+        }
         setDirty();
         return birthTime;
     }

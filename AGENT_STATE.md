@@ -1,13 +1,9 @@
-Pass: 1422
+Pass: 1423
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
-Current task: L5: Four cache put() methods — replace containsKey+put with single put()
+Current task: L5: BlockSpoilageData, SpoilageConfig, SpoilageEnhancedTranslations — containsKey+put → single put()
 Last lens: L5 render path
-Barren streak: 0
 Recent: FIXED FIXED IMPROVED FIXED FIXED
-Barren streak: 0
-
-Updated: 2026-09-23 01:04
-
+Updated: 2026-09-23 01:52
 **The first three unchecked lines in `TASKS.md` are player-reported defects, found by
 actually playing the mod. Take them first, in order, before any lens-generated task.**
 `PLAYER_REPORTS.md` in the project root carries the traced cause and the reasoning for each

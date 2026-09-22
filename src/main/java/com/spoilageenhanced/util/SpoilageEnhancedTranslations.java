@@ -145,7 +145,11 @@ public class SpoilageEnhancedTranslations {
             sb.append(Component.translatable(TIME_LESS_THAN_MINUTE).getString());
 
         String result = sb.toString().trim();
-        if (FORMAT_TIME_CACHE.size() >= FORMAT_TIME_CACHE_MAX && !FORMAT_TIME_CACHE.containsKey(key)) {
+        // A single put() replaces the old containsKey()+put() pair (two lookups): it returns
+        // the previous value, null when the key was absent. Only on a genuine new key does
+        // the map grow, and only then do we check the cap — so a re-put of an existing key
+        // costs one lookup and never touches the eviction branch.
+        if (FORMAT_TIME_CACHE.put(key, result) == null && FORMAT_TIME_CACHE.size() > FORMAT_TIME_CACHE_MAX) {
             // Pass 604 (L3/L4 — cache correctness): the cap was declared but never enforced.
             // Once full, new entries were silently dropped. Evict one arbitrary entry to
             // make room — the next put for the evicted key will re-add it.
@@ -154,7 +158,6 @@ public class SpoilageEnhancedTranslations {
                 FORMAT_TIME_CACHE.remove(first.next());
             }
         }
-        FORMAT_TIME_CACHE.put(key, result);
         return result;
     }
 

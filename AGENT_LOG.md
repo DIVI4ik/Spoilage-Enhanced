@@ -1063,3 +1063,4 @@ Older passes live in `.claude/archive/AGENT_LOG_ARCHIVE.md`.
 21:55 · pass 1419 · L13 · FIXED · Forge and NeoForge servers verified · Both servers started successfully. Only general.log created (Forge: 769 bytes, NeoForge: 789 bytes). Other 5 categories NOT created — zero empty files shipped. Lazy log creation works across all three loaders.
 23:47 · pass 1420 · L5 render path · FIXED · ClientBlockSpoilageCache.touch() two lookups → one
 01:04 · pass 1422 · L5 render path · FIXED · Four cache put() methods: containsKey+put → single put()
+01:52 · pass 1423 · L5 render path · FIXED · BlockSpoilageData, SpoilageConfig, SpoilageEnhancedTranslations: containsKey+put → single put()
