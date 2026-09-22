@@ -335,7 +335,11 @@ public class FoodSpoilageUtil {
                 newFresh.add(NEVER);
             } else {
                 long newRemaining = Math.max(1L, (long) (remaining * ratio));
-                newFresh.add(currentTime + newRemaining);
+                // Pass 1407 (L7 boundary): currentTime + newRemaining can overflow when
+                // currentTime is near Long.MAX_VALUE. Clamp to NEVER (Long.MAX_VALUE).
+                newFresh.add((newRemaining > Long.MAX_VALUE - currentTime)
+                        ? Long.MAX_VALUE
+                        : currentTime + newRemaining);
             }
         }
 
@@ -362,7 +366,11 @@ public class FoodSpoilageUtil {
                 newStale.add(NEVER);
             } else {
                 long newRemaining = Math.max(1L, (long) (remaining * ratio));
-                newStale.add(currentTime + newRemaining);
+                // Pass 1407 (L7 boundary): currentTime + newRemaining can overflow when
+                // currentTime is near Long.MAX_VALUE. Clamp to NEVER (Long.MAX_VALUE).
+                newStale.add((newRemaining > Long.MAX_VALUE - currentTime)
+                        ? Long.MAX_VALUE
+                        : currentTime + newRemaining);
             }
         }
 

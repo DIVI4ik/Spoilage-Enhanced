@@ -403,7 +403,11 @@ public class BlockSpoilageData extends SavedData {
                     entry.expirationTime = NEVER;
                 } else {
                     long newRemaining = Math.max(1L, (long) (remaining * ratio));
-                    entry.expirationTime = currentTime + newRemaining;
+                    // Pass 1407 (L7 boundary): currentTime + newRemaining can overflow when
+                    // currentTime is near Long.MAX_VALUE. Clamp to NEVER (Long.MAX_VALUE).
+                    entry.expirationTime = (newRemaining > Long.MAX_VALUE - currentTime)
+                            ? Long.MAX_VALUE
+                            : currentTime + newRemaining;
                 }
             }
         }
