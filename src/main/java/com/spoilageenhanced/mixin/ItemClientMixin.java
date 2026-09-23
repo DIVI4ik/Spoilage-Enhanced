@@ -85,7 +85,12 @@ public abstract class ItemClientMixin {
 
         if (virtualData) {
             long firstSeen = ClientVirtualSpoilageAnchor.firstSeen(stack, currentTime);
-            virtualMinTime = firstSeen + freshDuration;
+            // Pass 1437 (L7 — boundary): firstSeen + freshDuration can overflow to negative
+            // when freshDuration is huge (unclamped by the config loader, same finding as pass 1164).
+            // Clamp to Long.MAX_VALUE (the NEVER sentinel) when the addition would overflow.
+            virtualMinTime = (freshDuration > Long.MAX_VALUE - firstSeen)
+                    ? Long.MAX_VALUE
+                    : firstSeen + freshDuration;
             f = stack.getCount();
             s = 0;
             r = 0;

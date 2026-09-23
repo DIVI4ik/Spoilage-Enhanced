@@ -195,6 +195,21 @@ class ClientVirtualSpoilageAnchorTest {
     }
 
     @Test
+    void firstSeenPlusFreshDurationOverflowGuard() throws Exception {
+        // Pass 1437 (L7 — boundary): firstSeen + freshDuration can overflow to negative
+        // when freshDuration is huge (unclamped by the config loader, same finding as pass 1164).
+        // The ItemClientMixin now clamps to Long.MAX_VALUE when the addition would overflow.
+        String source = java.nio.file.Files.readString(
+                java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/mixin/ItemClientMixin.java"))
+                .replace("\r\n", "\n");
+
+        assertTrue(source.contains("freshDuration > Long.MAX_VALUE - firstSeen"),
+                "must guard firstSeen + freshDuration against overflow");
+        assertTrue(source.contains("Long.MAX_VALUE"),
+                "must clamp to Long.MAX_VALUE on overflow");
+    }
+
+    @Test
     void anchorsMapIsAccessOrderedLinkedHashMap() throws Exception {
         String source = java.nio.file.Files.readString(
                 java.nio.file.Paths.get("src/main/java/com/spoilageenhanced/client/ClientVirtualSpoilageAnchor.java"))
