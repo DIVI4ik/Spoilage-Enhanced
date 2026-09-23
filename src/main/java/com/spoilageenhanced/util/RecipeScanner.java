@@ -179,8 +179,10 @@ public class RecipeScanner {
 
                             if (spoilableMatchItem != null) {
                                 spoilableCount++;
-                                sumFresh += SpoilageConfig.getInstance().getFreshDurationForItem(spoilableMatchItem);
-                                sumStale += SpoilageConfig.getInstance().getStaleDurationForItem(spoilableMatchItem);
+                                // Pass 1430 (L5 — render path): single cache lookup returns both durations.
+                                long[] baseDurations = SpoilageConfig.getInstance().getBaseDurationsForItem(spoilableMatchItem);
+                                sumFresh += SpoilageConfig.getInstance().applySpeedMultiplier(baseDurations[0]);
+                                sumStale += SpoilageConfig.getInstance().applySpeedMultiplier(baseDurations[1]);
                             }
                         }
 
