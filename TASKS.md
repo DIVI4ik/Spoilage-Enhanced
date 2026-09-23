@@ -85,8 +85,8 @@ counts as answered — do not re-queue it.
 
 ## Open (L5 render path refill - top yield 86.7%)
 
-- [ ] src/main/java/com/spoilageenhanced/config/SpoilageConfig.java:1026 — migrateConfig uses item_durations.keySet().removeIf(id -> !baseline.item_durations.containsKey(id)) — replace with single get() check (L5 render path)
-- [ ] src/main/java/com/spoilageenhanced/config/SpoilageConfig.java:1030 — migrateConfig uses tracked_blocks.keySet().removeIf(id -> !baseline.tracked_blocks.containsKey(id)) — replace with single get() check (L5 render path)
-- [ ] src/main/java/com/spoilageenhanced/util/KnownHandPickedBlocks.java:82 — registerAll uses BuiltInRegistries.BLOCK.containsKey(Identifier.parse(blockId)) — replace with get() != null (L5 render path)
-- [ ] src/main/java/com/spoilageenhanced/util/KnownHandPickedBlocks.java:83 — registerAll uses BuiltInRegistries.ITEM.containsKey(Identifier.parse(itemId)) — replace with get() != null (L5 render path)
-- [ ] src/main/java/com/spoilageenhanced/block/BlockSpoilageData.java:457 — getChunkBirthTime uses getOrDefault(pos.pack(), -1L) — replace with get() and null check (L5 render path)
+- [x] src/main/java/com/spoilageenhanced/config/SpoilageConfig.java:1026 — migrateConfig uses item_durations.keySet().removeIf(id -> !baseline.item_durations.containsKey(id)) — replace with single get() check (L5 render path)
+- [x] src/main/java/com/spoilageenhanced/config/SpoilageConfig.java:1030 — migrateConfig uses tracked_blocks.keySet().removeIf(id -> !baseline.tracked_blocks.containsKey(id)) — replace with single get() check (L5 render path)
+- [x] src/main/java/com/spoilageenhanced/util/KnownHandPickedBlocks.java:82 — registerAll uses BuiltInRegistries.BLOCK.containsKey(Identifier.parse(blockId)) — replace with get() != null (L5 render path)
+- [x] src/main/java/com/spoilageenhanced/util/KnownHandPickedBlocks.java:83 — registerAll uses BuiltInRegistries.ITEM.containsKey(Identifier.parse(itemId)) — replace with get() != null (L5 render path)
+- [x] src/main/java/com/spoilageenhanced/block/BlockSpoilageData.java:457 — getChunkBirthTime uses getOrDefault(pos.pack(), -1L) — replace with get() and null check (L5 render path)
