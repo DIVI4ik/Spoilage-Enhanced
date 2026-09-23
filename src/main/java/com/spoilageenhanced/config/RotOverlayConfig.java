@@ -79,7 +79,11 @@ public class RotOverlayConfig {
         Identifier itemId = BuiltInRegistries.ITEM.getKey(item);
         String itemIdStr = itemId.toString();
 
-        String patternName = item_overrides.getOrDefault(itemIdStr, default_pattern);
+        // Pass 1432 (L5 — render path): single get() replaces getOrDefault() — the
+        // default is only needed on a miss, and getOrDefault boxes/allocates the default
+        // path even on hit in some Map impls. This is the per-frame overlay lookup.
+        String overridePattern = item_overrides.get(itemIdStr);
+        String patternName = overridePattern != null ? overridePattern : default_pattern;
         Identifier texture = PATTERN_TEXTURES.get(patternName);
 
         if (texture == null) {
