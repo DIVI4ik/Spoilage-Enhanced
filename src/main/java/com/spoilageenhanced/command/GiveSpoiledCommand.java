@@ -94,8 +94,10 @@ public class GiveSpoiledCommand {
             }
 
             long currentTime = source.getLevel().getGameTime();
-            long defaultFresh = SpoilageConfig.getInstance().getFreshDurationForItem(item);
-            long defaultStale = SpoilageConfig.getInstance().getStaleDurationForItem(item);
+            // Pass 1429 (L5 — render path): single cache lookup returns both durations.
+            long[] baseDurations = SpoilageConfig.getInstance().getBaseDurationsForItem(item);
+            long defaultFresh = SpoilageConfig.getInstance().applySpeedMultiplier(baseDurations[0]);
+            long defaultStale = SpoilageConfig.getInstance().applySpeedMultiplier(baseDurations[1]);
 
             double currentMultiplier = SpoilageConfig.getInstance().getSpoilageSpeedMultiplier();
             long ticksRemaining;

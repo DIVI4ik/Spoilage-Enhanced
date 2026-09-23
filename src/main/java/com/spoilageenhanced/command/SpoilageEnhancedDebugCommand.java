@@ -685,8 +685,10 @@ public class SpoilageEnhancedDebugCommand {
             case "rotten" -> new com.spoilageenhanced.component.SpoilageData(
                     java.util.List.of(), java.util.List.of(), 1, 1.0);
             case "mixed" -> {
-                long freshDur = config.getFreshDurationForItem(item);
-                long staleDur = config.getStaleDurationForItem(item);
+                // Pass 1429 (L5 — render path): single cache lookup returns both durations.
+                long[] baseDurations = config.getBaseDurationsForItem(item);
+                long freshDur = config.applySpeedMultiplier(baseDurations[0]);
+                long staleDur = config.applySpeedMultiplier(baseDurations[1]);
                 java.util.List<Long> fresh = new java.util.ArrayList<>();
                 java.util.List<Long> stale = new java.util.ArrayList<>();
                 fresh.add(now + freshDur / 2);
@@ -817,8 +819,10 @@ public class SpoilageEnhancedDebugCommand {
                 // BlockItem.place path. Build a 1-block mixed stack: 1 fresh, 1 stale,
                 // 1 rotten. GourdBlockMixin's getWorstState(ROTTEN) will pull the rotten
                 // item and the placed block is tracked ROTTEN.
-                long freshDur = config.getFreshDurationForItem(item);
-                long staleDur = config.getStaleDurationForItem(item);
+                // Pass 1429 (L5 — render path): single cache lookup returns both durations.
+                long[] baseDurations = config.getBaseDurationsForItem(item);
+                long freshDur = config.applySpeedMultiplier(baseDurations[0]);
+                long staleDur = config.applySpeedMultiplier(baseDurations[1]);
                 yield new com.spoilageenhanced.component.SpoilageData(
                         java.util.List.of(now + freshDur / 2),
                         java.util.List.of(now + staleDur / 2),
@@ -1028,8 +1032,10 @@ public class SpoilageEnhancedDebugCommand {
                 // mixed stack here is 1 fresh + 1 stale + 1 rotten, so a count of N yields N
                 // of each class — the same shape BlockDropSpoilageHandler.mergeItems has to
                 // reconcile when that stack is later broken and re-dropped.
-                long freshDur = config.getFreshDurationForItem(item);
-                long staleDur = config.getStaleDurationForItem(item);
+                // Pass 1429 (L5 — render path): single cache lookup returns both durations.
+                long[] baseDurations = config.getBaseDurationsForItem(item);
+                long freshDur = config.applySpeedMultiplier(baseDurations[0]);
+                long staleDur = config.applySpeedMultiplier(baseDurations[1]);
                 yield new com.spoilageenhanced.component.SpoilageData(
                         java.util.Collections.nCopies(count, now + freshDur / 2),
                         java.util.Collections.nCopies(count, now + staleDur / 2),
