@@ -1023,11 +1023,11 @@ public class SpoilageConfig {
         removedItems -= additional_tracked_items.size();
 
         int removedDurations = item_durations.size();
-        item_durations.keySet().removeIf(id -> !baseline.item_durations.containsKey(id));
+        item_durations.keySet().removeIf(id -> baseline.item_durations.get(id) == null);
         removedDurations -= item_durations.size();
 
         int removedBlocks = tracked_blocks.size();
-        tracked_blocks.keySet().removeIf(id -> !baseline.tracked_blocks.containsKey(id));
+        tracked_blocks.keySet().removeIf(id -> baseline.tracked_blocks.get(id) == null);
         removedBlocks -= tracked_blocks.size();
 
         derived_items.clear();

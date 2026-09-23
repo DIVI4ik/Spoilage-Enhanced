@@ -454,7 +454,9 @@ public class BlockSpoilageData extends SavedData {
     }
 
     public long getChunkBirthTime(ChunkPos pos) {
-        return chunkBirthTimes.getOrDefault(pos.pack(), -1L);
+        // Pass 1427 (L5 — render path): single get() replaces getOrDefault().
+        Long cached = chunkBirthTimes.get(pos.pack());
+        return cached != null ? cached : -1L;
     }
 
     public long getChunkBirthTime(ServerLevel world, ChunkPos chunkPos) {

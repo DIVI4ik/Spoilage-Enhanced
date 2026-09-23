@@ -79,6 +79,8 @@ public final class KnownHandPickedBlocks {
             try {
                 // Both halves have to exist. Without this check the config of every player who
                 // does not have the mod would collect entries for blocks that are not there.
+                // BuiltInRegistries.BLOCK/ITEM are DefaultedRegistry - get() returns default (air)
+                // instead of null, so we must use containsKey() or getOptional().isPresent().
                 if (!BuiltInRegistries.BLOCK.containsKey(Identifier.parse(blockId))) continue;
                 if (!BuiltInRegistries.ITEM.containsKey(Identifier.parse(itemId))) continue;
                 if (config.isBlockTracked(blockId)) continue;
