@@ -1072,3 +1072,4 @@ Older passes live in `.claude/archive/AGENT_LOG_ARCHIVE.md`.
 09:51 · pass 1429 · L5 render path · FIXED · GiveSpoiledCommand + SpoilageEnhancedDebugCommand (3 mixed sites) use getBaseDurationsForItem + applySpeedMultiplier. Eliminates 2nd CHM.get at 4 paired call sites. 1080/0/0. Committed 7126bca
 10:07 · pass 1430 · L5 render path · FIXED · RecipeScanner ingredient scan uses getBaseDurationsForItem + applySpeedMultiplier. Eliminates 2nd CHM.get at 1 paired call site. 1080/0/0. Committed 4e02b41
 10:28 · pass 1431 · release · IMPROVED · v1.1.32 published to DIVI4ik/Spoilage-Enhanced-dev (tag v1.1.32-26.2, jar 465061 bytes). Contains passes 1426-1430: L5 single-lookup conversions (12 paired call sites), overflow clamps, claim-drift fixes. Suite 1080/0/0.
+11:22 · pass 1432 · L5 render path · FIXED · RotOverlayConfig.getPatternForItem getOrDefault→get()+null check (per-frame overlay lookup). 1080/0/0. Committed 810bf16
