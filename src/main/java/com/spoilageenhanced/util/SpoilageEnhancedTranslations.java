@@ -145,11 +145,11 @@ public class SpoilageEnhancedTranslations {
             sb.append(Component.translatable(TIME_LESS_THAN_MINUTE).getString());
 
         String result = sb.toString().trim();
-        // A single put() replaces the old containsKey()+put() pair (two lookups): it returns
-        // the previous value, null when the key was absent. Only on a genuine new key does
-        // the map grow, and only then do we check the cap — so a re-put of an existing key
-        // costs one lookup and never touches the eviction branch.
-        if (FORMAT_TIME_CACHE.put(key, result) == null && FORMAT_TIME_CACHE.size() > FORMAT_TIME_CACHE_MAX) {
+        // Pass 1436 (L5 — render path): the old logic put first then evicted, which could
+        // evict the entry we just added (ConcurrentHashMap iteration order is arbitrary).
+        // Evict BEFORE putting when the key is new and the cache is at capacity, so the
+        // new entry is never at risk. This matches the fix in TooltipTextCache (pass 1434).
+        if (!FORMAT_TIME_CACHE.containsKey(key) && FORMAT_TIME_CACHE.size() >= FORMAT_TIME_CACHE_MAX) {
             // Pass 604 (L3/L4 — cache correctness): the cap was declared but never enforced.
             // Once full, new entries were silently dropped. Evict one arbitrary entry to
             // make room — the next put for the evicted key will re-add it.
@@ -158,6 +158,7 @@ public class SpoilageEnhancedTranslations {
                 FORMAT_TIME_CACHE.remove(first.next());
             }
         }
+        FORMAT_TIME_CACHE.put(key, result);
         return result;
     }
 
