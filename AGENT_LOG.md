@@ -1077,3 +1077,4 @@ Older passes live in `.claude/archive/AGENT_LOG_ARCHIVE.md`.
 14:47 · pass 1434 · L5 render path · FIXED · TooltipTextCache put() evicted after inserting, could evict the just-added entry (CHM arbitrary order). Evict-before-put restored. 1080/0/0. Committed 6047079
 15:14 · pass 1435 · release · FIXED · v1.1.33-26.2 published to dev repo with 3 src/main commits (HUD/tooltip L5 perf + L1 logger fix). 1080/0/0. Committed 6666d35
 15:59 · pass 1436 · L5 render path · FIXED · SpoilageEnhancedTranslations formatTime cache evicted after inserting, could evict the just-added entry (CHM arbitrary order). Evict-before-put restored. 1080/0/0. Committed 2efff8b
+16:36 · pass 1437 · L7 boundary · FIXED · ItemClientMixin virtualMinTime = firstSeen + freshDuration could overflow negative with huge hand-edited fresh duration, producing absurd tooltip countdown. Clamped to Long.MAX_VALUE. 1081/0/0. Committed 18532ff
