@@ -627,15 +627,31 @@ public class SpoilageConfig {
         return new long[] { default_fresh_duration_ticks, default_fresh_duration_ticks };
     }
 
+    public long[] getBaseDurationsForItem(Item item) {
+        // Pass 1428 (L5 — render path): single cache lookup returns both fresh+stale.
+        // Paired callers (FoodSpoilageUtil, ItemClientMixin, BlockSpoilageData) avoid
+        // the second BASE_DURATION_CACHE.get() by using this.
+        if (item == null || item == Items.AIR) {
+            return new long[] { default_fresh_duration_ticks, default_stale_duration_ticks };
+        }
+        long[] cached = BASE_DURATION_CACHE.get(item);
+        if (cached != null) {
+            return cached;
+        }
+        long[] computed = computeBaseDurations(item);
+        BASE_DURATION_CACHE.put(item, computed);
+        return computed;
+    }
+
     public long getFreshDurationForItem(Item item) {
-        return applySpeedMultiplier(getBaseFreshDurationForItem(item));
+        return applySpeedMultiplier(getBaseDurationsForItem(item)[0]);
     }
 
     public long getStaleDurationForItem(Item item) {
-        return applySpeedMultiplier(getBaseStaleDurationForItem(item));
+        return applySpeedMultiplier(getBaseDurationsForItem(item)[1]);
     }
 
-    private long applySpeedMultiplier(long baseDuration) {
+    public long applySpeedMultiplier(long baseDuration) {
         if (spoilage_speed_multiplier <= 0.0) return baseDuration;
         // Pass 1168 (L7 — boundary): at minimum multiplier 0.01, dividing a large baseDuration
         // by 0.01 multiplies it by 100. If baseDuration is near Long.MAX_VALUE / 100 or larger,

@@ -696,8 +696,10 @@ public class FoodSpoilageUtil {
         if (stack == null || stack.isEmpty() || !SpoilageConfig.getInstance().isSpoilable(stack.getItem()))
             return;
 
-        long freshDuration = SpoilageConfig.getInstance().getFreshDurationForItem(stack.getItem());
-        long staleDuration = SpoilageConfig.getInstance().getStaleDurationForItem(stack.getItem());
+        // Pass 1428 (L5 — render path): single cache lookup returns both durations.
+        long[] baseDurations = SpoilageConfig.getInstance().getBaseDurationsForItem(stack.getItem());
+        long freshDuration = SpoilageConfig.getInstance().applySpeedMultiplier(baseDurations[0]);
+        long staleDuration = SpoilageConfig.getInstance().applySpeedMultiplier(baseDurations[1]);
         long currentTime = world.getGameTime();
 
         List<Long> freshList = new ArrayList<>();

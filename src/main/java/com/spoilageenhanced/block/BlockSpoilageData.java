@@ -613,8 +613,10 @@ public class BlockSpoilageData extends SavedData {
                 if (itemToUse == null) itemToUse = resolveItemToUse(pos, world, dropItem);
             }
             long age = currentTime - entry.legacyBirthTime;
-            long freshDuration = SpoilageConfig.getInstance().getFreshDurationForItem(itemToUse);
-            long staleDuration = SpoilageConfig.getInstance().getStaleDurationForItem(itemToUse);
+            // Pass 1428 (L5 — render path): single cache lookup returns both durations.
+            long[] baseDurations = SpoilageConfig.getInstance().getBaseDurationsForItem(itemToUse);
+            long freshDuration = SpoilageConfig.getInstance().applySpeedMultiplier(baseDurations[0]);
+            long staleDuration = SpoilageConfig.getInstance().applySpeedMultiplier(baseDurations[1]);
             // Pass 1166 (L7 — boundary): classification extracted to
             // FoodSpoilageUtil.classifyLegacyAge so the overflow guard
             // (freshDuration + staleDuration can wrap negative when staleDuration is huge —
@@ -732,8 +734,10 @@ public class BlockSpoilageData extends SavedData {
                 if (itemToUse == null) itemToUse = resolveItemToUse(pos, world, dropItem);
             }
             long age = world.getGameTime() - entry.legacyBirthTime;
-            long freshDuration = SpoilageConfig.getInstance().getFreshDurationForItem(itemToUse);
-            long staleDuration = SpoilageConfig.getInstance().getStaleDurationForItem(itemToUse);
+            // Pass 1428 (L5 — render path): single cache lookup returns both durations.
+            long[] baseDurations = SpoilageConfig.getInstance().getBaseDurationsForItem(itemToUse);
+            long freshDuration = SpoilageConfig.getInstance().applySpeedMultiplier(baseDurations[0]);
+            long staleDuration = SpoilageConfig.getInstance().applySpeedMultiplier(baseDurations[1]);
             if (age < freshDuration) return freshDuration - age;
             // Pass 1166 (L7 — boundary): same overflow guard as getSpoilageState above —
             // freshDuration + staleDuration can wrap negative when staleDuration is huge

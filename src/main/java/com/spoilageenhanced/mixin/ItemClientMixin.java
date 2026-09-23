@@ -58,8 +58,10 @@ public abstract class ItemClientMixin {
 
         SpoilageData data = stack.get(ModDataComponentTypes.SPOILAGE);
         long currentTime = world != null ? world.getGameTime() : 0;
-        long freshDuration = SpoilageConfig.getInstance().getFreshDurationForItem(stack.getItem());
-        long staleDuration = SpoilageConfig.getInstance().getStaleDurationForItem(stack.getItem());
+        // Pass 1428 (L5 — render path): single cache lookup returns both durations.
+        long[] baseDurations = SpoilageConfig.getInstance().getBaseDurationsForItem(stack.getItem());
+        long freshDuration = SpoilageConfig.getInstance().applySpeedMultiplier(baseDurations[0]);
+        long staleDuration = SpoilageConfig.getInstance().applySpeedMultiplier(baseDurations[1]);
 
         // BUG-15 (ITEM-TIMER-01): a stack without the server component is brand new — the server
         // attaches the real expiration on its first tick. Synthesizing expirationTime = now +
