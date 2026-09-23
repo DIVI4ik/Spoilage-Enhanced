@@ -329,7 +329,8 @@ public class BlockSpoilageData extends SavedData {
     }
 
     public boolean isTracked(BlockPos pos) {
-        return entries.containsKey(pos.asLong());
+        // Pass 1410 (L5 — render path): single get() replaces containsKey().
+        return entries.get(pos.asLong()) != null;
     }
 
     public BlockSpoilageEntry getEntry(BlockPos pos) {
@@ -503,7 +504,8 @@ public class BlockSpoilageData extends SavedData {
     }
 
     public boolean hasChunkBirthTime(ChunkPos pos) {
-        return chunkBirthTimes.containsKey(pos.pack());
+        // Pass 1410 (L5 — render path): single get() replaces containsKey().
+        return chunkBirthTimes.get(pos.pack()) != null;
     }
 
     public FoodSpoilageUtil.SpoilageState getSpoilageState(BlockPos pos, Level world, Item dropItem) {

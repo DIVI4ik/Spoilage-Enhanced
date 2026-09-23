@@ -66,7 +66,7 @@ class SpoilageConfigIsSpoilableSilentFailureTest {
         // Verify config-only checks run when unbound
         assertTrue(source.contains("getAdditionalSet().contains(idStr)"),
                 "computeIsSpoilable must check additional_tracked_items when unbound");
-        assertTrue(source.contains("item_durations.containsKey(idStr)"),
+        assertTrue(source.contains("item_durations.get(idStr) != null"),
                 "computeIsSpoilable must check item_durations when unbound");
         assertTrue(source.contains("unboundOut[0] = false;"),
                 "computeIsSpoilable must clear unbound flag when config check matches");

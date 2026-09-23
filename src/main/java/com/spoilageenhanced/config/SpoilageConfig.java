@@ -525,7 +525,8 @@ public class SpoilageConfig {
             unboundOut[0] = false;
             return true;
         }
-        if (item_durations.containsKey(idStr)) {
+        // Pass 1410 (L5 — render path): single get() replaces containsKey()+get() pair.
+        if (item_durations.get(idStr) != null) {
             unboundOut[0] = false;
             return true;
         }
@@ -963,6 +964,9 @@ public class SpoilageConfig {
      *     turned instantly stale. Per-item overrides were already guarded
      *     ({@code computeBaseDurations} requires {@code fresh > 0}); the defaults were
      *     not. Clamped to the same 24000 the fields initialise with.</li>
+     * <li>Per-item durations >= Long.MAX_VALUE / 100 would overflow in
+     *     {@code applySpeedMultiplier} at the minimum multiplier (0.01 = x100).
+     *     Clamped to Long.MAX_VALUE / 100 so the scaled result fits in a long.</li>
      * </ul>
      */
     void clampHandEditedValues() {
@@ -979,12 +983,18 @@ public class SpoilageConfig {
         }
         // Pass 1168 (L7 — boundary): clamp per-item durations so extreme values in JSON
         // (e.g. negative numbers from typos, or values >= Long.MAX_VALUE / 100) don't wrap
-        // when multiplied or added.
+        // when multiplied or added. The minimum multiplier is 0.01 (x100), so any base
+        // duration >= Long.MAX_VALUE / 100 would overflow in applySpeedMultiplier.
+        // Pass 1410 (L12 — claim drift): the comment claimed this clamp existed but it
+        // only handled <= 0. Now also clamps values that would overflow at minimum multiplier.
+        final long MAX_SAFE_BASE = Long.MAX_VALUE / 100;
         if (item_durations != null) {
             for (ItemDuration dur : item_durations.values()) {
                 if (dur != null) {
                     if (dur.fresh <= 0) dur.fresh = default_fresh_duration_ticks;
+                    else if (dur.fresh > MAX_SAFE_BASE) dur.fresh = MAX_SAFE_BASE;
                     if (dur.stale <= 0) dur.stale = default_stale_duration_ticks;
+                    else if (dur.stale > MAX_SAFE_BASE) dur.stale = MAX_SAFE_BASE;
                 }
             }
         }

@@ -77,3 +77,8 @@ counts as answered — do not re-queue it.
   that is the next task and it outranks everything in this queue.
 # [x] src/main/java/com/spoilageenhanced/client/ClientBlockSpoilageCache.java:388 — touch() does two map lookups (containsKey + get) — replace with single get() that returns non-null
 # [x] src/main/java/com/spoilageenhanced/client/TooltipTextCache.java:115 — put() does two map lookups (containsKey + put) — replace with single put() that returns previous value
+- [ ] src/main/java/com/spoilageenhanced/config/SpoilageConfig.java:528 — isSpoilable does item_durations.containsKey(idStr) then get() — replace with single get() and null check (L5 render path)
+- [ ] src/main/java/com/spoilageenhanced/block/BlockSpoilageData.java:332 — isTracked uses containsKey; replace with get() != null (L5 render path)
+- [ ] src/main/java/com/spoilageenhanced/block/BlockSpoilageData.java:506 — hasChunkBirthTime uses containsKey; replace with get() != null (L5 render path)
+- [ ] src/main/java/com/spoilageenhanced/config/SpoilageConfig.java:968 — clampHandEditedValues comment says "clamp per-item durations so extreme values... don't wrap when multiplied or added" but only clamps <= 0, not huge values near Long.MAX_VALUE — fix comment or add clamp (L12 claim drift)
+- [ ] src/main/java/com/spoilageenhanced/util/FoodSpoilageUtil.java:1243 — classifyLegacyAge returns age < freshDuration + staleDuration ? STALE : ROTTEN but the overflow guard at line 1240 returns STALE forever — verify this is intentional and document why ROTTEN is never returned on overflow (L12 claim drift)

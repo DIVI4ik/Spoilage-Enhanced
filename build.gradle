@@ -41,7 +41,25 @@ processResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
-    it.options.release = 25
+    // 21, not 25, and the difference is the mod launching at all on Forge.
+    //
+    // Forge 65.1.3 ships Mixin 0.8.7, whose CompatibilityLevel enum stops at JAVA_21 — there
+    // is no JAVA_25 in it. Compiled at release 25 every class in this jar is version 69, and
+    // on 2026-09-22 a real Forge client died before the title screen:
+    //
+    //   MixinInitialisationError: Mixin config spoilage_enhanced.mixins.json specifies
+    //   compatibility level JAVA_25 which is not recognised
+    //
+    // Fabric never showed it because Fabric Loader carries its own, newer Mixin fork, and the
+    // dev harness only ever launches Fabric. Two of the three supported loaders were shipped
+    // untested for as long as this setting stood at 25.
+    //
+    // Targeting 21 costs nothing: the game runs on a Java 25 JVM either way, and a Java 25 JVM
+    // executes version 65 bytecode happily. Raise this only when Forge's bundled Mixin knows
+    // the level you raise it to — check
+    // org/spongepowered/asm/mixin/MixinEnvironment$CompatibilityLevel in ITS jar, not in
+    // Fabric's, and keep spoilage_enhanced.mixins.json in step.
+    it.options.release = 21
     it.options.encoding = "UTF-8"
 }
 

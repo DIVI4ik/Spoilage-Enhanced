@@ -1224,14 +1224,18 @@ public class FoodSpoilageUtil {
      * <p>The guard: {@code freshDuration + staleDuration} can overflow to negative when
      * staleDuration is huge (item_durations entries are unclamped by the config loader — same
      * finding as pass 1164), which would make {@code age < (negative)} false and answer ROTTEN
-     * for a block still inside its stale window. When the sum would overflow the block stays
-     * STALE forever.</p>
+     * for a block still inside its stale window. When the sum would overflow the stale window
+     * effectively never ends, so the block stays STALE forever (never transitions to ROTTEN).
+     * This is intentional: an overflow means the configured durations are so large that the
+     * stale period exceeds the representable time range, so the item should remain stale
+     * indefinitely rather than incorrectly becoming rotten.</p>
      *
      * @param age            ticks since the block's birth (currentTime - legacyBirthTime)
      * @param freshDuration  the item's fresh duration (already speed-adjusted)
      * @param staleDuration  the item's stale duration (already speed-adjusted)
      * @return FRESH while age &lt; freshDuration; STALE inside the stale window — including
      *         forever when freshDuration + staleDuration would overflow; ROTTEN after
+     *         the stale window ends (only when no overflow occurs)
      */
     public static SpoilageState classifyLegacyAge(long age, long freshDuration, long staleDuration) {
         if (age < freshDuration) {

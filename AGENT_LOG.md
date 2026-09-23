@@ -1064,3 +1064,4 @@ Older passes live in `.claude/archive/AGENT_LOG_ARCHIVE.md`.
 23:47 · pass 1420 · L5 render path · FIXED · ClientBlockSpoilageCache.touch() two lookups → one
 01:04 · pass 1422 · L5 render path · FIXED · Four cache put() methods: containsKey+put → single put()
 01:52 · pass 1423 · L5 render path · FIXED · BlockSpoilageData, SpoilageConfig, SpoilageEnhancedTranslations: containsKey+put → single put()
+02:48 · pass 1424 · release · FIXED · v1.1.31-26.2 published to dev repo (9 commits since v1.1.30)

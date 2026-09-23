@@ -312,20 +312,22 @@ public class ModFeatureSimulationTest {
     @Test
     public void testLoggerFunctionality() throws java.io.IOException {
         com.spoilageenhanced.util.SpoilageEnhancedLogger.init();
+
         com.spoilageenhanced.util.SpoilageEnhancedLogger.log("Testing general logger from unit test");
         com.spoilageenhanced.util.SpoilageEnhancedLogger.log(com.spoilageenhanced.util.SpoilageEnhancedLogger.LogCategory.TRACE, "Testing trace logger from unit test");
         com.spoilageenhanced.util.SpoilageEnhancedLogger.log(com.spoilageenhanced.util.SpoilageEnhancedLogger.LogCategory.EVENTS, "Testing events logger from unit test");
+
         com.spoilageenhanced.util.SpoilageEnhancedLogger.closeWriters();
 
-        java.io.File logDir = new java.io.File("spoilage_enhanced_logs");
-        assertTrue(logDir.exists(), "spoilage_enhanced_logs directory must exist");
+        java.io.File testLogDir = new java.io.File("spoilage_enhanced_logs");
+        assertTrue(testLogDir.exists(), "spoilage_enhanced_logs directory must exist");
 
-        java.io.File genLog = new java.io.File(logDir, "general.log");
+        java.io.File genLog = new java.io.File(testLogDir, "general.log");
         assertTrue(genLog.exists(), "general.log must exist");
         String genContent = java.nio.file.Files.readString(genLog.toPath());
         assertTrue(genContent.contains("Testing general logger from unit test"), "general.log must contain logged message");
 
-        java.io.File traceLog = new java.io.File(logDir, "trace.log");
+        java.io.File traceLog = new java.io.File(testLogDir, "trace.log");
         assertTrue(traceLog.exists(), "trace.log must exist");
         String traceContent = java.nio.file.Files.readString(traceLog.toPath());
         assertTrue(traceContent.contains("Testing trace logger from unit test"), "trace.log must contain logged message");

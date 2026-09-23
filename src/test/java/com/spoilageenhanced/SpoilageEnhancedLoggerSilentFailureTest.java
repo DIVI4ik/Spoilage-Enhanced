@@ -89,10 +89,14 @@ class SpoilageEnhancedLoggerSilentFailureTest {
         // Verify writer thread handles InterruptedException
         assertTrue(source.contains("} catch (InterruptedException e) {"),
                 "writer thread must catch InterruptedException");
-        assertTrue(source.contains("Thread.currentThread().interrupt()"),
-                "writer thread must re-interrupt");
+        // New behavior: does NOT re-interrupt (would cause immediate re-interrupt on next poll)
+        // Instead, breaks only when writerRunning is false AND queue is empty
+        assertTrue(source.contains("if (!writerRunning.get() && logQueue.isEmpty())"),
+                "writer thread must check writerRunning and queue empty before breaking");
         assertTrue(source.contains("break;"),
-                "writer thread must break loop");
+                "writer thread must break loop when shutting down and queue empty");
+        assertTrue(source.contains("Do NOT restore interrupt status"),
+                "writer thread must NOT restore interrupt status");
     }
 
     @Test

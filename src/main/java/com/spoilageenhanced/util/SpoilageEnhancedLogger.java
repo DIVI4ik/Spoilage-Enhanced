@@ -190,8 +190,14 @@ public class SpoilageEnhancedLogger {
                         }
                     }
                 } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    break;
+                    // Interrupted during poll - this is expected during shutdown.
+                    // If writerRunning is false AND queue is empty, we're done.
+                    // If queue is not empty, continue draining (but DON'T restore interrupt status,
+                    // or the next poll() will immediately throw again).
+                    if (!writerRunning.get() && logQueue.isEmpty()) {
+                        break;
+                    }
+                    // Do NOT restore interrupt status - it would cause immediate re-interrupt on next poll()
                 } catch (Exception e) {
                     // Not dead code for every path (a ConcurrentModificationException on the
                     // writers map would land here), but the PrintWriter failure mode is

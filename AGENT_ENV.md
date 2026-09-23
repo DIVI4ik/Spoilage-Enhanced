@@ -629,6 +629,47 @@ pack loaders: 14/14 fabric, 1 neoforge, 0 forge
 `-Deploy` targets only `run\fabric_server\mods` and `run\fabric\mods` for this reason. L14 is a
 Fabric-side lens; loader-specific drop paths stay a vanilla question (passes 825, 826).
 
+### Verifying the mod loads on Forge and NeoForge (2026-09-22)
+
+**Everything else in this file drives Fabric, and for a long time that was the only loader
+anyone started.** On 2026-09-22 the mod was published announcing Fabric, Forge and NeoForge.
+A real Forge 65.1.3 client died before the title screen:
+
+```
+MixinInitialisationError: Mixin config spoilage_enhanced.mixins.json specifies
+compatibility level JAVA_25 which is not recognised
+```
+
+Forge ships Mixin 0.8.7, whose `CompatibilityLevel` enum ends at **JAVA_21**; Fabric Loader
+carries its own newer fork, which is why the dev client never noticed. The build also emitted
+bytecode version 69 (`options.release = 25`), which Mixin refuses above its level regardless
+of what the JSON declares. Both are now pinned at 21.
+
+Two checks exist. Run the cheap one always, the real one whenever you touch the mixin config,
+`options.release`, `mods.toml`, `neoforge.mods.toml` or `fabric.mod.json`.
+
+```bash
+# Cheap: reads the jar, compares the declared level and the bytecode version against the
+# level Forge's own Mixin understands. One second, no game. Exit 1 = would not load.
+"E:/Python312/python.exe" "E:/_claude_ops/loadercheck.py"
+
+# Real: starts the dedicated server that lives in loader-tests\<loader>, with the newest jar
+# from build/libs copied into its mods folder, and reads the log for a verdict.
+powershell -File "E:/_claude_ops/loader_launch.ps1" -Loader forge
+powershell -File "E:/_claude_ops/loader_launch.ps1" -Loader neoforge
+```
+
+A **server**, not a client, on purpose: it loads the same mixin configs and the same
+entrypoints, wants no GPU, no window and no desktop session, and fits in a gigabyte. It
+refuses to start under 1700 MB free and stops itself afterwards, because a forgotten server
+holds that gigabyte all night.
+
+Verdicts it prints: `STARTED` (the log reached `Done (…)! For help`), `MIXIN_ERROR`, `CRASH`,
+`TIMEOUT`. The full server output is left in `E:\_claude_ops\loader_<loader>_server.log`.
+
+**A green Fabric run says nothing about the other two.** That sentence is the whole lesson of
+the 09-22 breakage, and it is why `loadercheck.py` now gates publishing.
+
 **Three things that will cost you a pass if you skip them.**
 
 **The packaged `spoilage_enhanced` jar must never sit beside the dev build.** The dev run
