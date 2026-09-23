@@ -84,7 +84,12 @@ public final class BlockSpoilageNetworking {
             // getSpoilageState, which ages it by chunk — so the item you received was already
             // aging while the HUD had just told you the block was fresh and static. Displayed
             // and actual disagreed. One code path for both is what keeps them honest.
-            stateOrdinal = data.getSpoilageState(pos, level, dropItem).ordinal();
+            // Pass 1438 (L4 — hot path): this handler runs for every HUD request (every
+            // crosshair-on-tracked-block frame batch, per player). The state was already
+            // fetched at line 58 — pass it through the blockState-accepting overload so
+            // getSpoilageState does not do another chunk-section read (and, on its lazy
+            // item-resolution paths, a third one via resolveItemToUse).
+            stateOrdinal = data.getSpoilageState(pos, level, dropItem, state).ordinal();
             ticksRemaining = Math.max(0L, data.getTicksUntilNextStage(pos, level, dropItem));
         }
 
