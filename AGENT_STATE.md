@@ -1,11 +1,11 @@
-Pass: 1424
+Pass: 1425
 Goal: Hunt correctness defects, per-tick (TPS) cost, and UI/HUD problems. Fix them, prove each fix, commit.
 Current task: Next: refill queue with L5/L7/L4 lenses per yield table
-Last lens: L5 render path
+Last lens: L1 silent failure
 Recent: FIXED FIXED IMPROVED FIXED FIXED
 Barren streak: 0
 Commits since: release = 0
-Updated: 2026-09-23 02:48
+Updated: 2026-09-23 07:05
 **The first three unchecked lines in `TASKS.md` are player-reported defects, found by
 actually playing the mod. Take them first, in order, before any lens-generated task.**
 `PLAYER_REPORTS.md` in the project root carries the traced cause and the reasoning for each

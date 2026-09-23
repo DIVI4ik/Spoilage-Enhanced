@@ -1065,3 +1065,4 @@ Older passes live in `.claude/archive/AGENT_LOG_ARCHIVE.md`.
 01:04 · pass 1422 · L5 render path · FIXED · Four cache put() methods: containsKey+put → single put()
 01:52 · pass 1423 · L5 render path · FIXED · BlockSpoilageData, SpoilageConfig, SpoilageEnhancedTranslations: containsKey+put → single put()
 02:48 · pass 1424 · release · FIXED · v1.1.31-26.2 published to dev repo (9 commits since v1.1.30)
+07:05 · pass 1425 · L1 silent failure · FIXED · SpoilageEnhancedLogger writer thread: InterruptedException during shutdown now drains queue instead of dropping entries (restoring interrupt status caused immediate re-interrupt loop, entries never flushed); testLoggerFunctionality and writerThreadHandlesInterruptedException updated to match. 1080/0/0. Committed 3cf7834
