@@ -1074,3 +1074,4 @@ Older passes live in `.claude/archive/AGENT_LOG_ARCHIVE.md`.
 10:28 · pass 1431 · release · IMPROVED · v1.1.32 published to DIVI4ik/Spoilage-Enhanced-dev (tag v1.1.32-26.2, jar 465061 bytes). Contains passes 1426-1430: L5 single-lookup conversions (12 paired call sites), overflow clamps, claim-drift fixes. Suite 1080/0/0.
 11:22 · pass 1432 · L5 render path · FIXED · RotOverlayConfig.getPatternForItem getOrDefault→get()+null check (per-frame overlay lookup). 1080/0/0. Committed 810bf16
 13:13 · pass 1433 · L5 render path · FIXED · ClientBlockSpoilageCache per-tick answer memo: get/peek memoed per tick, accept invalidates. HUD 4-5 CHM.get() per frame → 1 per tick. 1080/0/0. Committed 6f35046
+14:47 · pass 1434 · L5 render path · FIXED · TooltipTextCache put() evicted after inserting, could evict the just-added entry (CHM arbitrary order). Evict-before-put restored. 1080/0/0. Committed 6047079
