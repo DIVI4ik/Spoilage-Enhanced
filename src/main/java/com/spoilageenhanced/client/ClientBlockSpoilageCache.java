@@ -111,6 +111,17 @@ public final class ClientBlockSpoilageCache {
     private static long memoedBlockAtTick = -1L;
     private static Block memoedBlock;
 
+    /**
+     * Per-tick memo for {@link #get}. The HUD reads the same block 4-5 times per
+     * render frame (requestIfStale + getState + looksSpoilableCached + getTicksRemaining +
+     * getSpeedMultiplier), and the cached answer can only change between ticks (when a
+     * network response arrives or the dimension/connection changes). This replaces 4-5
+     * LinkedHashMap.get() + currentBlockAt() calls per frame with 1.
+     */
+    private static BlockPos memoedAnswerPos;
+    private static long memoedAnswerAtTick = -1L;
+    private static CachedAnswer memoedAnswer;
+
     private ClientBlockSpoilageCache() {
     }
 
@@ -123,6 +134,11 @@ public final class ClientBlockSpoilageCache {
         if (response.pos().equals(pendingPos)) {
             pendingPos = null;
         }
+        // Pass 1433 (L5 — render path): invalidate the per-tick answer memo so the next
+        // frame picks up the fresh answer instead of a stale memo from the previous tick.
+        memoedAnswerPos = null;
+        memoedAnswerAtTick = -1L;
+        memoedAnswer = null;
         SpoilageEnhancedLogger.log(SpoilageEnhancedLogger.LogCategory.NETWORK,
                 "Received block spoilage for " + response.pos() + ": state=" + response.state()
                         + ", ticks=" + response.ticksRemaining());
@@ -279,6 +295,10 @@ public final class ClientBlockSpoilageCache {
         memoedBlockPos = null;
         memoedBlockAtTick = -1L;
         memoedBlock = null;
+        // Pass 1433: same for the answer memo — a new world has no valid cached answers.
+        memoedAnswerPos = null;
+        memoedAnswerAtTick = -1L;
+        memoedAnswer = null;
     }
 
     /**
@@ -290,17 +310,35 @@ public final class ClientBlockSpoilageCache {
         if (pos == null || !java.util.Objects.equals(cachedDimension, currentDimension())) {
             return null;
         }
+        // Pass 1433 (L5 — render path): per-tick memo. The HUD reads the same block 4-5
+        // times per frame (requestIfStale + getState + looksSpoilableCached +
+        // getTicksRemainingAndMultiplier + hasAnswerFor), and the cached answer can only
+        // change between ticks (when a network response arrives or the dimension changes).
+        // A single get() + currentBlockAt() per tick replaces 4-5 per frame.
+        long tick = currentGameTime();
+        if (memoedAnswerAtTick == tick && pos.equals(memoedAnswerPos)) {
+            return memoedAnswer;
+        }
         // Pass 104: LinkedHashMap(accessOrder=true) reorders on get(), so this single call
         // both fetches and touches — no separate O(n) deque scan.
         CachedAnswer entry = CACHE.get(pos);
         if (entry == null) {
+            memoedAnswerPos = pos.immutable();
+            memoedAnswerAtTick = tick;
+            memoedAnswer = null;
             return null;
         }
         Block now = currentBlockAt(pos);
         if (now != null && entry.block() != now) {
             CACHE.remove(pos);
+            memoedAnswerPos = pos.immutable();
+            memoedAnswerAtTick = tick;
+            memoedAnswer = null;
             return null;
         }
+        memoedAnswerPos = pos.immutable();
+        memoedAnswerAtTick = tick;
+        memoedAnswer = entry;
         return entry;
     }
 
@@ -310,6 +348,15 @@ public final class ClientBlockSpoilageCache {
      * described — otherwise a verdict about air survives the crate that replaced it.
      */
     private static CachedAnswer peek(BlockPos pos) {
+        // Pass 1433 (L5 — render path): per-tick memo. The HUD reads the same block 4-5
+        // times per frame (requestIfStale + getState + looksSpoilableCached +
+        // getTicksRemainingAndMultiplier + hasAnswerFor), and the cached answer can only
+        // change between ticks (when a network response arrives or the dimension changes).
+        // A single get() + currentBlockAt() per tick replaces 4-5 per frame.
+        long tick = currentGameTime();
+        if (memoedAnswerAtTick == tick && pos.equals(memoedAnswerPos)) {
+            return memoedAnswer;
+        }
         // Pass 519 (L5 — render-path): the old containsKey+get did TWO hash lookups
         // per call, and peek is on the HUD's hot path (requestIfStale + looksSpoilableCached
         // both call it every frame). A single get() does the same work in one lookup.
@@ -318,13 +365,22 @@ public final class ClientBlockSpoilageCache {
         // entry, so the LRU position ends up where it would have been anyway.
         CachedAnswer entry = CACHE.get(pos);
         if (entry == null) {
+            memoedAnswerPos = pos.immutable();
+            memoedAnswerAtTick = tick;
+            memoedAnswer = null;
             return null;
         }
         Block now = currentBlockAt(pos);
         if (now != null && entry.block() != now) {
             CACHE.remove(pos);
+            memoedAnswerPos = pos.immutable();
+            memoedAnswerAtTick = tick;
+            memoedAnswer = null;
             return null;
         }
+        memoedAnswerPos = pos.immutable();
+        memoedAnswerAtTick = tick;
+        memoedAnswer = entry;
         return entry;
     }
 
