@@ -261,6 +261,8 @@ public class DynamicFoodBlockCache {
             for (ItemStack drop : drops) {
                 if (drop.isEmpty()) continue;
                 Item item = drop.getItem();
+                if (AutoFoodDetector.isNeverSpoilable(item) || AutoFoodDetector.isIceItem(item)
+                        || AutoFoodDetector.isKnownNonFoodMaterial(item)) continue;
                 if (SpoilageConfig.getInstance().isSpoilable(item) || drop.has(DataComponents.FOOD)) {
                     return BuiltInRegistries.ITEM.getKey(item).toString();
                 }
@@ -356,7 +358,9 @@ public class DynamicFoodBlockCache {
         // branch) still resolved its self-item and stamped the drop ROTTEN — the exclusion
         // was honoured for a ripe plant and ignored for a seedling of the same block.
         String blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
-        if (SpoilageConfig.getInstance().getExcludedBlockSet().contains(blockId)) {
+        if (AutoFoodDetector.isIceId(blockId)
+                || AutoFoodDetector.isKnownNonFoodMaterial(blockId)
+                || SpoilageConfig.getInstance().getExcludedBlockSet().contains(blockId)) {
             return null;
         }
         Block block = state.getBlock();
@@ -512,6 +516,8 @@ public class DynamicFoodBlockCache {
         // container/holder of food, not a food source itself — refuse the learning.
         Item selfItem = usedState.getBlock().asItem();
         if (selfItem == null || selfItem == Items.AIR
+                || AutoFoodDetector.isNeverSpoilable(selfItem)
+                || AutoFoodDetector.isKnownNonFoodMaterial(selfItem)
                 || !SpoilageConfig.getInstance().isSpoilable(selfItem)) {
             return false;
         }

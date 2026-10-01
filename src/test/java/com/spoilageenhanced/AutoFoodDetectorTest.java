@@ -216,4 +216,45 @@ public class AutoFoodDetectorTest {
         // Stone is not food
         assertFalse(AutoFoodDetector.isFoodOrMealItem(Items.STONE));
     }
+
+    @Test
+    void neverSpoilableIncludesIce() {
+        assertTrue(AutoFoodDetector.isNeverSpoilable(Items.ICE));
+        assertTrue(AutoFoodDetector.isNeverSpoilable(Items.PACKED_ICE));
+        assertTrue(AutoFoodDetector.isNeverSpoilable(Items.BLUE_ICE));
+    }
+
+    @Test
+    void iceIsNotValidFoodCandidate() {
+        assertFalse(AutoFoodDetector.isValidFoodCandidate(Items.ICE));
+        assertFalse(AutoFoodDetector.isValidFoodCandidate(Items.PACKED_ICE));
+        assertFalse(AutoFoodDetector.isValidFoodCandidate(Items.BLUE_ICE));
+    }
+
+    @Test
+    void isFoodOrMealItemReturnsFalseForIce() {
+        assertFalse(AutoFoodDetector.isFoodOrMealItem(Items.ICE));
+        assertFalse(AutoFoodDetector.isFoodOrMealItem(Items.PACKED_ICE));
+        assertFalse(AutoFoodDetector.isFoodOrMealItem(Items.BLUE_ICE));
+    }
+
+    @Test
+    void isIceItemAndIdRecognizesIceVariants() {
+        assertTrue(AutoFoodDetector.isIceItem(Items.ICE));
+        assertTrue(AutoFoodDetector.isIceItem(Items.PACKED_ICE));
+        assertTrue(AutoFoodDetector.isIceItem(Items.BLUE_ICE));
+        assertTrue(AutoFoodDetector.isIceId("minecraft:ice"));
+        assertTrue(AutoFoodDetector.isIceId("minecraft:packed_ice"));
+        assertTrue(AutoFoodDetector.isIceId("minecraft:blue_ice"));
+        assertTrue(AutoFoodDetector.isIceId("coldsweat:ice_cube"));
+        assertTrue(AutoFoodDetector.isIceId("somemod:dense_ice"));
+        assertTrue(AutoFoodDetector.isIceId("somemod:crushed_ice"));
+
+        // Food dishes containing ice or cream should not be recognized as pure ice
+        assertFalse(AutoFoodDetector.isIceId("minecraft:ice_cream"));
+        assertFalse(AutoFoodDetector.isIceId("farmersdelight:melon_ice_cream"));
+        assertFalse(AutoFoodDetector.isIceId("somemod:ice_tea"));
+        assertFalse(AutoFoodDetector.isIceId("somemod:ice_coffee"));
+        assertFalse(AutoFoodDetector.isIceId("somemod:ice_cake"));
+    }
 }

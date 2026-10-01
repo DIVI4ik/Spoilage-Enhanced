@@ -156,11 +156,9 @@ public class SpoilageConfig {
      * Gson leaves it at the initialised value and the migration runs exactly once.</p>
      */
     private int config_version = 0;
-    public static final int CURRENT_CONFIG_VERSION = 3;
-    // 2 -> 3: the recipe scanner now requires an output to look edible in its own right before
-    // inheriting spoilage from its ingredients. Entries written under the old rule are wrong
-    // and, because the scanners only append, would otherwise stay forever — an apple sapling
-    // crafted from one apple had a freshness timer in a live save.
+    public static final int CURRENT_CONFIG_VERSION = 4;
+    // 3 -> 4: ice (ice, packed_ice, blue_ice, frosted_ice) was mistakenly inferred as
+    // storage or food candidate; drop inferred entries.
 
     // ======================== Effects Config ========================
     @SuppressWarnings("unused")
@@ -496,6 +494,10 @@ public class SpoilageConfig {
             unboundOut[0] = false;
             return false;
         }
+        if (AutoFoodDetector.isNeverSpoilable(item)) {
+            unboundOut[0] = false;
+            return false;
+        }
         // Items that spoil without being edible (eggs, milk, cake). Checked before the FOOD
         // component because the component is unreadable during the datapack-load scan, and a
         // "not spoilable" answer there is what keeps their Crate Delight crates unregistered.
@@ -534,6 +536,7 @@ public class SpoilageConfig {
     }
 
     public boolean isExcluded(Item item) {
+        if (AutoFoodDetector.isNeverSpoilable(item)) return true;
         String idStr = getItemId(item);
         return getExcludedSet().contains(idStr);
     }
@@ -752,14 +755,14 @@ public class SpoilageConfig {
         // written automatically: deleting a line from it is not a decision that sticks, since
         // the next scan puts it straight back. excluded_blocks is the list a player or pack
         // author edits and the mod never touches.
-        if (getExcludedBlockSet().contains(blockId)) {
+        if (AutoFoodDetector.isIceId(blockId) || getExcludedBlockSet().contains(blockId)) {
             return null;
         }
         String drop = tracked_blocks != null ? tracked_blocks.get(blockId) : null;
         if (drop != null) {
             // Excluding the ITEM also stops the block that drops it. Someone who writes
             // "bread never spoils" means it, and would not expect to have to say it twice.
-            if (getExcludedSet().contains(drop)) {
+            if (AutoFoodDetector.isIceId(drop) || getExcludedSet().contains(drop)) {
                 return null;
             }
             return drop;
@@ -839,7 +842,7 @@ public class SpoilageConfig {
     public void registerDynamicStorageItem(String storageItemId, String sourceFoodId, boolean autoSave) {
         net.minecraft.resources.Identifier sourceId = net.minecraft.resources.Identifier.parse(sourceFoodId);
         Item sourceItem = BuiltInRegistries.ITEM.getValue(sourceId);
-        if (!isSpoilable(sourceItem)) return;
+        if (!isSpoilable(sourceItem) || !AutoFoodDetector.isFoodOrMealItem(sourceItem)) return;
 
         net.minecraft.resources.Identifier storageId = net.minecraft.resources.Identifier.parse(storageItemId);
         Item storageItem = BuiltInRegistries.ITEM.getValue(storageId);
@@ -1084,6 +1087,17 @@ public class SpoilageConfig {
         addDefaultExcluded("minecraft:torchflower_seeds");
         addDefaultExcluded("minecraft:pitcher_pod");
 
+        // Ice never spoils: pure frozen water, never rot or decay.
+        addDefaultExcluded("minecraft:ice");
+        addDefaultExcluded("minecraft:packed_ice");
+        addDefaultExcluded("minecraft:blue_ice");
+
+        // Excluded blocks (ice blocks in world never get spoilage tracking)
+        addDefaultExcludedBlock("minecraft:ice");
+        addDefaultExcludedBlock("minecraft:packed_ice");
+        addDefaultExcludedBlock("minecraft:blue_ice");
+        addDefaultExcludedBlock("minecraft:frosted_ice");
+
         // Additional items
         addDefaultAdditional("minecraft:milk_bucket");
         addDefaultAdditional("minecraft:egg");
@@ -1182,6 +1196,15 @@ public class SpoilageConfig {
     private void addDefaultExcluded(String id) {
         if (!excluded_items.contains(id)) {
             excluded_items.add(id);
+        }
+    }
+
+    private void addDefaultExcludedBlock(String id) {
+        if (excluded_blocks == null) {
+            excluded_blocks = new ArrayList<>();
+        }
+        if (!excluded_blocks.contains(id)) {
+            excluded_blocks.add(id);
         }
     }
 

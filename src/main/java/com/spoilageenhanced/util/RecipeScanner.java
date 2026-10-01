@@ -112,7 +112,8 @@ public class RecipeScanner {
                     // 1. Storage Blocks (4x/9x compression)
                     if (output.count() == 1 && (ingredientCount == 4 || ingredientCount == 9)) {
                         Item uniqueInput = getUniqueIngredient(ingredients);
-                        if (uniqueInput != null && uniqueInput != outputItem) {
+                        if (uniqueInput != null && uniqueInput != outputItem
+                                && AutoFoodDetector.isPlausibleFoodStorage(outputItem, uniqueInput)) {
                             String inputId = BuiltInRegistries.ITEM.getKey(uniqueInput).toString();
                             if (SpoilageConfig.getInstance().isSpoilable(uniqueInput)) {
                                 if (!SpoilageConfig.getInstance().isSpoilable(outputItem)) {
@@ -128,7 +129,8 @@ public class RecipeScanner {
                     // 1b. Decompression (1 storage -> 4x/9x items)
                     if ((output.count() == 4 || output.count() == 9) && ingredientCount == 1) {
                         Item uniqueInput = getUniqueIngredient(ingredients);
-                        if (uniqueInput != null && uniqueInput != outputItem) {
+                        if (uniqueInput != null && uniqueInput != outputItem
+                                && AutoFoodDetector.isPlausibleFoodStorage(uniqueInput, outputItem)) {
                             String inputId = BuiltInRegistries.ITEM.getKey(uniqueInput).toString();
                             if (SpoilageConfig.getInstance().isSpoilable(outputItem)) {
                                 if (!SpoilageConfig.getInstance().isSpoilable(uniqueInput)) {

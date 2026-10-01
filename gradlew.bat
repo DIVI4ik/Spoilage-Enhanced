@@ -28,7 +28,11 @@ if "%OS%"=="Windows_NT" setlocal
 
 set DIRNAME=%~dp0
 if "%DIRNAME%"=="" set DIRNAME=.
-set JAVA_HOME=E:\jdk-25
+if exist "E:\jdk-25" (
+    set "JAVA_HOME=E:\jdk-25"
+) else if exist "C:\Program Files\Microsoft\jdk-25.0.4.101-hotspot" (
+    set "JAVA_HOME=C:\Program Files\Microsoft\jdk-25.0.4.101-hotspot"
+)
 @rem This is normally unused
 set APP_BASE_NAME=%~n0
 set APP_HOME=%DIRNAME%
@@ -37,7 +41,7 @@ set APP_HOME=%DIRNAME%
 for %%i in ("%APP_HOME%") do set APP_HOME=%%~fi
 
 @rem Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
-set DEFAULT_JVM_OPTS="-Xmx64m" "-Xms64m" "-Dorg.gradle.java.home=E:\jdk-25"
+set DEFAULT_JVM_OPTS="-Xmx64m" "-Xms64m" "-Dorg.gradle.java.home=%JAVA_HOME%"
 
 @rem Find java.exe
 if defined JAVA_HOME goto findJavaFromJavaHome

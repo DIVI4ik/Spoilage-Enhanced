@@ -137,7 +137,11 @@ public final class BlockDropSpoilageHandler {
 
         BlockSpoilageData data = BlockSpoilageData.get(serverWorld);
         Item dropItem = BuiltInRegistries.ITEM.getValue(Identifier.parse(dropItemId));
-        FoodSpoilageUtil.SpoilageState spoilState = data.getSpoilageState(pos, world, dropItem);
+        // Pass 1440 (L4 — hot path): pass the blockState this method already received through
+        // the 4-arg overload, so getSpoilageState does not do a second chunk-section read
+        // (and a third via resolveItemToUse on its lazy item-resolution paths). This runs on
+        // every block break that produces a food drop.
+        FoodSpoilageUtil.SpoilageState spoilState = data.getSpoilageState(pos, world, dropItem, state);
         BlockSpoilageData.BlockSpoilageEntry entry = data.getEntry(pos);
 
         long expirationTime = entry != null ? entry.expirationTime : -1;

@@ -87,8 +87,35 @@ import java.util.function.BooleanSupplier;
 @Mixin(MinecraftServer.class)
 public abstract class ContainerAgingSweepMixin {
 
+    @org.spongepowered.asm.mixin.Unique
+    private static int spoilage_enhanced$consecutiveSkips = 0;
+    @org.spongepowered.asm.mixin.Unique
+    private static final int MAX_CONSECUTIVE_SKIPS = 40; // 2 seconds at 20 TPS
+
     @Inject(method = "tickServer(Ljava/util/function/BooleanSupplier;)V", at = @At("HEAD"))
     private void spoilage_enhanced$sweepContainerContents(BooleanSupplier haveTime, CallbackInfo ci) {
+        // Starvation and budget control:
+        // haveTime signals whether the server has spare budget in this tick.
+        // If the server is overloaded (e.g. heavy worldgen, dungeon generation), yield immediately.
+        // Food spoilage is an idempotent function of absolute gameTime, so food will safely catch up.
+        // If the server remains continuously saturated for >40 ticks (2 seconds), allow a time-capped
+        // sweep (max 1.5ms) to guarantee progress without causing lag spikes.
+        boolean budgetExhausted = haveTime != null && !haveTime.getAsBoolean();
+        boolean forceStarvationSweep = false;
+
+        if (budgetExhausted) {
+            spoilage_enhanced$consecutiveSkips++;
+            if (spoilage_enhanced$consecutiveSkips < MAX_CONSECUTIVE_SKIPS) {
+                return;
+            }
+            forceStarvationSweep = true;
+            spoilage_enhanced$consecutiveSkips = 0;
+        } else {
+            spoilage_enhanced$consecutiveSkips = 0;
+        }
+
+        long deadlineNanos = forceStarvationSweep ? System.nanoTime() + 1_500_000L : Long.MAX_VALUE;
+
         MinecraftServer server = (MinecraftServer) (Object) this;
 
         for (ServerLevel level : server.getAllLevels()) {
@@ -98,20 +125,52 @@ public abstract class ContainerAgingSweepMixin {
             ChunkMap chunkMap = level.getChunkSource().chunkMap;
             Long2ObjectLinkedOpenHashMap<ChunkHolder> chunks =
                     ((ChunkMapAccessor) chunkMap).spoilage_enhanced$getUpdatingChunkMap();
+            if (chunks.isEmpty()) {
+                continue;
+            }
+
             long gameTime = level.getGameTime();
 
             for (ChunkHolder holder : chunks.values()) {
+                net.minecraft.world.level.ChunkPos chunkPos = holder.getPos();
+                // Phase spread by chunk: 1/20 of the loaded chunks per tick.
+                // Filter by holder.getPos() FIRST before calling getTickingChunk()
+                // to eliminate 95% of C2ME/chunk-system lookups.
+                if (((long) chunkPos.x() + chunkPos.z() + gameTime) % 20 != 0) {
+                    continue;
+                }
+
+                // Check time budget during chunk iteration
+                if (haveTime != null && !haveTime.getAsBoolean()) {
+                    if (!forceStarvationSweep || System.nanoTime() > deadlineNanos) {
+                        return;
+                    }
+                } else if (forceStarvationSweep && System.nanoTime() > deadlineNanos) {
+                    return;
+                }
+
                 LevelChunk chunk = holder.getTickingChunk();
                 if (chunk == null) {
                     continue;
                 }
-                // Phase spread by chunk: 1/20 of the loaded chunks per tick. See the class
-                // javadoc for why the per-position gate was wrong (residue mismatch).
-                if (((long) chunk.getPos().x() + chunk.getPos().z() + gameTime) % 20 != 0) {
+
+                if (chunk.getBlockEntities().isEmpty()) {
                     continue;
                 }
+
                 for (Map.Entry<net.minecraft.core.BlockPos, BlockEntity> entry : chunk.getBlockEntities().entrySet()) {
                     BlockEntity blockEntity = entry.getValue();
+                    if (blockEntity == null) {
+                        continue;
+                    }
+
+                    // Fast-skip unopened loot tables in generated structures (dungeons, villages, etc.)
+                    // Calling getItem() on an unopened RandomizableContainer prematurely unpacks the loot
+                    // table and runs randomizeSpoilage across all slots, causing massive worldgen spikes.
+                    if (blockEntity instanceof net.minecraft.world.RandomizableContainer rc && rc.getLootTable() != null) {
+                        continue;
+                    }
+
                     // Pass 1320: three conventions — Container, getContainer(), and the
                     // getItems() list shape (Ecologics pot). Try the Container shapes first
                     // (the common case), then the list shape.
@@ -155,63 +214,38 @@ public abstract class ContainerAgingSweepMixin {
     }
 
     /**
-     * Ages every spoilable stack in one container. Mirrors the probe-then-update shape of
-     * {@code HopperAgingMixin}: the cheap {@code isSpoilable} probe runs before any
-     * component access, and {@code updateSpoilage} lazily stamps unstamped spoilable food
-     * exactly as the bundle and minecart branches do.
-     */
-    /**
      * Pass 1320: ages a list-backed container (the getItems() convention). The list is
      * the entity's own backing list — updateSpoilage mutates the ItemStack objects in
-     * place, so the entity serialises the aged values on save. Same probe-then-update
-     * shape as {@link #ageContainer}.
+     * place, so the entity serialises the aged values on save. Single-pass traversal.
      */
     private static void ageItemList(java.util.List<ItemStack> items, ServerLevel level) {
-        boolean anySpoilable = false;
-        for (ItemStack stack : items) {
-            if (FoodSpoilageUtil.stackIsOrCarriesSpoilableFood(stack)) {
-                anySpoilable = true;
-                break;
-            }
-        }
-        if (!anySpoilable) {
+        if (items == null || items.isEmpty()) {
             return;
         }
-        for (ItemStack stack : items) {
-            if (stack.isEmpty()) {
-                continue;
+        int size = items.size();
+        for (int i = 0; i < size; i++) {
+            ItemStack stack = items.get(i);
+            if (!stack.isEmpty() && FoodSpoilageUtil.stackIsOrCarriesSpoilableFood(stack)) {
+                FoodSpoilageUtil.updateSpoilage(stack, level);
             }
-            FoodSpoilageUtil.updateSpoilage(stack, level);
         }
     }
 
+    /**
+     * Ages every spoilable stack in one container in a single pass.
+     * Empty containers are skipped instantly; non-food items are skipped with
+     * the fast probe without touching updateSpoilage components.
+     */
     private static void ageContainer(Container container, ServerLevel level) {
-        // Pass 1192: shared probe — the pattern was copy-pasted in five mixins and the
-        // pass-1191 defect happened because the sweep's copy was fixed and the other
-        // four were missed. One method replaced them all; later container mixins call
-        // it instead of re-copying.
-        boolean anySpoilable = false;
-        for (int i = 0; i < container.getContainerSize(); i++) {
-            if (FoodSpoilageUtil.stackIsOrCarriesSpoilableFood(container.getItem(i))) {
-                anySpoilable = true;
-                break;
-            }
-        }
-        if (!anySpoilable) {
+        if (container == null || container.isEmpty()) {
             return;
         }
-
-        for (int i = 0; i < container.getContainerSize(); i++) {
+        int size = container.getContainerSize();
+        for (int i = 0; i < size; i++) {
             ItemStack stack = container.getItem(i);
-            if (stack.isEmpty()) {
-                continue;
+            if (!stack.isEmpty() && FoodSpoilageUtil.stackIsOrCarriesSpoilableFood(stack)) {
+                FoodSpoilageUtil.updateSpoilage(stack, level);
             }
-            // Pass 1189: updateSpoilage itself no-ops on stacks that are neither spoilable
-            // nor food-carrying (its own guards), so calling it on every non-empty stack of
-            // a container the probe flagged is safe — and it is the only way a bundle or
-            // nested shulker box in this container gets its contents aged. The old
-            // isSpoilable filter here skipped them even after the probe was fixed.
-            FoodSpoilageUtil.updateSpoilage(stack, level);
         }
     }
 }

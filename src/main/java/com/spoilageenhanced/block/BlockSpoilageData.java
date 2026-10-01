@@ -570,6 +570,9 @@ public class BlockSpoilageData extends SavedData {
                 }
             }
             if (itemToUse == null) itemToUse = dropItem;
+            if (itemToUse == null || !SpoilageConfig.getInstance().isSpoilable(itemToUse)) {
+                return FoodSpoilageUtil.SpoilageState.FRESH;
+            }
             long chunkBirthTime = getChunkBirthTime(serverWorld, ChunkPos.containing(pos));
             long freshDuration = SpoilageConfig.getInstance().getFreshDurationForItem(itemToUse);
             // Pass 1396 (L7 — boundary): chunkBirthTime + freshDuration can overflow to negative

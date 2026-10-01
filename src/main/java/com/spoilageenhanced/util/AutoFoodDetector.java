@@ -66,6 +66,7 @@ public class AutoFoodDetector {
     }
 
     public static boolean isNeverSpoilable(Item item) {
+        if (item == null || item == Items.AIR) return false;
         if (item == Items.POTION
                 || item == Items.SPLASH_POTION
                 || item == Items.LINGERING_POTION
@@ -75,17 +76,54 @@ public class AutoFoodDetector {
                 || item == Items.GOLDEN_CARROT
                 || item == Items.GLISTERING_MELON_SLICE
                 || item == Items.ROTTEN_FLESH
-                || item == Items.SPIDER_EYE) {
+                || item == Items.SPIDER_EYE
+                || item == Items.ICE
+                || item == Items.PACKED_ICE
+                || item == Items.BLUE_ICE) {
             return true;
         }
 
         String id = BuiltInRegistries.ITEM.getKey(item).toString();
-        return id.equals("minecraft:golden_apple")
+        if (id.equals("minecraft:golden_apple")
                 || id.equals("minecraft:enchanted_golden_apple")
                 || id.equals("minecraft:golden_carrot")
                 || id.equals("minecraft:glistering_melon_slice")
                 || id.equals("minecraft:rotten_flesh")
-                || id.equals("minecraft:spider_eye");
+                || id.equals("minecraft:spider_eye")
+                || id.equals("minecraft:ice")
+                || id.equals("minecraft:packed_ice")
+                || id.equals("minecraft:blue_ice")) {
+            return true;
+        }
+
+        return isIceId(id);
+    }
+
+    public static boolean isIceItem(Item item) {
+        if (item == null || item == Items.AIR) return false;
+        if (item == Items.ICE || item == Items.PACKED_ICE || item == Items.BLUE_ICE) return true;
+        String id = BuiltInRegistries.ITEM.getKey(item).toString();
+        return isIceId(id);
+    }
+
+    public static boolean isIceId(String id) {
+        if (id == null) return false;
+        if (id.equals("minecraft:ice")
+                || id.equals("minecraft:packed_ice")
+                || id.equals("minecraft:blue_ice")
+                || id.equals("minecraft:frosted_ice")) {
+            return true;
+        }
+        if ((id.endsWith(":ice") || id.endsWith("_ice"))
+                && !id.contains("cream") && !id.contains("tea") && !id.contains("coffee")
+                && !id.contains("juice") && !id.contains("drink") && !id.contains("pop")
+                && !id.contains("cake")) {
+            return true;
+        }
+        if (id.contains("ice_cube") || id.contains("ice_shard") || id.contains("ice_shaving")) {
+            return true;
+        }
+        return false;
     }
 
     public static boolean isAlwaysSpoilable(Item item) {
@@ -200,6 +238,10 @@ public class AutoFoodDetector {
      * @return a duration factor when the item looks edible, or {@code null} when it does not.
      */
     private static Double detectFoodFactor(Item item) {
+        if (isKnownNonFoodMaterial(item)) {
+            return null;
+        }
+
         Double tagFactor = foodTagFactor(item);
         if (tagFactor != null) {
             return tagFactor;
@@ -269,7 +311,7 @@ public class AutoFoodDetector {
 
     public static boolean isFoodOrMealItem(Item item) {
         if (item == null) return false;
-        if (isNeverSpoilable(item)) return false;
+        if (isNeverSpoilable(item) || isKnownNonFoodMaterial(item)) return false;
         if (isAlwaysSpoilable(item)) return true;
 
         DataComponentMap components = safeComponents(item);
@@ -308,7 +350,7 @@ public class AutoFoodDetector {
      */
     public static boolean looksEdibleItself(Item item) {
         if (item == null || item == Items.AIR) return false;
-        if (isNeverSpoilable(item)) return false;
+        if (isNeverSpoilable(item) || isKnownNonFoodMaterial(item)) return false;
         if (isAlwaysSpoilable(item)) return true;
 
         DataComponentMap components = safeComponents(item);
@@ -319,11 +361,183 @@ public class AutoFoodDetector {
         return foodTagFactor(item) != null;
     }
 
+    /**
+     * Universal non-food material heuristic: rejects structural materials, minerals, ores,
+     * geology, redstone, and non-food blocks from vanilla and any mods.
+     */
+    public static boolean isKnownNonFoodMaterial(Item item) {
+        if (item == null || item == Items.AIR) return false;
+        String id = BuiltInRegistries.ITEM.getKey(item).toString();
+        return isKnownNonFoodMaterial(id);
+    }
+
+    public static boolean isKnownNonFoodMaterial(String id) {
+        if (id == null || id.isEmpty()) return false;
+        String path = id.toLowerCase();
+        int colon = path.indexOf(':');
+        if (colon != -1) {
+            path = path.substring(colon + 1);
+        }
+
+        // 1. Ice and snow (excluding desserts / drinks like ice_cream, iced_tea)
+        if (isIceId(id)) {
+            return true;
+        }
+        if ((path.endsWith("_snow") || path.equals("snow") || path.startsWith("snow_") || path.equals("powder_snow"))
+                && !path.contains("cone") && !path.contains("dessert") && !path.contains("ice_cream")) {
+            return true;
+        }
+
+        // 2. Construction / structural / architectural items & blocks
+        if (path.endsWith("_slab") || path.endsWith("_stairs") || path.endsWith("_wall")
+                || path.endsWith("_fence") || path.endsWith("_fence_gate")
+                || path.endsWith("_door") || path.endsWith("_trapdoor")
+                || path.endsWith("_pane") || path.endsWith("_glass") || path.equals("glass")
+                || path.endsWith("_brick") || path.endsWith("_bricks") || path.equals("brick") || path.equals("bricks")
+                || path.endsWith("_tiles") || path.endsWith("_planks")
+                || path.endsWith("_pillar") || path.endsWith("_bars") || path.equals("iron_bars")
+                || path.endsWith("_chain") || path.equals("chain") || path.endsWith("_rod")
+                || path.endsWith("_lantern") || path.equals("lantern") || path.endsWith("_torch") || path.equals("torch")
+                || path.endsWith("_scaffolding") || path.equals("scaffolding") || path.endsWith("_button")
+                || path.endsWith("_pressure_plate") || path.endsWith("_sign")
+                || path.endsWith("_hanging_sign") || path.endsWith("_anvil") || path.equals("anvil")) {
+            return true;
+        }
+
+        // 3. Minerals, metals, and raw ore materials
+        // Note: Do NOT match raw_ prefix directly because raw_beef, raw_porkchop, raw_chicken exist!
+        if (path.endsWith("_ore") || path.endsWith("_raw_ore")
+                || path.equals("raw_iron") || path.equals("raw_copper") || path.equals("raw_gold")
+                || path.startsWith("raw_iron_") || path.startsWith("raw_copper_") || path.startsWith("raw_gold_")
+                || path.endsWith("_ingot")
+                || path.equals("diamond") || path.endsWith("_diamond")
+                || path.equals("emerald") || path.endsWith("_emerald")
+                || path.equals("amethyst") || path.endsWith("_amethyst")
+                || path.equals("quartz") || path.endsWith("_quartz")
+                || path.equals("ruby") || path.endsWith("_ruby")
+                || path.equals("sapphire") || path.endsWith("_sapphire")
+                || path.equals("topaz") || path.endsWith("_topaz")
+                || path.equals("coal") || path.equals("charcoal")
+                || path.equals("redstone") || path.equals("glowstone")
+                || path.equals("lapis_lazuli") || path.endsWith("_lapis")
+                || path.equals("netherite_scrap")
+                || path.endsWith("_dust") || path.endsWith("_shard")
+                || path.endsWith("_crystal") || path.endsWith("_gem")) {
+            return true;
+        }
+        // Nuggets: avoid chicken_nugget, fish_nugget, etc.
+        if (path.endsWith("_nugget")) {
+            if (!path.contains("chicken") && !path.contains("fish") && !path.contains("meat")
+                    && !path.contains("tofu") && !path.contains("cheese") && !path.contains("turkey")
+                    && !path.contains("pork") && !path.contains("beef") && !path.contains("veggie")) {
+                return true;
+            }
+        }
+        // Known solid mineral/metal blocks
+        if (path.equals("iron_block") || path.equals("gold_block") || path.equals("copper_block")
+                || path.equals("diamond_block") || path.equals("netherite_block")
+                || path.equals("emerald_block") || path.equals("lapis_block")
+                || path.equals("redstone_block") || path.equals("amethyst_block")
+                || path.equals("quartz_block")) {
+            return true;
+        }
+
+        // 4. Geology, terrain, stone variants
+        if (path.endsWith("_stone") || path.equals("stone")
+                || path.endsWith("_cobblestone") || path.equals("cobblestone")
+                || path.endsWith("_deepslate") || path.equals("deepslate")
+                || path.endsWith("_granite") || path.equals("granite")
+                || path.endsWith("_diorite") || path.equals("diorite")
+                || path.endsWith("_andesite") || path.equals("andesite")
+                || path.endsWith("_tuff") || path.equals("tuff")
+                || path.endsWith("_basalt") || path.equals("basalt")
+                || path.endsWith("_obsidian") || path.equals("obsidian")
+                || path.endsWith("_sandstone") || path.equals("sandstone")
+                || path.endsWith("_gravel") || path.equals("gravel")
+                || path.endsWith("_sand") || path.equals("sand")
+                || path.endsWith("_dirt") || path.equals("dirt")
+                || path.endsWith("_mud") || path.equals("mud")
+                || path.endsWith("_clay") || path.equals("clay")
+                || path.endsWith("_concrete") || path.equals("concrete") || path.endsWith("_concrete_powder")
+                || path.endsWith("_terracotta") || path.equals("terracotta")) {
+            return true;
+        }
+
+        // 5. Mechanisms, redstone, utility
+        if (path.endsWith("_piston") || path.equals("piston")
+                || path.endsWith("_dispenser") || path.equals("dispenser")
+                || path.endsWith("_dropper") || path.equals("dropper")
+                || path.endsWith("_hopper") || path.equals("hopper")
+                || path.endsWith("_observer") || path.equals("observer")
+                || path.endsWith("_repeater") || path.equals("repeater")
+                || path.endsWith("_comparator") || path.equals("comparator")
+                || path.endsWith("_rail") || path.equals("rail")) {
+            return true;
+        }
+
+        // 6. Textiles, bedding, furniture
+        if (path.endsWith("_wool") || path.equals("wool")
+                || path.endsWith("_carpet") || path.equals("carpet")
+                || path.endsWith("_bed") || path.equals("bed")
+                || path.endsWith("_banner") || path.equals("banner")
+                || path.endsWith("_shulker_box") || path.equals("shulker_box")
+                || path.endsWith("_candle") || path.equals("candle")) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Verifies if {@code storageItem} is plausible food storage for {@code foodItem}.
+     * Prevents non-food compression recipes (e.g. 9 ice -> packed ice, 9 iron -> iron block)
+     * from becoming food storage blocks.
+     */
+    public static boolean isPlausibleFoodStorage(Item storageItem, Item foodItem) {
+        if (storageItem == null || storageItem == Items.AIR || foodItem == null || foodItem == Items.AIR) {
+            return false;
+        }
+        if (isNeverSpoilable(storageItem) || isNeverSpoilable(foodItem)) {
+            return false;
+        }
+        if (isKnownNonFoodMaterial(storageItem) || isKnownNonFoodMaterial(foodItem)) {
+            return false;
+        }
+        if (!isFoodOrMealItem(foodItem)) {
+            return false;
+        }
+
+        String storageId = BuiltInRegistries.ITEM.getKey(storageItem).toString().toLowerCase();
+        // Conventional storage forms in Minecraft and food mods (Farmer's Delight, Crate Delight, etc.):
+        if (storageId.contains("crate") || storageId.contains("bag") || storageId.contains("sack")
+                || storageId.contains("basket") || storageId.contains("bale") || storageId.contains("bundle")
+                || storageId.contains("barrel") || storageId.contains("box") || storageId.contains("pack")) {
+            return true;
+        }
+        // Known vanilla and mod food blocks:
+        if (storageItem == Items.HAY_BLOCK || storageItem == Items.MELON
+                || storageItem == Items.DRIED_KELP_BLOCK || storageItem == Items.HONEY_BLOCK
+                || storageItem == Items.HONEYCOMB_BLOCK) {
+            return true;
+        }
+        // If it's a block (ends with _block), only accept if the food item is an edible food/produce
+        if (storageId.endsWith("_block")) {
+            return isFoodOrMealItem(foodItem);
+        }
+        // Container items like bowls or plates
+        if (isContainerItem(storageItem)) {
+            return true;
+        }
+        return false;
+    }
+
     public static boolean isValidFoodCandidate(Item item) {
         if (item == null || item == Items.AIR) return false;
+        if (isNeverSpoilable(item) || isIceItem(item) || isKnownNonFoodMaterial(item)) return false;
         DataComponentMap components = safeComponents(item);
         if (components != null && components.has(DataComponents.MAX_DAMAGE)) return false;
         String id = BuiltInRegistries.ITEM.getKey(item).toString();
+        if (isIceId(id) || isKnownNonFoodMaterial(id)) return false;
         if (id.endsWith("_sword") || id.endsWith("_axe") || id.endsWith("_pickaxe")
                 || id.endsWith("_shovel") || id.endsWith("_hoe") || id.endsWith("_helmet")
                 || id.endsWith("_chestplate") || id.endsWith("_leggings") || id.endsWith("_boots")
